@@ -1528,6 +1528,22 @@ body.kk-v30-shell-ready [data-app-panel] .kk-v30-subnav button{
 .kkcp-avatar{flex:0 0 auto;width:30px;height:30px;border-radius:9px;background:var(--v30-blue-soft);color:var(--v30-blue);display:grid;place-items:center;font-weight:700;font-size:12.5px;letter-spacing:0}
 .kkcp-name-col{min-width:0}
 .kkcp-name-col b{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+
+/* -------- Bugfix: sechs Tab-/Filter-Leisten-Familien zeigten keine Aktiv-/
+   Inaktiv-Unterscheidung mehr. Ursache: #kk-app-shell button{...!important}
+   (ID-Selektor!) schlägt jede reine Klassenregel gleicher !important-Ebene,
+   egal wie viele Klassen sie kombiniert — die jeweilige .is-active-Regel
+   dieser Komponenten hatte weder ID noch !important und verlor daher IMMER.
+   Sichtbar wurde das nie, weil die aktive Farbe zufällig ebenfalls Navy war.
+   Fix: eigene Regel MIT #kk-app-shell, damit die ID-Spezifität mindestens
+   gleichzieht. Betrifft: Marktmonitor-Metrikfilter, CRM-Pro-Unternavigation,
+   Tippgeber-Tabs, Follow-up-Tabs, Aufgaben-Kanban-Filter, Heute-Schnellerfassung. -------- */
+body.kk-v30-shell-ready #kk-app-shell :is(.kkmkk-filter,.kkcp-tab,.kkref20-tab,.kk12-tab,.kk-fu-tab,.kkh-quick-btn):not(.is-active){
+  background:#fff!important;color:var(--v30-muted,#5b6472)!important;border-color:var(--v30-border,#e3e5e8)!important;box-shadow:none!important;
+}
+body.kk-v30-shell-ready #kk-app-shell :is(.kkmkk-filter,.kkcp-tab,.kkref20-tab,.kk12-tab,.kk-fu-tab,.kkh-quick-btn).is-active{
+  background:var(--v30-blue,#182c46)!important;color:#fff!important;border-color:transparent!important;
+}
 </style>
 </head><body>
 <!-- V29.1: Praxis-/Backup-Test mit realistischem synthetischem Datenbestand; echter Merge-Import ergänzt. Keine Testdaten in der Produktionsdatei eingebettet. -->
@@ -3502,6 +3518,12 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 .kkgeo-updated{font-family:ui-monospace,monospace;font-size:11px;color:var(--v30-muted,#5b6472);white-space:nowrap}
 .kkgeo-btn{border:1px solid var(--v30-border,#e3e5e8);border-radius:10px;background:#fff;color:var(--v30-ink,#141a21);font:inherit;font-size:12.5px;font-weight:700;padding:8px 14px;cursor:pointer}
 .kkgeo-btn:hover{background:var(--v30-surface-2,#f1f2f4)}
+.kkgeo-layer-actions{display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.kkgeo-toggle{border:1px solid var(--v30-border,#e3e5e8);background:#fff;color:var(--v30-muted,#5b6472);border-radius:999px;padding:7px 13px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.kkgeo-toggle:before{content:"";width:8px;height:8px;border-radius:2px;border:1.5px solid currentColor}
+.kkgeo-toggle:hover{background:var(--v30-surface-2,#f1f2f4)}
+.kkgeo-toggle[aria-pressed="true"]{background:var(--v30-blue-soft,#eaedf2);color:var(--v30-blue,#182c46);border-color:transparent;font-weight:800}
+.kkgeo-toggle[aria-pressed="true"]:before{background:currentColor}
 .kkgeo-offline{margin:0 0 12px;padding:11px 14px;border-radius:10px;background:var(--sev-med-soft,#f7ecd9);color:#5a3d0a;font-size:13px;border-left:3px solid var(--v30-orange,#ad7714)}
 .kkgeo-map-wrap{border:1px solid var(--v30-border,#e3e5e8);border-radius:16px;overflow:hidden;box-shadow:var(--v30-shadow,0 1px 2px rgba(16,20,24,.04),0 6px 18px rgba(16,20,24,.05))}
 .kkgeo-map{width:100%;height:440px;background:#eef1ec}
@@ -3534,6 +3556,11 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
         <button class="kkgeo-btn" id="kkgeo-refresh-btn" type="button">Aktualisieren</button>
       </div>
     </div>
+    <div class="kkmkk-toolbar" id="kkgeo-metric-filters" role="toolbar" aria-label="Kartenkennzahl auswählen"></div>
+    <div class="kkgeo-layer-actions">
+      <button class="kkgeo-toggle" id="kkgeo-heat-toggle" type="button" aria-pressed="false">Heatmap</button>
+      <button class="kkgeo-toggle" id="kkgeo-density-toggle" type="button" aria-pressed="false">Kontaktdichte</button>
+    </div>
     <div class="kkgeo-offline" id="kkgeo-offline" hidden="" role="status">
       <strong>Kartenkacheln nicht verfügbar.</strong> Vermutlich kein Internetzugriff — Orte, Marker und Daten bleiben trotzdem nutzbar.
     </div>
@@ -3541,10 +3568,10 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
       <div class="kkgeo-map" id="kkgeo-map" role="img" aria-label="Interaktive Karte des Main-Kinzig-Kreises mit einem Marker je Gebiet"></div>
     </div>
     <div class="kkgeo-foot">
-      <div class="kkgeo-legend">
+      <div class="kkgeo-legend" id="kkgeo-legend">
         <span><i class="blue"></i>sehr hoch</span><span><i class="green"></i>hoch</span><span><i class="yellow"></i>mittel</span><span><i class="orange"></i>beobachten</span><span><i class="red"></i>Handlungsbedarf</span><span><i class="gray"></i>keine Daten</span>
       </div>
-      <p class="kkgeo-source-note">Ortskoordinaten: plausible Näherungswerte aus allgemeiner Ortskenntnis, keine amtlich vermessenen Daten. Gemeindegrenzen folgen, sobald eine geprüfte GeoJSON-Quelle vorliegt (Architektur ist vorbereitet, siehe Backup → Datenqualität).</p>
+      <p class="kkgeo-source-note">Ortskoordinaten: plausible Näherungswerte aus allgemeiner Ortskenntnis, keine amtlich vermessenen Daten. Gemeindegrenzen folgen, sobald eine geprüfte GeoJSON-Quelle vorliegt (Architektur ist vorbereitet, siehe Backup → Datenqualität). Kontaktdichte-Ansicht zeigt keine echten Adressen und keine Namen — nur eine unscharfe Streuung um den Ortskern zur Mengenveranschaulichung.</p>
     </div>
   </div>
 </section>
@@ -11828,6 +11855,20 @@ function colorFor(value,d){if(metric==='potential'&&!d.hasOperationalData)return
    neue Leaflet-Karte), damit deren Farben nicht vom aktuell in DIESER Karte gewählten
    Metrik-Filter abhängen. Nutzt dieselbe COLORS-Quelle, dieselben Potenzial-Schwellen. */
 function colorForPotential(d){if(!d||!d.hasOperationalData)return COLORS.gray;var v=d.potential;if(v>=90)return COLORS.blue;if(v>=70)return COLORS.green;if(v>=45)return COLORS.yellow;if(v>=20)return COLORS.orange;return COLORS.red}
+/* V31 Phase B: wie colorFor(), aber parametrisiert statt vom modulweiten "metric"
+   abhängig — für Konsumenten, die mehrere Karten mit UNTERSCHIEDLICHEN Metriken
+   gleichzeitig anzeigen wollen (z. B. die neue Geokarte mit eigenem Metrik-Filter). */
+function colorForMetric(metricKey,townKey){
+  var d=DATA[townKey];if(!d)return COLORS.gray;var value=d[metricKey];
+  if(metricKey==='potential'&&!d.hasOperationalData)return COLORS.gray;
+  if(metricKey==='competition'&&!isNumber(value))return COLORS.gray;
+  if(!isNumber(value))return COLORS.gray;
+  if(metricKey==='competition'){if(value>=75)return COLORS.red;if(value>=55)return COLORS.orange;if(value>=35)return COLORS.yellow;return COLORS.green}
+  if(metricKey==='potential'){if(value>=90)return COLORS.blue;if(value>=70)return COLORS.green;if(value>=45)return COLORS.yellow;if(value>=20)return COLORS.orange;return COLORS.red}
+  var vals=TOWN_KEYS.map(function(k){return DATA[k]&&DATA[k][metricKey]}).filter(isNumber),max=Math.max.apply(Math,vals.concat([0]));
+  if(!max)return COLORS.gray;
+  var ratio=value/max;if(ratio>=.9)return COLORS.blue;if(ratio>=.68)return COLORS.green;if(ratio>=.42)return COLORS.yellow;if(ratio>=.18)return COLORS.orange;return COLORS.red
+}
 function metricText(d){return METRICS[metric].format(d[metric],d)}
 function badgeText(d){var v=d[metric],cfg=METRICS[metric];if(metric==='potential')return d.hasOperationalData?Math.round(v)+'%':'–';if(metric==='competition')return isNumber(v)?Math.round(v)+'%':'–';return cfg.short+' '+fmtCount(v)}
 function statusStyle(el,level){el.setAttribute('data-level',level||'no-data')}
@@ -11884,7 +11925,7 @@ function toggleFocus(force){var on=typeof force==='boolean'?force:!root.classLis
 function bind(){root.addEventListener('click',function(e){var sourceOpen=e.target.closest('[data-kkmkk-source-open]');if(sourceOpen){openSourceRecord(Number(sourceOpen.getAttribute('data-kkmkk-source-open')));return}var sourceMetric=e.target.closest('[data-kkmkk-source-metric]');if(sourceMetric){showMetricSources(sourceMetric.getAttribute('data-kkmkk-source-metric'));return}var assign=e.target.closest('[data-kkmkk-quality-assign]');if(assign){var idx=Number(assign.getAttribute('data-kkmkk-quality-assign')),select=root.querySelector('[data-kkmkk-quality-town="'+idx+'"]'),townKey=select&&select.value,row=assign.closest('[data-kkmkk-quality-row]');if(!townKey){qualityToast('Bitte zuerst einen Ort auswählen.');return}assignQualityRecord(idx,townKey,row);return}var open=e.target.closest('[data-kkmkk-quality-open]');if(open){openQualityItem(Number(open.getAttribute('data-kkmkk-quality-open')));return}var filter=e.target.closest('.kkmkk-filter');if(filter){metric=filter.getAttribute('data-metric');saveViewState();renderMap();renderDetail();renderRanking();renderComparison();return}var town=e.target.closest('.kkmkk-town');if(town){chooseTown(town.getAttribute('data-town'));return}var rank=e.target.closest('[data-kkmkk-rank-town]');if(rank){chooseTown(rank.getAttribute('data-kkmkk-rank-town'));return}if(e.target.closest('#kkmkk-focus-btn')){toggleFocus();return}if(e.target.closest('#kkmkk-swap-btn')){swapCompared();return}if(e.target.closest('#kkmkk-quality-filter-clear')){qualityQuery='';qualitySource='all';var search=root.querySelector('#kkmkk-quality-search'),source=root.querySelector('#kkmkk-quality-source');if(search)search.value='';if(source)source.value='all';renderQuality();return}if(e.target.closest('#kkmkk-quality-bulk-assign')){bulkAssignQuality();return}if(e.target.closest('#kkmkk-refresh-btn')){refreshData();qualityToast('Kartendaten aktualisiert.');return}if(e.target.closest('#kkmkk-export-btn')){exportCsv();return}if(e.target.closest('[data-kkmkk-new-contact]')){newContactForTown();return}if(e.target.closest('[data-kkmkk-new-followup]')){newFollowupForTown();return}if(e.target.closest('[data-kkmkk-new-object]')){newObjectForTown();return}if(e.target.closest('#kkmkk-analyse-btn')){showAnalysis();return}if(e.target.closest('#kkmkk-contacts-btn')){showContacts();return}if(e.target.closest('#kkmkk-followups-btn')){showFollowups();return}if(e.target.closest('#kkmkk-market-btn')){showMarketEditor();return}if(e.target.closest('[data-kkmkk-open-crm]')){openCrm();return}if(e.target.closest('[data-kkmkk-open-followups]')){openFollowups();return}if(e.target.closest('[data-kkmkk-clear-market]')){clearMarket();return}if(e.target.closest('#kkmkk-mobile-toggle')){var card=root.querySelector('#kkmkk-detail-card'),isOpen=!card.classList.contains('is-open');card.classList.toggle('is-open',isOpen);e.target.textContent=isOpen?'Details einklappen':'Details anzeigen';e.target.setAttribute('aria-expanded',isOpen?'true':'false')}});root.addEventListener('change',function(e){if(e.target&&e.target.id==='kkmkk-town-jump'){chooseTown(e.target.value);return}if(e.target&&e.target.id==='kkmkk-compare-town'){compared=e.target.value;saveViewState();renderComparison();return}if(e.target&&e.target.id==='kkmkk-quality-source'){qualitySource=e.target.value||'all';renderQuality();return}if(e.target&&e.target.id==='kkmkk-quality-select-all'){root.querySelectorAll('[data-kkmkk-quality-check]').forEach(function(c){c.checked=e.target.checked});updateQualityBulk();return}if(e.target&&e.target.matches('[data-kkmkk-quality-check]'))updateQualityBulk()});root.addEventListener('input',function(e){if(e.target&&e.target.id==='kkmkk-quality-search'){qualityQuery=e.target.value||'';renderQuality()}});root.addEventListener('submit',function(e){if(e.target&&e.target.id==='kkmkk-market-form'){e.preventDefault();saveMarketForm(e.target)}});root.querySelectorAll('.kkmkk-town').forEach(function(g){g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();chooseTown(g.getAttribute('data-town'))}else if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();var current=TOWN_KEYS.indexOf(g.getAttribute('data-town')),step=(e.key==='ArrowRight'||e.key==='ArrowDown')?1:-1,next=(current+step+TOWN_KEYS.length)%TOWN_KEYS.length,target=root.querySelector('.kkmkk-town[data-town="'+TOWN_KEYS[next]+'"]');if(target){target.focus();chooseTown(TOWN_KEYS[next])}}})});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&root.classList.contains('is-focus'))toggleFocus(false)})}
 function relevantChange(e){var key=e&&e.detail&&e.detail.key||e&&e.key||'';if(!key||RELEVANT_KEYS.test(String(key)))setTimeout(refreshData,40)}
 function init(){root=document.getElementById('mkk-market-map');if(!root)return;bind();DATA=buildData();loadViewState();refreshData();window.addEventListener('storage',relevantChange);window.addEventListener('kk:storage-changed',relevantChange);window.addEventListener('kk:storage-imported',function(){setTimeout(refreshData,80)});document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='marktmonitor')setTimeout(refreshData,40)});try{if(window.KK_APP_SHELL&&window.KK_APP_SHELL.registerAnchor)window.KK_APP_SHELL.registerAnchor('mkk-market-map','marktmonitor')}catch(e){}}
-window.KK_MKK_MAP={version:'29.10',refresh:refreshData,getData:function(){return DATA},selectTown:chooseTown,selectComparison:function(key){if(DATA[key]&&key!==selected){compared=key;saveViewState();renderComparison()}},swapComparison:swapCompared,marketKey:MARKET_KEY,stateKey:STATE_KEY,getQuality:function(){return QUALITY},openQualityItem:openQualityItem,assignRecordTown:assignQualityRecord,exportCsv:exportCsv,newContact:newContactForTown,newFollowup:newFollowupForTown,newObject:newObjectForTown,showSources:showMetricSources,bulkAssign:bulkAssignQuality,assignRecordBatch:assignQualityBatch,toggleFocus:toggleFocus,colorForPotential:colorForPotential,getSelected:function(){return selected},getTownName:function(k){return (DATA[k]&&DATA[k].name)||k}};
+window.KK_MKK_MAP={version:'29.10',refresh:refreshData,getData:function(){return DATA},selectTown:chooseTown,selectComparison:function(key){if(DATA[key]&&key!==selected){compared=key;saveViewState();renderComparison()}},swapComparison:swapCompared,marketKey:MARKET_KEY,stateKey:STATE_KEY,getQuality:function(){return QUALITY},openQualityItem:openQualityItem,assignRecordTown:assignQualityRecord,exportCsv:exportCsv,newContact:newContactForTown,newFollowup:newFollowupForTown,newObject:newObjectForTown,showSources:showMetricSources,bulkAssign:bulkAssignQuality,assignRecordBatch:assignQualityBatch,toggleFocus:toggleFocus,colorForPotential:colorForPotential,colorForMetric:colorForMetric,getMetrics:function(){return METRICS},getTownKeys:function(){return TOWN_KEYS.slice()},getSelected:function(){return selected},getTownName:function(k){return (DATA[k]&&DATA[k].name)||k}};
 if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('mkk-market-map',init,{priority:76});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -12299,21 +12340,51 @@ var TOWN_COORDS={
   gelnhausen:[50.1989,9.1900],neuberg:[50.2214,8.9814],hammersbach:[50.2489,8.9667]
 };
 
-var adapter=null,initPromise=null,offlineTimer=null;
+var adapter=null,initPromise=null,offlineTimer=null,renderDebounce=null;
+var selectedMetric='potential',heatOn=false,densityOn=false;
 function esc(v){return window.KK_UTIL&&KK_UTIL.esc?KK_UTIL.esc(v):String(v==null?'':v)}
 function mkkMap(){return window.KK_MKK_MAP}
 
-function buildMarkers(){
+/* ---- deterministischer "Streu"-Versatz für die Kontaktdichte-Ansicht: keine
+   echten Adressen, nur eine plausible, aber erfundene Verteilung um den Ortskern,
+   damit bei vielen Kontakten die Cluster-Engine sinnvoll etwas zu tun hat. ---- */
+function hashStr(s){var h=0;for(var i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i);h|=0}return h}
+function jitterOffset(seed){
+  var h=hashStr(seed),angle=(Math.abs(h)%360)*(Math.PI/180),dist=0.004+(Math.abs(h>>8)%100)/100*0.012;
+  return [Math.sin(angle)*dist,Math.cos(angle)*dist];
+}
+
+function buildTownMarkers(){
   var api=mkkMap();if(!api)return [];
   var data=api.getData()||{};
   return Object.keys(TOWN_COORDS).map(function(key){
-    var d=data[key]||{},coords=TOWN_COORDS[key],name=(d.name||api.getTownName&&api.getTownName(key)||key);
-    var color=(api.colorForPotential?api.colorForPotential(d):'#D7DADE');
+    var d=data[key]||{},coords=TOWN_COORDS[key],name=(d.name||(api.getTownName&&api.getTownName(key))||key);
+    var color=(api.colorForMetric?api.colorForMetric(selectedMetric,key):(api.colorForPotential?api.colorForPotential(d):'#D7DADE'));
+    var metricLabel='',metrics=api.getMetrics&&api.getMetrics();
+    if(metrics&&metrics[selectedMetric])metricLabel=metrics[selectedMetric].format(d[selectedMetric],d);
     var popup='<b>'+esc(name)+'</b>'+esc(d.status||'Keine Daten')+
-      '<br>Potenzial: '+esc(d.hasOperationalData?Math.round(d.potential)+'%':'–')+
+      (metricLabel?('<br>'+esc((metrics[selectedMetric]||{}).label||selectedMetric)+': '+esc(metricLabel)):'')+
       (d.avgPrice?('<br>Ø '+esc(Number(d.avgPrice).toLocaleString('de-DE'))+' €/m²'):'');
-    return {id:key,lat:coords[0],lng:coords[1],label:name,color:color,popupHtml:popup};
+    return {id:key,lat:coords[0],lng:coords[1],label:name,color:color,radius:11,popupHtml:popup};
   });
+}
+
+/* Kontaktdichte: EIN Dot je Kontakt, um den Ortskern gestreut. Bewusst OHNE Namen
+   im Popup — nur die Kategorie ("CRM-Kontakt", "Tippgeber" …), damit nie der
+   Eindruck entsteht, hier stünde eine echte Adresse einer realen Person. */
+function buildDensityMarkers(){
+  var api=mkkMap();if(!api)return [];
+  var data=api.getData()||{};
+  var out=[];
+  Object.keys(TOWN_COORDS).forEach(function(key){
+    var d=data[key]||{},coords=TOWN_COORDS[key],list=(d.contacts||[]).slice(0,60);
+    list.forEach(function(c,i){
+      var off=jitterOffset(key+'|'+i+'|'+(c.kind||'')+(c.name||''));
+      out.push({id:key+'-c'+i,lat:coords[0]+off[0],lng:coords[1]+off[1],label:c.kind||'Kontakt',
+        color:'#3E5A82',radius:6,popupHtml:'<b>'+esc(c.kind||'Kontakt')+'</b>Ungefähre Lage · '+esc((d.name||key))});
+    });
+  });
+  return out;
 }
 
 function updateStatusLine(){
@@ -12327,12 +12398,43 @@ function showOffline(show){
   if(el)el.hidden=!show;
 }
 
-function render(){
+/* ---- Performance: mehrere Storage-Events in kurzer Folge (z. B. beim Import
+   eines Backups) lösen nur EIN Neuzeichnen aus statt N. Direkte Aufrufe (Toggle-
+   Klicks, Tab-Wechsel, manueller Refresh) bleiben sofort/ungedrosselt. ---- */
+function scheduleRender(){
+  if(renderDebounce)clearTimeout(renderDebounce);
+  renderDebounce=setTimeout(function(){renderDebounce=null;renderNow()},250);
+}
+
+function renderNow(){
   if(!adapter||!adapter.isReady())return;
-  var markers=buildMarkers();
-  adapter.setMarkers(markers);
-  if(markers.length)adapter.fitBounds(markers.map(function(m){return [m.lat,m.lng]}));
+  if(heatOn){
+    var api=mkkMap(),data=(api&&api.getData())||{};
+    var pts=Object.keys(TOWN_COORDS).map(function(key){
+      var d=data[key]||{},coords=TOWN_COORDS[key],v=Number(d[selectedMetric]);
+      return {lat:coords[0],lng:coords[1],weight:isFinite(v)&&v>0?v:0.001};
+    });
+    adapter.clearMarkers();
+    adapter.setHeatmap(pts);
+  }else{
+    adapter.clearHeatmap();
+    var markers=buildTownMarkers();
+    if(densityOn)markers=markers.concat(buildDensityMarkers());
+    adapter.setMarkers(markers);
+    if(!densityOn&&markers.length)adapter.fitBounds(markers.map(function(m){return [m.lat,m.lng]}));
+  }
   updateStatusLine();
+}
+function render(){renderNow()}
+
+function renderMetricFilters(){
+  var host=document.getElementById('kkgeo-metric-filters');
+  var api=mkkMap();
+  if(!host||!api||!api.getMetrics)return;
+  var metrics=api.getMetrics();
+  host.innerHTML=Object.keys(metrics).map(function(key){
+    return '<button class="kkmkk-filter'+(key===selectedMetric?' is-active':'')+'" type="button" data-kkgeo-metric="'+esc(key)+'" aria-pressed="'+(key===selectedMetric?'true':'false')+'">'+esc(metrics[key].label)+'</button>';
+  }).join('');
 }
 
 function init(){
@@ -12345,8 +12447,9 @@ function init(){
       offlineTimer=setTimeout(function(){if(info.ok===0)showOffline(true)},1200);
     });
     adapter.on('tilesOk',function(){showOffline(false);if(offlineTimer){clearTimeout(offlineTimer);offlineTimer=null}});
-    adapter.on('markerClick',function(p){if(mkkMap()&&mkkMap().selectTown)mkkMap().selectTown(p.id)});
-    render();
+    adapter.on('markerClick',function(p){var townKey=String(p.id||'').split('-c')[0];if(mkkMap()&&mkkMap().selectTown)mkkMap().selectTown(townKey)});
+    renderMetricFilters();
+    renderNow();
     return adapter;
   }).catch(function(err){
     showOffline(true);
@@ -12358,17 +12461,45 @@ function init(){
 
 function bind(){
   updateStatusLine();
+  renderMetricFilters();
   var btn=document.getElementById('kkgeo-refresh-btn');
   if(btn)btn.addEventListener('click',function(){
-    if(window.KK_MARKET)window.KK_MARKET.MarketProvider.refreshAll().then(function(){updateStatusLine();render()});
-    else render();
+    if(window.KK_MARKET)window.KK_MARKET.MarketProvider.refreshAll().then(function(){updateStatusLine();renderNow()});
+    else renderNow();
   });
-  window.addEventListener('storage',function(e){if(e&&/kk_mkk_market_reference|kk_crm_|kk_sales_pipeline|kk_followups/.test(e.key||''))render()});
-  window.addEventListener('kk:storage-changed',function(){render()});
+  var host=document.getElementById('kkgeo-metric-filters');
+  if(host)host.addEventListener('click',function(e){
+    var b=e.target.closest('[data-kkgeo-metric]');if(!b)return;
+    selectedMetric=b.getAttribute('data-kkgeo-metric');
+    renderMetricFilters();renderNow();
+  });
+  var heatBtn=document.getElementById('kkgeo-heat-toggle');
+  if(heatBtn)heatBtn.addEventListener('click',function(){
+    heatOn=!heatOn;heatBtn.setAttribute('aria-pressed',heatOn?'true':'false');
+    if(heatOn){densityOn=false;var db=document.getElementById('kkgeo-density-toggle');if(db)db.setAttribute('aria-pressed','false')}
+    renderNow();
+  });
+  var densityBtn=document.getElementById('kkgeo-density-toggle');
+  if(densityBtn)densityBtn.addEventListener('click',function(){
+    densityOn=!densityOn;densityBtn.setAttribute('aria-pressed',densityOn?'true':'false');
+    if(densityOn){heatOn=false;var hb=document.getElementById('kkgeo-heat-toggle');if(hb)hb.setAttribute('aria-pressed','false')}
+    renderNow();
+  });
+  window.addEventListener('storage',function(e){if(e&&/kk_mkk_market_reference|kk_crm_|kk_sales_pipeline|kk_followups/.test(e.key||''))scheduleRender()});
+  window.addEventListener('kk:storage-changed',function(){scheduleRender()});
   document.addEventListener('kk-app-tab-changed',function(e){
     if(!e.detail||e.detail.tab==='marktmonitor'){
-      init().then(function(){if(adapter)adapter.invalidateSize();render()});
+      init().then(function(){if(adapter)adapter.invalidateSize();renderNow()});
     }
+  });
+  /* ---- Hintergrund-Synchronisierung: kein Dauer-Timer, sondern ein Check genau
+     dann, wenn der Tab wieder sichtbar wird (z. B. nach Stunden im Hintergrund-
+     Tab). Ressourcenschonend, aber trotzdem "automatisch aktuell". ---- */
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden||!window.KK_MARKET)return;
+    window.KK_MARKET.MarketProvider.checkDaily().then(function(res){
+      if(res&&!res.skipped){updateStatusLine();renderNow()}
+    });
   });
 }
 
@@ -12378,7 +12509,7 @@ function boot(){
   if(active==='marktmonitor')init();
 }
 
-window.KK_REALMAP={version:'31.0',init:init,render:render,getMarkers:buildMarkers,townCoords:TOWN_COORDS};
+window.KK_REALMAP={version:'31.0',init:init,render:render,getMarkers:buildTownMarkers,getDensityMarkers:buildDensityMarkers,townCoords:TOWN_COORDS,setMetric:function(k){selectedMetric=k;renderMetricFilters();renderNow()},toggleHeat:function(v){heatOn=v==null?!heatOn:!!v;renderNow()},toggleDensity:function(v){densityOn=v==null?!densityOn:!!v;renderNow()}};
 if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('realmap-v31',boot,{priority:79});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
