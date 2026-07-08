@@ -2375,6 +2375,21 @@ REVOPS-UPDATE 2026-06-11 · Kevin Keim Makler-Betriebssystem
 #kk-heute-v27 .kkh-field{display:grid;gap:4px}
 #kk-heute-v27 .kkh-field label{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
 #kk-heute-v27 .kkh-calls{padding:18px}
+#kk-heute-v27 .kkh-call-hero-grid{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:20px;align-items:start;padding:0}
+#kk-heute-v27 .kkh-call-hero-left{display:flex;flex-direction:column;align-items:center;gap:8px}
+#kk-heute-v27 .kkh-call-hero-right{display:flex;flex-direction:column;gap:10px;min-width:0}
+#kk-heute-v27 .kkh-call-hero-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#kk-heute-v27 .kkh-call-hero-stat{background:var(--box);border-radius:12px;padding:10px 8px;text-align:center}
+#kk-heute-v27 .kkh-call-hero-stat b{display:block;font-size:20px;color:var(--primary);line-height:1;font-variant-numeric:tabular-nums}
+#kk-heute-v27 .kkh-call-hero-stat b.is-alert{color:var(--accent)}
+#kk-heute-v27 .kkh-call-hero-stat span{display:block;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:3px}
+#kk-heute-v27 .kkh-call-hero-next{background:#fffdf9;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+#kk-heute-v27 .kkh-call-hero-next b{display:block;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:4px}
+#kk-heute-v27 .kkh-call-hero-next span{display:block;font-size:13px;color:var(--primary);font-weight:750}
+#kk-heute-v27 .kkh-call-hero-next a{font-size:11px;font-weight:800;color:var(--accent);text-decoration:none;margin-top:4px;display:inline-block}
+#kk-heute-v27 .kkh-call-hero-focus{font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
+#kk-heute-v27 .kkh-call-hero-focus b{color:var(--primary)}
+@media (max-width:900px){#kk-heute-v27 .kkh-call-hero-grid{grid-template-columns:1fr}#kk-heute-v27 .kkh-call-hero-left{flex-direction:row;justify-content:space-between}}
 #kk-heute-v27 .kkh-call-gauge{position:relative;width:190px;height:190px;margin:4px auto 6px}
 #kk-heute-v27 .kkh-call-gauge-svg{width:100%;height:100%;transform:rotate(-90deg)}
 #kk-heute-v27 .kkh-call-gauge-track{fill:none;stroke:var(--box);stroke-width:10}
@@ -2483,10 +2498,17 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
 #kk-heute-v27 .kkh-summary-card b{font-size:25px!important;line-height:1!important;margin-top:23px!important;color:var(--v30-ink)!important}
 #kk-heute-v27 .kkh-summary-card span{position:absolute;left:52px;right:10px;top:14px;margin:0!important;font-size:9.5px!important;line-height:1.2!important;color:var(--v30-muted)!important}
 #kk-heute-v27 .kkh-summary-card small{display:block;margin-top:5px;color:var(--v30-muted);font-size:9.5px;font-weight:700}
+#kk-heute-v27 .kkv30-kpi-clickable{cursor:pointer;transition:transform .14s ease,box-shadow .14s ease;position:relative}
+#kk-heute-v27 .kkv30-kpi-clickable:hover{transform:translateY(-2px);box-shadow:var(--v30-shadow-lg,0 20px 48px rgba(16,20,24,.16))}
+#kk-heute-v27 .kkv30-kpi-clickable:after{content:"→";position:absolute;top:12px;right:14px;color:var(--v30-muted,#5b6472);font-size:13px;opacity:0;transition:opacity .14s ease}
+#kk-heute-v27 .kkv30-kpi-clickable:hover:after,#kk-heute-v27 .kkv30-kpi-clickable:focus-visible:after{opacity:1}
+#kk-heute-v27 .kkv30-kpi-clickable:focus-visible{outline:2px solid var(--v30-blue,#182c46);outline-offset:2px}
 #kk-heute-v27 #kkhSummaryCalls{display:none!important}
 
+#kk-heute-v27 .kkv30-call-hero-row{margin-bottom:2px}
+#kk-heute-v27 .kkv30-call-hero-row .kkv30-call-hero{box-shadow:var(--v30-shadow-lg,0 20px 48px rgba(16,20,24,.16));border-color:var(--v30-blue,#182c46)!important}
 #kk-heute-v27 .kkv30-main-grid{display:grid;grid-template-columns:minmax(0,1.72fr) minmax(250px,.72fr) minmax(290px,.82fr);gap:12px;align-items:stretch}
-#kk-heute-v27 .kkv30-secondary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:start}
+#kk-heute-v27 .kkv30-secondary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
 #kk-heute-v27 .kkv30-bottom-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(340px,.65fr);gap:12px;align-items:start}
 #kk-heute-v27 .kkv30-card,#kk-heute-v27 .kkh-card{background:#fff!important;border:1px solid var(--v30-border)!important;border-radius:16px!important;box-shadow:var(--v30-shadow)!important;overflow:hidden!important}
 #kk-heute-v27 .kkh-card-head,#kk-heute-v27 .kkv30-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px 11px!important;border-bottom:1px solid #edf0f4!important;background:#fff!important}
@@ -2541,19 +2563,9 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
 
 #kk-heute-v27 .kkv30-secondary-grid>.kkh-card,#kk-heute-v27 .kkv30-secondary-grid>.kkv30-card{min-height:290px}
 #kk-heute-v27 .kkv30-secondary-grid .kkh-card-body{max-height:242px;overflow:auto}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-calls{padding:12px!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-call-gauge{width:108px!important;height:108px!important;margin:0 auto!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-call-number{font-family:Inter,system-ui,sans-serif!important;font-size:30px!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-call-target{font-size:8.5px!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-call-actions{gap:6px!important;margin-top:3px!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-call-step{width:34px!important;height:34px!important;font-size:17px!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-call-bars{margin-top:8px!important;gap:5px!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-call-bar-row{grid-template-columns:38px 1fr auto!important;gap:6px!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-call-bar-label{font-size:7.5px!important}.kkv30-secondary-grid .kkh-call-bar-track{height:6px!important}.kkv30-secondary-grid .kkh-call-bar-num{font-size:8px!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-call-stats{display:none!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-settings{display:none!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-calls>div[style]{margin-top:7px!important}
-#kk-heute-v27 .kkv30-secondary-grid .kkh-calls>div[style] .kkh-btn{min-height:29px!important;padding:5px 8px!important;font-size:8.5px!important}
+/* V31 Phase C: die Anruf-Karte ist aus .kkv30-secondary-grid in eine eigene
+   Hero-Zeile umgezogen (siehe .kkv30-call-hero-row unten) — die früheren
+   Kompressionsregeln für .kkh-calls INNERHALB dieses Grids entfallen damit. */
 
 #kk-heute-v27 .kkv30-pipeline-list{display:grid;gap:1px;background:#edf0f4;border:1px solid #edf0f4;border-radius:11px;overflow:hidden}
 #kk-heute-v27 .kkv30-pipeline-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:9px 10px;background:#fff}
@@ -2706,20 +2718,27 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
       </div>
 
       <div class="kkh-stack">
-        <article class="kkh-card">
-          <div class="kkh-card-head"><div><h2>Anrufe heute</h2><p>Manueller Zähler, unabhängig von automatischen Kontaktvorschlägen.</p></div><span class="kkh-badge" id="kkhCallPace">0 %</span></div>
-          <div class="kkh-calls">
-            <div class="kkh-call-gauge" aria-label="Fortschritt der heutigen Anrufe">
-              <svg class="kkh-call-gauge-svg" viewBox="0 0 120 120" aria-hidden="true">
-                <circle class="kkh-call-gauge-track" cx="60" cy="60" r="52"></circle>
-                <circle class="kkh-call-gauge-val" id="kkhCallGaugeVal" cx="60" cy="60" r="52" pathLength="100"></circle>
-              </svg>
-              <div class="kkh-call-gauge-center">
-                <div class="kkh-call-number" id="kkhCallsToday">0</div>
-                <div class="kkh-call-target" id="kkhCallsTarget">Tagesziel: nicht gesetzt</div>
+        <article class="kkh-card" id="kkhCallHeroCard">
+          <div class="kkh-card-head"><div><h2>Anrufe · dein wichtigster Hebel heute</h2><p>Manueller Zähler plus Anruftracker und fällige Telefon-Follow-ups an einem Ort.</p></div><span class="kkh-badge" id="kkhCallPace">0 %</span></div>
+          <div class="kkh-calls kkh-call-hero-grid">
+            <div class="kkh-call-hero-left">
+              <div class="kkh-call-gauge" aria-label="Fortschritt der heutigen Anrufe">
+                <svg class="kkh-call-gauge-svg" viewBox="0 0 120 120" aria-hidden="true">
+                  <circle class="kkh-call-gauge-track" cx="60" cy="60" r="52"></circle>
+                  <circle class="kkh-call-gauge-val" id="kkhCallGaugeVal" cx="60" cy="60" r="52" pathLength="100"></circle>
+                </svg>
+                <div class="kkh-call-gauge-center">
+                  <div class="kkh-call-number" id="kkhCallsToday">0</div>
+                  <div class="kkh-call-target" id="kkhCallsTarget">Tagesziel: nicht gesetzt</div>
+                </div>
               </div>
+              <div class="kkh-call-actions"><button class="kkh-call-step minus" id="kkhCallMinus" type="button" aria-label="Anruf entfernen">−</button><button class="kkh-call-step" id="kkhCallPlus" type="button" aria-label="Anruf hinzufügen">＋</button></div>
             </div>
-            <div class="kkh-call-actions"><button class="kkh-call-step minus" id="kkhCallMinus" type="button" aria-label="Anruf entfernen">−</button><button class="kkh-call-step" id="kkhCallPlus" type="button" aria-label="Anruf hinzufügen">＋</button></div>
+            <div class="kkh-call-hero-right">
+              <div class="kkh-call-hero-metrics" id="kkhCallHeroMetrics"></div>
+              <div class="kkh-call-hero-next" id="kkhCallHeroNext"></div>
+              <div class="kkh-call-hero-focus" id="kkhCallHeroFocus"></div>
+            </div>
             <div class="kkh-call-bars" id="kkhCallBars"></div>
             <div class="kkh-call-stats" id="kkhCallStats"></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px"><a class="kkh-btn light kkh-open-tool" href="#anruftracker" data-open-tool="anruftracker">Anrufliste öffnen</a><button class="kkh-btn light" id="kkhCallReset" type="button">Heute zurücksetzen</button></div>
@@ -2790,7 +2809,7 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
   function renderHeader(){var n=new Date(),h=n.getHours();q('#kkhGreeting').textContent=h<12?'Guten Morgen, Kevin.':h<18?'Guten Tag, Kevin.':'Guten Abend, Kevin.';q('#kkhDateFull').textContent=WEEKDAYS[n.getDay()]+', '+pad(n.getDate())+'. '+MONTHS[n.getMonth()]+' '+n.getFullYear()}
   function getFocus(){var d=read(FOCUS,{byDate:{}});if(!d||typeof d!=='object')d={};d.byDate=d.byDate||{};return d}
   function renderFocus(){var d=getFocus(),v=d.byDate[today()]||'';q('#kkhFocusInput').value=v;q('#kkhFocusStatus').textContent=v?'Für heute gespeichert':'Noch nicht gespeichert'}
-  function saveFocus(){var d=getFocus(),v=q('#kkhFocusInput').value.trim();if(v)d.byDate[today()]=v;else delete d.byDate[today()];d.updatedAt=new Date().toISOString();write(FOCUS,d);q('#kkhFocusStatus').textContent=v?'Für heute gespeichert':'Fokus entfernt';toast(v?'Tagesfokus gespeichert':'Tagesfokus entfernt')}
+  function saveFocus(){var d=getFocus(),v=q('#kkhFocusInput').value.trim();if(v)d.byDate[today()]=v;else delete d.byDate[today()];d.updatedAt=new Date().toISOString();write(FOCUS,d);q('#kkhFocusStatus').textContent=v?'Für heute gespeichert':'Fokus entfernt';toast(v?'Tagesfokus gespeichert':'Tagesfokus entfernt');if(typeof renderCallHero==='function')renderCallHero()}
   function itemHtml(title,meta,cls,type,id){return '<div class="kkh-item '+(cls||'')+'"><div class="kkh-item-main"><span class="kkh-item-title">'+esc(title)+'</span>'+(meta&&meta.length?'<div class="kkh-item-meta">'+meta.map(function(m){return '<span class="'+(m.red?'is-red':'')+'">'+esc(m.text)+'</span>'}).join('')+'</div>':'')+'</div><button class="kkh-done" data-done-type="'+type+'" data-done-id="'+esc(id)+'" type="button" title="Erledigt">✓</button></div>'}
   function renderTasks(){var a=dueTasks(),box=q('#kkhTaskList'),t=today();q('#kkhTaskBadge').textContent=a.length+' offen';box.innerHTML=a.length?a.slice(0,8).map(function(x){var d=parseKey(x.due),over=d&&d<t;return itemHtml(x.title||'Aufgabe',[{text:over?'überfällig: '+d:(d?'fällig: '+d:'heute'),red:over}],over?'is-overdue':'is-today','task',x.id||String(x.__index))}).join(''):'<div class="kkh-empty">Keine Aufgaben für heute.</div>'}
   function renderFollowups(){var a=dueFollowups(),box=q('#kkhFollowupList'),t=today();q('#kkhFollowupBadge').textContent=a.length+' fällig';box.innerHTML=a.length?a.slice(0,6).map(function(x){var d=parseKey(x.dueDate||x.date||x.wiedervorlage||x.faelligkeit),over=d&&d<t;var name=x.name||x.contactName||x.contact||'Follow-up';var title=name+(x.goal?' – '+x.goal:'');return itemHtml(title,[{text:d?(over?'überfällig: '+d:'fällig: '+d):'ohne Datum',red:over},{text:x.channel||x.kanal||'Telefon'}],over?'is-overdue':'is-today','followup',x.id||String(x.__index))}).join(''):'<div class="kkh-empty">Keine Follow-ups fällig.</div>'}
@@ -2829,6 +2848,46 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
     }
     ['daily','weekly','monthly','yearly'].forEach(function(k){var el=q('#kkhTarget'+k.charAt(0).toUpperCase()+k.slice(1));if(el&&document.activeElement!==el)el.value=c.targets[k]});
   }
+  /* V31 Phase C: Call-Hero — liest ausschließlich bestehende Datenquellen
+     (Anruftracker-Queue, Follow-ups, Tagesfokus). Keine neue Speicherlogik,
+     keine neuen Storage-Keys, nur zusätzliche Auswertung vorhandener Daten. */
+  function phoneFollowups(){return dueFollowups().filter(function(x){return String(x.channel||x.kanal||'Telefon').toLowerCase()==='telefon'})}
+  function overduePhoneCount(){var t=today();return phoneFollowups().filter(function(x){var d=parseKey(x.dueDate||x.date||x.wiedervorlage||x.faelligkeit);return d&&d<t}).length}
+  function nextPhoneContact(){return phoneFollowups()[0]||null}
+  function openCallQueueCount(){return arr('kk_call_queue').filter(function(x){return String(x.status||'offen').toLowerCase()==='offen'}).length}
+  function todayCallRate(){
+    var t=today(),today_items=arr('kk_call_queue').filter(function(x){return String(x.updatedAt||'').slice(0,10)===t});
+    var reached=today_items.filter(function(x){return x.status==='erreicht'}).length,missed=today_items.filter(function(x){return x.status==='nicht erreicht'}).length;
+    var denom=reached+missed;
+    return denom?Math.round(reached/denom*100):null;
+  }
+  function renderCallHero(){
+    var metricsBox=q('#kkhCallHeroMetrics');
+    if(metricsBox){
+      var openQ=openCallQueueCount(),overdue=overduePhoneCount(),rate=todayCallRate();
+      var cells=[
+        ['Offen',openQ,openQ>0],
+        ['Überfällig',overdue,overdue>0],
+        ['Quote',rate==null?'–':rate+'%',false]
+      ];
+      metricsBox.innerHTML=cells.map(function(c){return '<div class="kkh-call-hero-stat"><b class="'+(c[2]?'is-alert':'')+'">'+esc(c[1])+'</b><span>'+esc(c[0])+'</span></div>'}).join('');
+    }
+    var nextBox=q('#kkhCallHeroNext');
+    if(nextBox){
+      var next=nextPhoneContact();
+      if(next){
+        var name=next.name||next.contactName||next.contact||'Kontakt';
+        nextBox.innerHTML='<b>Nächster sinnvoller Kontakt</b><span>'+esc(name)+(next.goal?' – '+esc(next.goal):'')+'</span><a href="#followups" data-open-tool="followup">Follow-up öffnen →</a>';
+      }else{
+        nextBox.innerHTML='<b>Nächster sinnvoller Kontakt</b><span>Keine fälligen Telefon-Follow-ups.</span>';
+      }
+    }
+    var focusBox=q('#kkhCallHeroFocus');
+    if(focusBox){
+      var f=getFocus(),v=f.byDate[today()]||'';
+      focusBox.innerHTML=v?('<b>Fokus heute:</b> '+esc(v)):'Noch kein Tagesfokus gesetzt.';
+    }
+  }
   function bumpCalls(delta){var c=getCalls(),t=today();c.byDate[t]=Math.max(0,(c.byDate[t]||0)+delta);write(CALLS,c);renderCalls();renderSummary();renderWeekly()}
   var DAILY=[['owners','Eigentümerkontakte'],['valuations','Bewertungstermine'],['viewings','Besichtigungen'],['listings','Objektaufnahmen'],['followups','Follow-ups']];
   function renderDaily(){var g=getGoals(),r=dayRec(g,today()),box=q('#kkhDailyGoals');box.innerHTML=DAILY.map(function(m){var v=r[m[0]]||0,t=g.targets.daily[m[0]]||0;return '<div class="kkh-metric"><div class="kkh-metric-head"><span class="kkh-metric-label">'+m[1]+'</span><span class="kkh-stepper"><button data-metric="'+m[0]+'" data-step="-1" type="button">−</button><button data-metric="'+m[0]+'" data-step="1" type="button">＋</button></span></div><div class="kkh-metric-number">'+v+' <small>/ '+t+'</small></div><div class="kkh-progress"><span style="width:'+Math.min(100,t?Math.round(v/t*100):0)+'%;background:'+(v>=t?'var(--green)':'var(--primary)')+'"></span></div></div>'}).join('')}
@@ -2839,7 +2898,7 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
   function renderWeekly(){var g=getGoals(),c=getCalls(),box=q('#kkhWeeklyGoals');box.innerHTML=WEEK.map(function(m){var v=weekSum(m[0]),t=m[0]==='calls'?c.targets.weekly:(g.targets.weekly[m[0]]||0);return '<div class="kkh-week-stat '+pace(v,t)+'"><span>'+m[1]+'</span><b>'+v+' / '+t+'</b></div>'}).join('');var k=weekKeys(new Date());q('#kkhWeekRange').textContent=k[0].slice(8,10)+'.'+k[0].slice(5,7)+'. – '+k[6].slice(8,10)+'.'+k[6].slice(5,7)+'.'}
   function initQuick(){qa('[data-quick]').forEach(function(b){b.onclick=function(){var type=b.dataset.quick,target=q('[data-quick-form="'+type+'"]'),open=target&&!target.classList.contains('is-open');qa('[data-quick-form]').forEach(function(f){f.classList.remove('is-open')});qa('[data-quick]').forEach(function(x){x.classList.remove('is-active')});if(open){target.classList.add('is-open');b.classList.add('is-active');var first=target.querySelector('input,textarea');if(first)first.focus()}}});qa('[data-quick-form]').forEach(function(form){var dateFields=form.querySelectorAll('input[type="date"]');dateFields.forEach(function(el){if(!el.value)el.value=today()});form.onsubmit=function(e){e.preventDefault();var type=form.dataset.quickForm,get=function(n){var el=form.querySelector('[data-f="'+n+'"]');return el?String(el.value||'').trim():''};if(type==='aufgabe'){var a=tasks(),title=get('title');if(!title)return;a.push({id:uid('kk12'),title:title,type:'Aufgabe',status:get('status')||'Heute',due:get('due')||today(),createdAt:new Date().toISOString()});write(TASKS,a)}else if(type==='followup'){var f=followups(),name=get('name');if(!name)return;var d=get('due')||today();f.push({id:uid('kkfu'),name:name,channel:get('channel')||'Telefon',date:d,dueDate:d,status:'offen',goal:'',type:'Nachfassgespräch',source:'manual',createdAt:new Date().toISOString()});write(FOLLOWUPS,f)}else if(type==='termin'){var ev=events(),title2=get('title');if(!title2)return;ev.push({id:uid('kk12'),title:title2,date:get('date')||today(),time:get('time'),type:'Termin',contact:'',goal:'',createdAt:new Date().toISOString()});write(EVENTS,ev)}else if(type==='notiz'){var n=notes(),text=get('text');if(!text)return;n.push({id:uid('note'),text:text,createdAt:new Date().toISOString()});write(NOTES,n)}form.reset();form.classList.remove('is-open');qa('[data-quick]').forEach(function(x){x.classList.remove('is-active')});form.querySelectorAll('input[type="date"]').forEach(function(el){el.value=today()});toast('Eintrag gespeichert');renderAll()}})}
   function openTool(id){var details=document.getElementById('kk-heute-operative-module');if(details)details.open=true;setTimeout(function(){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},80)}
-  function renderAll(){renderHeader();renderFocus();renderTasks();renderFollowups();renderAppointments();renderNotes();renderSummary();renderCalls();renderDaily();renderWeekly()}
+  function renderAll(){renderHeader();renderFocus();renderTasks();renderFollowups();renderAppointments();renderNotes();renderSummary();renderCalls();renderCallHero();renderDaily();renderWeekly()}
   function init(){q('#kkhFocusSave').onclick=saveFocus;q('#kkhCallPlus').onclick=function(){bumpCalls(1)};q('#kkhCallMinus').onclick=function(){bumpCalls(-1)};q('#kkhCallReset').onclick=function(){if(confirm('Den heutigen Anrufzähler wirklich auf 0 zurücksetzen?')){var c=getCalls();c.byDate[today()]=0;write(CALLS,c);renderAll();toast('Anrufzähler zurückgesetzt')}};q('#kkhCallSettingsSave').onclick=function(){var c=getCalls();['daily','weekly','monthly','yearly'].forEach(function(k){var el=q('#kkhTarget'+k.charAt(0).toUpperCase()+k.slice(1)),v=Number(el.value);if(isFinite(v)&&v>=0)c.targets[k]=v});write(CALLS,c);renderAll();toast('Anrufziele gespeichert')};q('#kkhDailyGoals').onclick=function(e){var b=e.target.closest('[data-step]');if(b)bumpGoal(b.dataset.metric,Number(b.dataset.step))};root.addEventListener('click',function(e){var b=e.target.closest('[data-done-id]');if(b){markDone(b.dataset.doneType,b.dataset.doneId);return}var tool=e.target.closest('[data-open-tool]');if(tool){e.preventDefault();openTool(tool.dataset.openTool)}});initQuick();renderAll();window.addEventListener('storage',renderAll);window.addEventListener('kk:storage-changed',renderAll)}
   window.KK_BOOT.register('heute-dashboard-v29',init,{priority:20});
 })();
@@ -2874,8 +2933,15 @@ function layout(){
  var taskK=q('#kkhSummaryTasks'),fuK=q('#kkhSummaryFollowups'),appK=q('#kkhSummaryAppointments'),callK=q('#kkhSummaryCalls');
  taskK.dataset.tone='red';fuK.dataset.tone='orange';appK.dataset.tone='green';
  summary.innerHTML='';summary.append(active,appK,leads,taskK,fuK,callK);dash.appendChild(summary);
+ /* V31 Phase C: Anruf-Karte wird zur Hero-Zeile direkt unter den Kennzahlen —
+    "Telefonieren ist der wichtigste Hebel" soll sofort sichtbar sein, nicht
+    dritte Reihe neben Follow-ups/Terminen. Reine Umsortierung, keine neue
+    Instanz, kein Verlust bestehender Handler (dieselbe <article>, nur an
+    anderer Stelle im Baum). */
+ calls.classList.add('kkv30-call-hero');normalizeFooter(calls);
+ var callRow=document.createElement('div');callRow.className='kkv30-call-hero-row';callRow.appendChild(calls);dash.appendChild(callRow);
  var main=document.createElement('div');main.className='kkv30-main-grid';main.innerHTML=mapCardHtml()+areaCardHtml();task.classList.add('kkv30-task-card');normalizeFooter(task);main.appendChild(task);dash.appendChild(main);
- var second=document.createElement('div');second.className='kkv30-secondary-grid';second.innerHTML=pipelineCardHtml();normalizeFooter(follow);normalizeFooter(appointments);second.append(follow,appointments,calls);dash.appendChild(second);
+ var second=document.createElement('div');second.className='kkv30-secondary-grid';second.innerHTML=pipelineCardHtml();normalizeFooter(follow);normalizeFooter(appointments);second.append(follow,appointments);dash.appendChild(second);
  var bottom=document.createElement('div');bottom.className='kkv30-bottom-grid';normalizeFooter(quick);bottom.appendChild(quick);var side=document.createElement('div');side.className='kkv30-side-stack';notes.classList.add('kkv30-note-card');side.append(notes,metrics,week);bottom.appendChild(side);dash.appendChild(bottom);
  shell.insertBefore(dash,hooks||toast||null);if(hooks)shell.appendChild(hooks);if(toast)shell.appendChild(toast);
  [hero,work].forEach(function(x){if(x&&x.parentNode)x.remove()});
@@ -2897,7 +2963,37 @@ function renderKpis(){var objects=uniq(arr('kk_crm_objects').concat(arr('kk12_ob
 function renderPipeline(){var all=uniq(arr('kk_sales_pipeline').concat(arr('kk_crm_owner_pipeline')),'deal').filter(function(x){return openStatus(x.status||x.stage||x.phase)&&!stageClosed(x)});all.sort(function(a,b){var da=String(a.deadline||a.followUpDate||'9999-12-31'),db=String(b.deadline||b.followUpDate||'9999-12-31');return da.localeCompare(db)||String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))});q('#kkv30PipelineCount').textContent=all.length+' Chancen';var list=q('#kkv30PipelineList');if(!all.length){list.innerHTML='<div class="kkv30-pipeline-empty">Keine offenen Pipeline-Chancen.</div>';q('#kkv30PipelineProgress').style.width='0%';q('#kkv30PipelineFoot').textContent='Keine offenen Chancen';return}list.innerHTML=all.slice(0,5).map(function(x){var name=x.name||x.contactName||x.owner||x.objectLabel||'Verkaufschance',stage=x.stage||x.status||x.phase||'Offen',area=x.area||x.town||x.city||'ohne Gebiet',prob=Math.max(0,Math.min(100,num(x.probability)));return '<div class="kkv30-pipeline-item"><div><strong>'+esc(name)+'</strong><span>'+esc(stage+' · '+area)+'</span></div><b>'+prob+' %</b></div>'}).join('');var avg=Math.round(all.reduce(function(s,x){return s+num(x.probability)},0)/all.length);q('#kkv30PipelineProgress').style.width=Math.max(3,avg)+'%';q('#kkv30PipelineFoot').textContent='Ø Wahrscheinlichkeit '+avg+' %'}
 function renderNew(){if(!root||root.dataset.v303Layout!=='1')return;renderKpis();renderPipeline();renderMap()}
 function openTab(tab,hash){try{if(window.KK_APP_SHELL&&typeof KK_APP_SHELL.openTab==='function')KK_APP_SHELL.openTab(tab);else if(window.KK_APP_SHELL&&typeof KK_APP_SHELL.setActiveTab==='function')KK_APP_SHELL.setActiveTab(tab)}catch(e){}if(hash)location.hash=hash}
-function bindNew(){q('#kkv30MapMetric').addEventListener('change',renderMap);qa('[data-v30-town]').forEach(function(g){function choose(){selectedTown=g.dataset.v30Town;renderMap()}g.addEventListener('click',choose);g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();choose()}})});q('#kkv30AreaOpen').addEventListener('click',function(){try{if(window.KK_MKK_MAP)KK_MKK_MAP.selectTown(selectedTown)}catch(e){}openTab('marktmonitor','#mkk-market-map')});q('#kkv30AreaCrm').addEventListener('click',function(){openTab('crm','#crm-pro-os');setTimeout(function(){var D=data(),n=(D[selectedTown]&&D[selectedTown].name)||NAMES[selectedTown];['#kkcrmproContactAreaFilter','#kkcrmproContactSearch','#kkcrmproFilterArea','#crmFilterArea','#kkcrmproSearch'].some(function(s){var el=document.querySelector(s);if(el){el.value=n;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true}return false})},180)});window.addEventListener('kk:storage-changed',function(){setTimeout(renderNew,40)});window.addEventListener('storage',function(){setTimeout(renderNew,40)});window.addEventListener('kk:storage-imported',function(){setTimeout(renderNew,100)});document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='heute')setTimeout(renderNew,50)})}
+function bindNew(){q('#kkv30MapMetric').addEventListener('change',renderMap);qa('[data-v30-town]').forEach(function(g){function choose(){selectedTown=g.dataset.v30Town;renderMap()}g.addEventListener('click',choose);g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();choose()}})});q('#kkv30AreaOpen').addEventListener('click',function(){try{if(window.KK_MKK_MAP)KK_MKK_MAP.selectTown(selectedTown)}catch(e){}openTab('marktmonitor','#mkk-market-map')});q('#kkv30AreaCrm').addEventListener('click',function(){openTab('crm','#crm-pro-os');setTimeout(function(){var D=data(),n=(D[selectedTown]&&D[selectedTown].name)||NAMES[selectedTown];['#kkcrmproContactAreaFilter','#kkcrmproContactSearch','#kkcrmproFilterArea','#crmFilterArea','#kkcrmproSearch'].some(function(s){var el=document.querySelector(s);if(el){el.value=n;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true}return false})},180)});window.addEventListener('kk:storage-changed',function(){setTimeout(renderNew,40)});window.addEventListener('storage',function(){setTimeout(renderNew,40)});window.addEventListener('kk:storage-imported',function(){setTimeout(renderNew,100)});document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='heute')setTimeout(renderNew,50)});bindDrillThrough()}
+/* V31 Phase C: KPI-Karten werden klickbar — "ein Klick, direkt arbeiten" statt
+   nur Zahlen anzeigen. Nutzt ausschließlich bestehende Navigation (openTab,
+   openTool) und bestehende Tab-/Filterelemente der Zielbereiche; setzt KEINEN
+   Filter, für den es keine exakt passende, bereits vorhandene Steuerung gibt
+   (z. B. "Offene Leads" landet gezielt im CRM, ohne einen unpassenden
+   Status-Wert zu erzwingen, der die echte Berechnungsregel nicht abbilden kann). */
+function bindDrillThrough(){
+  /* Lokale Kopie der 2-zeiligen "Details öffnen + hinscrollen"-Logik aus
+     kk-heute-v27-js: openTool() dort ist scope-privat (eigenes IIFE), ein
+     Cross-Script-Zugriff wäre fragiler als diese triviale Duplikation. */
+  function openTaskTool(subTab){
+    var details=document.getElementById('kk-heute-operative-module');
+    if(details)details.open=true;
+    setTimeout(function(){var el=document.getElementById('kk12-next-os');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},80);
+    if(subTab)setTimeout(function(){var btn=document.querySelector('[data-kk12-tab="'+subTab+'"]');if(btn)btn.click()},220);
+  }
+  var links=[
+    ['kkv30KpiObjects',function(){openTab('pipeline','#verkaufsauftrags-pipeline')}],
+    ['kkhSummaryAppointments',function(){openTaskTool('calendar')}],
+    ['kkv30KpiLeads',function(){openTab('crm','#crm-pro-os')}],
+    ['kkhSummaryTasks',function(){openTaskTool('tasks')}],
+    ['kkhSummaryFollowups',function(){openTab('followups','#followup');setTimeout(function(){var btn=document.querySelector('.kk-fu-tab[data-tab="open"]');if(btn)btn.click()},220)}]
+  ];
+  links.forEach(function(pair){
+    var el=document.getElementById(pair[0]);if(!el)return;
+    el.classList.add('kkv30-kpi-clickable');el.setAttribute('role','button');el.setAttribute('tabindex','0');
+    el.addEventListener('click',pair[1]);
+    el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();pair[1]()}});
+  });
+}
 function init(){root=document.getElementById('kk-heute-v27');if(!root)return;layout();setTimeout(renderNew,120)}
 if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('heute-dashboard-v30-3',init,{priority:79});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
