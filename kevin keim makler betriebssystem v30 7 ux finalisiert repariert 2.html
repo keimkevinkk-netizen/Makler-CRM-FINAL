@@ -1544,6 +1544,30 @@ body.kk-v30-shell-ready #kk-app-shell :is(.kkmkk-filter,.kkcp-tab,.kkref20-tab,.
 body.kk-v30-shell-ready #kk-app-shell :is(.kkmkk-filter,.kkcp-tab,.kkref20-tab,.kk12-tab,.kk-fu-tab,.kkh-quick-btn).is-active{
   background:var(--v30-blue,#182c46)!important;color:#fff!important;border-color:transparent!important;
 }
+
+/* -------- Phase D: einheitliche Optik für "Archiv/Alternative einklappen"-Bausteine
+   (kk-heute-legacy-wrap, kk-crm-legacy-wrap) statt nackter Browser-Standard-Disclosure -------- */
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap){
+  margin:18px 0;border:1px solid var(--v30-border,#e3e5e8);border-radius:var(--v30-radius-lg,16px);background:#fff;overflow:hidden;
+}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)>summary{
+  list-style:none;cursor:pointer;padding:14px 18px;font-size:13px;font-weight:700;color:var(--v30-muted,#5b6472);
+  display:flex;align-items:center;gap:8px;background:var(--v30-surface-2,#f1f2f4);
+}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)>summary::-webkit-details-marker{display:none}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)>summary:before{content:"▸";font-size:11px;color:var(--v30-muted,#5b6472);transition:transform .15s ease}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)[open]>summary:before{transform:rotate(90deg)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)[open]>summary{border-bottom:1px solid var(--v30-border,#e3e5e8)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)>summary:hover{color:var(--v30-ink,#141a21)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)>summary:focus-visible{outline:2px solid var(--v30-blue,#182c46);outline-offset:-2px}
+
+/* -------- Phase D: ein konsistenter Empty-State-Baustein statt Mischung aus grauem
+   Kasten, farbigem Alert-Balken und unterschiedlichen Formulierungstönen -------- */
+body.kk-v30-shell-ready #kk-app-shell [data-app-panel] [class$="-empty" i]{
+  background:var(--v30-surface-2,#f1f2f4)!important;border:1px dashed var(--v30-border,#e3e5e8)!important;
+  border-radius:12px!important;color:var(--v30-muted,#5b6472)!important;padding:16px!important;
+  font-size:13px!important;text-align:center!important;box-shadow:none!important;
+}
 </style>
 </head><body>
 <!-- V29.1: Praxis-/Backup-Test mit realistischem synthetischem Datenbestand; echter Merge-Import ergänzt. Keine Testdaten in der Produktionsdatei eingebettet. -->
@@ -5310,11 +5334,15 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
   window.KK_BOOT.register('crm-pro',init,{priority:22});
 })();
   </script>
-<!-- KK-PHASE1-REDUNDANZ-PRUEFUNG: WIRKT REDUNDANT, NICHT ENTFERNT. Diese klassische CRM-Liste (Formular #kkCrmForm)
-     schreibt/liest denselben Speicherschlüssel kk_crm_contacts wie "CRM Pro" oben, ist aber nicht in die
-     Dashboard-/Karten-Verlinkungen eingebunden. Zwei UIs für dieselben Kontaktdaten im selben Tab. Kandidat für
-     spätere Zusammenführung; bis dahin unverändert funktionsfähig belassen. -->
-</section><section class="chapter kk-crm-section" id="crm">
+<!-- V31 Phase D: KK-PHASE1-REDUNDANZ-ENTSCHEIDUNG. "CRM Pro" oben bleibt die primäre,
+     mit Dashboard/Karte/Suche verlinkte Oberfläche. Diese klassische Kontaktliste
+     (Formular #kkCrmForm) schreibt/liest denselben Speicherschlüssel kk_crm_contacts —
+     komplett funktionsfähig, aber bewusst eingeklappt statt gleichrangig neben CRM Pro
+     zu stehen. Nichts entfernt, keine ID/Storage/Logik verändert, nur Sichtbarkeit. -->
+</section>
+<details class="kk-crm-legacy-wrap" id="kk-crm-legacy-toggle">
+<summary>Alternative Kontaktansicht öffnen · klassische, tabellenfreie Kontaktliste (nutzt dieselben Daten wie CRM Pro oben)</summary>
+<section class="chapter kk-crm-section" id="crm">
 <style>
     #crm{background:var(--bg);color:var(--text);border-bottom:1px solid var(--line);}
     #crm *{box-sizing:border-box;}
@@ -5514,7 +5542,9 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
       window.KK_BOOT.register('crm-kontakte',init,{priority:23});
     })();
   </script>
-</section></div><div aria-label="Follow-ups" class="kk-app-panel" data-app-panel="followups" hidden="" id="kk-app-panel-followups" role="tabpanel"><section class="chapter kk-followup-section" id="followup">
+</section>
+</details>
+</div><div aria-label="Follow-ups" class="kk-app-panel" data-app-panel="followups" hidden="" id="kk-app-panel-followups" role="tabpanel"><section class="chapter kk-followup-section" id="followup">
 <style>
     #followup{background:var(--bg);color:var(--text,#1a1a1a);border-bottom:1px solid var(--line);}
     #followup *{box-sizing:border-box;}
@@ -11112,7 +11142,7 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
   window.KK_BOOT.register('app-shell',init,{priority:60});
 })();
 </script>
-&lt;!-- KK-APP-SHELL PROMPT 3: Sections wurden tab-konform als bestehende DOM-Knoten einsortiert; IDs, Formulare, iframes und LocalStorage-Key kk_app_active_tab bleiben erhalten. --&gt;
+<!-- KK-APP-SHELL PROMPT 3: Sections wurden tab-konform als bestehende DOM-Knoten einsortiert; IDs, Formulare, iframes und LocalStorage-Key kk_app_active_tab bleiben erhalten. -->
 
 
 
