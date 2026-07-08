@@ -718,20 +718,27 @@ body.kk-v11-sales-machine details:not([open]){background:#fff}
 .kkmkk-map-wrap:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(148,163,184,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.07) 1px,transparent 1px);background-size:30px 30px;pointer-events:none}
 .kkmkk-svg{position:relative;display:block;width:100%;height:auto;min-height:490px}
 .kkmkk-town{cursor:pointer;outline:none}
-.kkmkk-town path{fill:#cbd5e1;stroke:#fff;stroke-width:4;vector-effect:non-scaling-stroke;transition:fill .22s ease,filter .22s ease,stroke .22s ease,transform .22s ease;transform-box:fill-box;transform-origin:center}
-.kkmkk-town:hover path,.kkmkk-town:focus path{filter:brightness(1.03) drop-shadow(0 7px 8px rgba(15,23,42,.18));stroke:#0f172a;stroke-width:3;transform:scale(1.012)}
-.kkmkk-town.is-selected path{stroke:#0f172a;stroke-width:5;filter:drop-shadow(0 10px 12px rgba(15,23,42,.22));transform:scale(1.018)}
-.kkmkk-label{pointer-events:none;fill:#0f172a;font-family:Inter,system-ui,sans-serif;font-size:14px;font-weight:900;text-anchor:middle;paint-order:stroke;stroke:rgba(255,255,255,.92);stroke-width:4px;stroke-linejoin:round}
-.kkmkk-label.small{font-size:12px}
-.kkmkk-badge-bg{pointer-events:none;fill:#fff;stroke:rgba(15,23,42,.12);stroke-width:1.5;rx:10;filter:drop-shadow(0 3px 5px rgba(15,23,42,.14))}
-.kkmkk-badge-text{pointer-events:none;fill:#0f172a;font-family:Inter,system-ui,sans-serif;font-size:10px;font-weight:900;text-anchor:middle}
-.kkmkk-compass{pointer-events:none;opacity:.75}
+.kkmkk-town path{fill:#D7DADE;stroke:#fff;stroke-width:5;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;transition:fill .28s ease,filter .18s ease,stroke .18s ease,transform .18s cubic-bezier(.2,.7,.2,1);transform-box:fill-box;transform-origin:center}
+.kkmkk-town:hover path,.kkmkk-town:focus path{filter:brightness(1.05) drop-shadow(0 10px 16px rgba(20,26,33,.22));stroke:#fff;stroke-width:5;transform:scale(1.022)}
+.kkmkk-town.is-selected path{stroke:#141C28;stroke-width:3;filter:drop-shadow(0 14px 22px rgba(20,26,33,.26));transform:scale(1.03)}
+.kkmkk-label{pointer-events:none;fill:#141C28;font-family:Inter,system-ui,sans-serif;font-size:13.5px;font-weight:700;letter-spacing:-.01em;text-anchor:middle;paint-order:stroke;stroke:rgba(255,255,255,.94);stroke-width:4px;stroke-linejoin:round}
+.kkmkk-label.small{font-size:11.5px}
+.kkmkk-badge-bg{pointer-events:none;fill:#fff;stroke:rgba(20,26,33,.12);stroke-width:1.5;rx:10;filter:drop-shadow(0 3px 5px rgba(20,26,33,.14))}
+.kkmkk-badge-text{pointer-events:none;fill:#141C28;font-family:Inter,system-ui,sans-serif;font-size:10px;font-weight:700;text-anchor:middle;font-variant-numeric:tabular-nums}
+.kkmkk-compass{pointer-events:none;opacity:.6}
 .kkmkk-map-foot{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 3px 1px}
 .kkmkk-legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.kkmkk-legend span{display:inline-flex;align-items:center;gap:5px;color:#64748b;font-size:10px;font-weight:800}
-.kkmkk-legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
-.kkmkk-legend .blue{background:#3E5A82}.kkmkk-legend .green{background:#22c55e}.kkmkk-legend .yellow{background:#eab308}.kkmkk-legend .orange{background:#f97316}.kkmkk-legend .red{background:#ef4444}.kkmkk-legend .gray{background:#cbd5e1}
-.kkmkk-map-hint{color:#94a3b8;font-size:10px;font-weight:750}
+.kkmkk-legend span{display:inline-flex;align-items:center;gap:5px;color:#5B6472;font-size:10px;font-weight:650}
+.kkmkk-legend i{width:8px;height:8px;border-radius:2.5px;display:inline-block}
+.kkmkk-legend .blue{background:#24425F}.kkmkk-legend .green{background:#3F7A52}.kkmkk-legend .yellow{background:#A98F2E}.kkmkk-legend .orange{background:#BE6A2E}.kkmkk-legend .red{background:#B23A2C}.kkmkk-legend .gray{background:#D7DADE}
+.kkmkk-map-hint{color:#8B93A0;font-size:10px;font-weight:600}
+.kkmkk-map-wrap{cursor:grab}.kkmkk-map-wrap.is-panning{cursor:grabbing}
+.kkmkk-zoom-controls{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;gap:1px;background:#fff;border:1px solid var(--v30-border,#E3E5E8);border-radius:10px;overflow:hidden;box-shadow:var(--v30-shadow,0 1px 2px rgba(16,20,24,.04),0 6px 18px rgba(16,20,24,.05));z-index:5}
+.kkmkk-zoom-controls button{appearance:none;border:0;background:#fff;color:#141C28;width:32px;height:32px;font-size:16px;font-weight:700;cursor:pointer;display:grid;place-items:center;line-height:1}
+.kkmkk-zoom-controls button:hover{background:#F1F2F4}
+.kkmkk-zoom-controls button:first-child{border-bottom:1px solid var(--v30-border,#E3E5E8)}
+.kkmkk-svg-stage{transition:transform .18s cubic-bezier(.2,.7,.2,1)}
+.kkmkk-map-wrap.is-panning .kkmkk-svg-stage{transition:none}
 .kkmkk-detail-card{padding:18px;display:flex;flex-direction:column;min-width:0}
 .kkmkk-detail-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid #e8eef5}
 .kkmkk-detail-title-wrap{min-width:0}
@@ -1494,6 +1501,27 @@ body.kk-v30-shell-ready ::-webkit-scrollbar{width:10px;height:10px}
 body.kk-v30-shell-ready ::-webkit-scrollbar-track{background:transparent}
 body.kk-v30-shell-ready ::-webkit-scrollbar-thumb{background:rgba(20,26,32,.16);border-radius:99px;border:2.5px solid var(--v30-canvas)}
 body.kk-v30-shell-ready ::-webkit-scrollbar-thumb:hover{background:rgba(20,26,32,.28)}
+
+/* -------- Bugfix: horizontal scrollende Chip-/Tab-Leisten wurden von einer globalen
+   "button{white-space:normal}"-Regel (V30.6 Overflow-Schutz) zerstört — auf schmalen
+   Viewports schrumpften die Buttons auf ~0 und der Text brach Buchstabe für Buchstabe
+   um. Betrifft u. a. Marktmonitor-Kennzahlfilter, CRM-Pro-Unternavigation, Skripte-/
+   Einwand-Tabs, Tippgeber-Tabs, Schnelllinks. Für diese bewusst horizontal scrollenden
+   Leisten wird nowrap zurückgeholt; alle anderen Buttons behalten ihr Umbruchverhalten. -------- */
+body.kk-v30-shell-ready [data-app-panel] .kkmkk-toolbar button,
+body.kk-v30-shell-ready [data-app-panel] .kkmkk-filter,
+body.kk-v30-shell-ready [data-app-panel] .navlinks button,
+body.kk-v30-shell-ready [data-app-panel] .process button,
+body.kk-v30-shell-ready [data-app-panel] .kk11-flow button,
+body.kk-v30-shell-ready [data-app-panel] .kk12-tabs button,
+body.kk-v30-shell-ready [data-app-panel] .kkref20-tabs button,
+body.kk-v30-shell-ready [data-app-panel] .kkv8-market-columns button,
+body.kk-v30-shell-ready [data-app-panel] .kkv8-quicklinks button,
+body.kk-v30-shell-ready [data-app-panel] .kkcp-tabs button,
+body.kk-v30-shell-ready [data-app-panel] .kkcp-flow button,
+body.kk-v30-shell-ready [data-app-panel] .kk-v30-subnav button{
+  white-space:nowrap!important;text-wrap:nowrap!important;overflow-wrap:normal!important;flex:0 0 auto!important;
+}
 </style>
 </head><body>
 <!-- V29.1: Praxis-/Backup-Test mit realistischem synthetischem Datenbestand; echter Merge-Import ergänzt. Keine Testdaten in der Produktionsdatei eingebettet. -->
@@ -2799,7 +2827,7 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
 (function(){
 'use strict';
 var root=null,selectedTown='bruchkoebel';
-var COLORS={blue:'#3E5A82',green:'#22c55e',yellow:'#eab308',orange:'#f97316',red:'#ef4444',gray:'#cbd5e1'};
+var COLORS={blue:'#24425F',green:'#3F7A52',yellow:'#A98F2E',orange:'#BE6A2E',red:'#B23A2C',gray:'#D7DADE'};
 var PATHS={
  maintal:['M45 285 L165 225 L225 325 L168 414 L62 392 Z',127,326],hanau:['M190 298 L329 258 L389 359 L321 462 L200 421 L168 414 L225 325 Z',286,352],bruchkoebel:['M246 177 L382 168 L408 271 L329 298 L225 259 Z',315,222],schoeneck:['M116 119 L249 96 L281 187 L246 177 L225 259 L151 228 Z',190,157],nidderau:['M220 40 L367 40 L400 147 L382 168 L246 177 L281 96 Z',306,88],neuberg:['M400 147 L515 118 L551 221 L450 261 L408 271 L382 168 Z',472,181],hammersbach:['M500 45 L640 60 L650 175 L551 221 L515 118 Z',575,99],erlensee:['M408 271 L540 229 L578 331 L501 401 L389 359 Z',486,307],langenselbold:['M551 221 L700 190 L742 300 L611 356 L578 331 L540 229 Z',650,258],rodenbach:['M501 401 L611 356 L653 450 L560 522 L450 480 L389 359 Z',545,437],freigericht:['M653 450 L741 390 L790 500 L691 570 L560 522 Z',684,500],gelnhausen:['M700 300 L790 300 L810 420 L741 390 L653 450 L611 356 Z',731,349]
 };
@@ -3328,6 +3356,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
         </div>
         <div class="kkmkk-map-wrap">
           <svg class="kkmkk-svg" id="kkmkk-svg" viewBox="0 0 830 590" role="img" aria-label="Schematische interaktive Karte der wichtigsten Gebiete im Main-Kinzig-Kreis">
+            <g class="kkmkk-svg-stage" id="kkmkk-svg-stage">
             <g class="kkmkk-town" data-town="maintal" tabindex="0" role="button" aria-label="Maintal auswählen">
               <path d="M45 285 L165 225 L225 325 L168 414 L62 392 Z"></path><text class="kkmkk-label" x="127" y="326">Maintal</text><rect class="kkmkk-badge-bg" data-badge-bg x="91" y="340" width="72" height="22"></rect><text class="kkmkk-badge-text" data-badge x="127" y="355">–</text>
             </g>
@@ -3365,7 +3394,12 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
               <path d="M700 300 L790 300 L810 420 L741 390 L653 450 L611 356 Z"></path><text class="kkmkk-label" x="731" y="349">Gelnhausen</text><rect class="kkmkk-badge-bg" data-badge-bg x="695" y="363" width="72" height="22"></rect><text class="kkmkk-badge-text" data-badge x="731" y="378">–</text>
             </g>
             <g class="kkmkk-compass" transform="translate(770,55)"><circle cx="0" cy="0" r="24" fill="#fff" stroke="#cbd5e1"></circle><path d="M0 -16 L5 2 L0 -2 L-5 2 Z" fill="#182C46"></path><text x="0" y="-28" text-anchor="middle" font-family="Inter" font-size="10" font-weight="900" fill="#64748b">N</text></g>
+            </g>
           </svg>
+          <div class="kkmkk-zoom-controls" aria-hidden="true">
+            <button type="button" data-kkmkk-zoom-in aria-label="Karte vergrößern" title="Vergrößern">+</button>
+            <button type="button" data-kkmkk-zoom-out aria-label="Karte verkleinern" title="Verkleinern">−</button>
+          </div>
         </div>
         <div class="kkmkk-map-foot">
           <div class="kkmkk-legend" aria-label="Heatmap-Legende"><span><i class="blue"></i> sehr hoch</span><span><i class="green"></i> hoch</span><span><i class="yellow"></i> mittel</span><span><i class="orange"></i> beobachten</span><span><i class="red"></i> Handlungsbedarf</span><span><i class="gray"></i> keine Daten</span></div>
@@ -11651,7 +11685,7 @@ var METRICS={
   openLeads:{label:'Offene Leads',short:'Leads',format:fmtCount},
   competition:{label:'Konkurrenzintensität',short:'Kon.',format:function(v){return isNumber(v)?Math.round(v)+' / 100':'Keine Daten';}}
 };
-var COLORS={blue:'#3E5A82',green:'#22c55e',yellow:'#eab308',orange:'#f97316',red:'#ef4444',gray:'#cbd5e1'};
+var COLORS={blue:'#24425F',green:'#3F7A52',yellow:'#A98F2E',orange:'#BE6A2E',red:'#B23A2C',gray:'#D7DADE'};
 var selected='bruchkoebel',compared='hanau',metric='potential',qualityQuery='',qualitySource='all',root=null,DATA={},QUALITY={unassigned:[],assigned:0,total:0,updatedAt:null},SOURCE_VIEW=[];
 var U=window.KK_UTIL||{};
 var esc=typeof U.esc==='function'?U.esc:function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
@@ -11784,6 +11818,49 @@ function relevantChange(e){var key=e&&e.detail&&e.detail.key||e&&e.key||'';if(!k
 function init(){root=document.getElementById('mkk-market-map');if(!root)return;bind();DATA=buildData();loadViewState();refreshData();window.addEventListener('storage',relevantChange);window.addEventListener('kk:storage-changed',relevantChange);window.addEventListener('kk:storage-imported',function(){setTimeout(refreshData,80)});document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='marktmonitor')setTimeout(refreshData,40)});try{if(window.KK_APP_SHELL&&window.KK_APP_SHELL.registerAnchor)window.KK_APP_SHELL.registerAnchor('mkk-market-map','marktmonitor')}catch(e){}}
 window.KK_MKK_MAP={version:'29.10',refresh:refreshData,getData:function(){return DATA},selectTown:chooseTown,selectComparison:function(key){if(DATA[key]&&key!==selected){compared=key;saveViewState();renderComparison()}},swapComparison:swapCompared,marketKey:MARKET_KEY,stateKey:STATE_KEY,getQuality:function(){return QUALITY},openQualityItem:openQualityItem,assignRecordTown:assignQualityRecord,exportCsv:exportCsv,newContact:newContactForTown,newFollowup:newFollowupForTown,newObject:newObjectForTown,showSources:showMetricSources,bulkAssign:bulkAssignQuality,assignRecordBatch:assignQualityBatch,toggleFocus:toggleFocus};
 if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('mkk-market-map',init,{priority:76});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+
+<!-- V31: echtes Zoom/Pan für die MKK-Karte. Rein additiv (eigenes IIFE, eigene IDs/Data-Attribute),
+     rührt keine bestehende Render-/Datenlogik der Karte an. -->
+<script id="kk-mkk-zoom-pan-v31-js">
+(function(){
+'use strict';
+if(window.KK_MKK_ZOOM&&window.KK_MKK_ZOOM.version==='31.0')return;
+var MIN=1,MAX=3.5,STEP=.35;
+function setup(){
+  var wrap=document.querySelector('.kkmkk-map-wrap'),svg=document.getElementById('kkmkk-svg'),stage=document.getElementById('kkmkk-svg-stage');
+  if(!wrap||!svg||!stage||wrap.dataset.kkZoomBound==='1')return;
+  wrap.dataset.kkZoomBound='1';
+  var scale=1,tx=0,ty=0,dragging=false,startX=0,startY=0,startTx=0,startTy=0,moved=false;
+  var reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function clampPan(){var max=(scale-1)*260;tx=Math.max(-max,Math.min(max,tx));ty=Math.max(-max*.7,Math.min(max*.7,ty))}
+  function apply(){clampPan();stage.setAttribute('transform','translate('+tx+' '+ty+') scale('+scale+')');wrap.classList.toggle('is-zoomed',scale>1.01)}
+  function zoomBy(delta,cx,cy){
+    var prev=scale;scale=Math.max(MIN,Math.min(MAX,scale+delta));
+    if(scale===prev)return;
+    if(typeof cx==='number'){var f=scale/prev;tx=cx-(cx-tx)*f;ty=cy-(cy-ty)*f}
+    apply();
+  }
+  function pointFromEvent(e){var r=svg.getBoundingClientRect();return{x:(e.clientX-r.left)-r.width/2,y:(e.clientY-r.top)-r.height/2}}
+  wrap.addEventListener('wheel',function(e){e.preventDefault();var p=pointFromEvent(e);zoomBy(e.deltaY<0?STEP:-STEP,p.x,p.y)},{passive:false});
+  wrap.addEventListener('mousedown',function(e){if(e.button!==0||scale<=1)return;dragging=true;moved=false;startX=e.clientX;startY=e.clientY;startTx=tx;startTy=ty;wrap.classList.add('is-panning')});
+  window.addEventListener('mousemove',function(e){if(!dragging)return;var dx=e.clientX-startX,dy=e.clientY-startY;if(Math.abs(dx)>2||Math.abs(dy)>2)moved=true;tx=startTx+dx;ty=startTy+dy;apply()});
+  window.addEventListener('mouseup',function(){if(!dragging)return;dragging=false;wrap.classList.remove('is-panning')});
+  wrap.addEventListener('click',function(e){if(moved){e.stopPropagation();e.preventDefault();moved=false}},true);
+  wrap.addEventListener('dblclick',function(e){e.preventDefault();scale=1;tx=0;ty=0;apply()});
+  var touchStart=null;
+  wrap.addEventListener('touchstart',function(e){if(e.touches.length===1&&scale>1){touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY,tx:tx,ty:ty}}},{passive:true});
+  wrap.addEventListener('touchmove',function(e){if(!touchStart||e.touches.length!==1)return;var dx=e.touches[0].clientX-touchStart.x,dy=e.touches[0].clientY-touchStart.y;tx=touchStart.tx+dx;ty=touchStart.ty+dy;apply()},{passive:true});
+  wrap.addEventListener('touchend',function(){touchStart=null});
+  var zin=wrap.parentElement.querySelector('[data-kkmkk-zoom-in]'),zout=wrap.parentElement.querySelector('[data-kkmkk-zoom-out]');
+  if(zin)zin.addEventListener('click',function(){zoomBy(STEP)});
+  if(zout)zout.addEventListener('click',function(){zoomBy(-STEP)});
+  if(reduceMotion)stage.style.transition='none';
+}
+window.KK_MKK_ZOOM={version:'31.0',init:setup};
+if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('mkk-zoom-pan',setup,{priority:78});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
+document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='marktmonitor')setTimeout(setup,60)});
 })();
 </script>
 
