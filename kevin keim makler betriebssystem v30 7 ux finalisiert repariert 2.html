@@ -4668,6 +4668,9 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 
 
 
+<!-- KK-PHASE1-REDUNDANZ-PRUEFUNG: AKTIVES CRM-MODUL. "CRM Pro" ist das primär genutzte Kontaktmodul:
+     Speicherschlüssel kk_crm_contacts, verlinkt von Heute-Dashboard, Marktmonitor/MKK-Karte, Command-Center-Suche
+     und Datenqualitäts-Scan. Änderungen an CRM-Logik bitte hier vornehmen. Nichts entfernt, nur markiert. -->
 <section class="kkcrmpro-section" id="crm-pro-os">
 <style>
     #crm-pro-os{background:linear-gradient(180deg,#fffdf9,var(--bg));border-bottom:1px solid var(--line);color:var(--text)}
@@ -4934,6 +4937,10 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
   window.KK_BOOT.register('crm-pro',init,{priority:22});
 })();
   </script>
+<!-- KK-PHASE1-REDUNDANZ-PRUEFUNG: WIRKT REDUNDANT, NICHT ENTFERNT. Diese klassische CRM-Liste (Formular #kkCrmForm)
+     schreibt/liest denselben Speicherschlüssel kk_crm_contacts wie "CRM Pro" oben, ist aber nicht in die
+     Dashboard-/Karten-Verlinkungen eingebunden. Zwei UIs für dieselben Kontaktdaten im selben Tab. Kandidat für
+     spätere Zusammenführung; bis dahin unverändert funktionsfähig belassen. -->
 </section><section class="chapter kk-crm-section" id="crm">
 <style>
     #crm{background:var(--bg);color:var(--text);border-bottom:1px solid var(--line);}
@@ -8708,6 +8715,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <script>
 (function(){
   var euro=function(n){return window.KK_UTIL.money(n,{style:'suffix',maximumFractionDigits:0})};
+  var esc=function(v){return window.KK_UTIL&&KK_UTIL.esc?KK_UTIL.esc(v):String(v==null?'':v)};
   function readDeals(){try{var raw=window.KK_STORE.getRaw('kk_pipeline_deals'); var arr=raw?JSON.parse(raw):[]; return Array.isArray(arr)?arr:[]}catch(e){return []}}
   function readTargets(){try{var raw=window.KK_STORE.getRaw('kk_kpi_targets'); var t=raw?JSON.parse(raw):{}; return t||{}}catch(e){return {}}}
   var gaugeChart=null;
@@ -8730,13 +8738,13 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
     var regionsEl=document.getElementById('kkccRegions');
     if(regionsEl){
       if(!towns.length){regionsEl.innerHTML='<div class="kkcc-empty">Noch keine Deals mit Ort erfasst.</div>'}
-      else{regionsEl.innerHTML=towns.map(function(t){var pct=maxC?Math.round(t.count/maxC*100):0; return '<div class="kkcc-region-row"><span>'+t.name+'</span><div class="kkcc-region-track"><div class="kkcc-region-fill" style="width:'+pct+'%"></div></div><b>'+t.count+'</b></div>'}).join('')}
+      else{regionsEl.innerHTML=towns.map(function(t){var pct=maxC?Math.round(t.count/maxC*100):0; return '<div class="kkcc-region-row"><span>'+esc(t.name)+'</span><div class="kkcc-region-track"><div class="kkcc-region-fill" style="width:'+pct+'%"></div></div><b>'+t.count+'</b></div>'}).join('')}
     }
     var tbody=document.getElementById('kkccDealsTable');
     if(tbody){
       var rows=active.slice().sort(function(a,b){return (Number(b.expectedProvision)||0)*(Number(b.probability)||0)-(Number(a.expectedProvision)||0)*(Number(a.probability)||0)}).slice(0,8);
       if(!rows.length){tbody.innerHTML='<tr><td colspan="5" class="kkcc-empty">Noch keine Pipeline-Deals erfasst.</td></tr>'}
-      else{tbody.innerHTML=rows.map(function(d){var prob=Number(d.probability)||0,prov=Number(d.expectedProvision)||0,w=prov*prob/100; var pillClass=prob>=60?'aktiv':(prob>=30?'wartend':'kalt'); return '<tr><td><b>'+(d.name||'ohne Namen')+'</b></td><td>'+(d.town||d.area||'–')+'</td><td>'+(d.phase||d.status||'–')+'</td><td>'+euro(w)+'</td><td><span class="kkcc-pill '+pillClass+'">'+prob+'%</span></td></tr>'}).join('')}
+      else{tbody.innerHTML=rows.map(function(d){var prob=Number(d.probability)||0,prov=Number(d.expectedProvision)||0,w=prov*prob/100; var pillClass=prob>=60?'aktiv':(prob>=30?'wartend':'kalt'); return '<tr><td><b>'+esc(d.name||'ohne Namen')+'</b></td><td>'+esc(d.town||d.area||'–')+'</td><td>'+esc(d.phase||d.status||'–')+'</td><td>'+euro(w)+'</td><td><span class="kkcc-pill '+pillClass+'">'+prob+'%</span></td></tr>'}).join('')}
     }
     if(window.Chart){
       var ctx=document.getElementById('kkccGaugeChart');
@@ -10613,7 +10621,9 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
     {id:'kpis',label:'KPIs',panelId:'kk-app-panel-kpis',primary:true,mobile:false,anchors:['conversion-cockpit','wochenreview','monatsreview','monatsmodus','zeitbudget','kpi','business','conversionForm','weekForm','monthForm','timeForm']},
     {id:'backup',label:'Backup',panelId:'kk-app-panel-backup',primary:true,mobile:false,anchors:['kk-technical-backup','master-os','datenqualitaet','kkTechExportFull','kkTechExportModule','kkTechSmokeTest','kkTechImportFile','kkTechImportMode','kkTechImportRun','kkTechStatus','kkTechToast']},
     {id:'skripte',label:'Archiv: Skripte',panelId:'kk-app-panel-skripte',primary:false,mobile:false,anchors:['skripte','einwaende','kk_scripts_module']},
-    {id:'wissen',label:'Archiv: Wissen',panelId:'kk-app-panel-wissen',primary:false,mobile:false,anchors:['kk-playbook-nav','wissen-strategie','summary','strategie-modus','vermarktung','prozess','plan90','brand']}
+    /* KK-PHASE1-SICHTBARKEIT: primary:true, damit "Archiv: Wissen" im regulären Hauptmenü erscheint statt nur
+       versteckt unter dem Backup-Tab erreichbar zu sein. Label, Panel, Anchors und Archiv-Charakter unverändert. */
+    {id:'wissen',label:'Archiv: Wissen',panelId:'kk-app-panel-wissen',primary:true,mobile:false,anchors:['kk-playbook-nav','wissen-strategie','summary','strategie-modus','vermarktung','prozess','plan90','brand']}
   ];
 
   var BY_ID={}, LABELS={}, PANEL_IDS={}, ANCHOR_TO_TAB={};
@@ -11677,7 +11687,11 @@ var tabs=[
   {id:'tippgeber',label:'Tippgeber',sub:'Netzwerk und Empfehlungen',icon:'network'},
   {id:'ki-prompts',label:'KI-Prompts',sub:'Texte und Gesprächsvorbereitung',icon:'spark'},
   {id:'kpis',label:'KPIs',sub:'Aktivität und Zielkontrolle',icon:'chart'},
-  {id:'backup',label:'Backup',sub:'Sicherung, Import und Diagnose',icon:'shield'}
+  {id:'backup',label:'Backup',sub:'Sicherung, Import und Diagnose',icon:'shield'},
+  /* KK-PHASE1-SICHTBARKEIT: ergänzt, damit das Wissens-/Skripte-Archiv auch in dieser (tatsächlich sichtbaren)
+     Sidebar auftaucht statt nur intern in KK_APP_SHELL registriert zu sein. Kein Icon-Redesign: bestehendes
+     "search"-Symbol wiederverwendet (Nachschlagen). Nichts entfernt oder umbenannt. */
+  {id:'wissen',label:'Archiv: Wissen',sub:'Playbook, Ortsprofile, Skripte und Strategie',icon:'search'}
 ];
 var mobilePrimary=['heute','crm','followups','pipeline'];
 function icon(name){var p={
