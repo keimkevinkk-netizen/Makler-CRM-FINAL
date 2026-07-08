@@ -3,7 +3,7 @@
 <html lang="de"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>Kevin Keim · Verkaufsauftrags-Maschine</title>
 <!-- KK-TECH-HARDENING V2 · Browser-Security und App-Metadaten -->
-<meta content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; frame-src 'self' about: data:; object-src 'none'; base-uri 'self'; form-action 'self';" http-equiv="Content-Security-Policy"/>
+<meta content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; frame-src 'self' about: data:; object-src 'none'; base-uri 'self'; form-action 'self';" http-equiv="Content-Security-Policy"/>
 <meta content="no-referrer" name="referrer"/>
 <meta content="#1e2a3a" name="theme-color"/>
 <meta content="light" name="color-scheme"/>
@@ -3487,6 +3487,64 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
           <div class="kkmkk-quality-list" id="kkmkk-quality-list"></div>
         </div>
       </details>
+    </div>
+  </div>
+</section>
+
+<style id="kk-realmap-v31-css">
+.kkgeo-section{background:var(--v30-canvas,#f6f6f5);border-bottom:1px solid var(--v30-border,#e3e5e8)}
+.kkgeo-shell{max-width:1180px;margin:0 auto;padding:8px 22px 44px}
+.kkgeo-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:14px;flex-wrap:wrap}
+.kkgeo-kicker{display:inline-flex;color:var(--accent,#b0431f);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.kkgeo-head h2{font-family:Inter,system-ui,sans-serif;color:var(--v30-ink,#141a21);font-size:clamp(21px,2.6vw,28px);margin:0 0 6px;letter-spacing:-.02em}
+.kkgeo-head p{max-width:640px;color:var(--v30-muted,#5b6472);margin:0;font-size:13.5px;line-height:1.5}
+.kkgeo-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.kkgeo-updated{font-family:ui-monospace,monospace;font-size:11px;color:var(--v30-muted,#5b6472);white-space:nowrap}
+.kkgeo-btn{border:1px solid var(--v30-border,#e3e5e8);border-radius:10px;background:#fff;color:var(--v30-ink,#141a21);font:inherit;font-size:12.5px;font-weight:700;padding:8px 14px;cursor:pointer}
+.kkgeo-btn:hover{background:var(--v30-surface-2,#f1f2f4)}
+.kkgeo-offline{margin:0 0 12px;padding:11px 14px;border-radius:10px;background:var(--sev-med-soft,#f7ecd9);color:#5a3d0a;font-size:13px;border-left:3px solid var(--v30-orange,#ad7714)}
+.kkgeo-map-wrap{border:1px solid var(--v30-border,#e3e5e8);border-radius:16px;overflow:hidden;box-shadow:var(--v30-shadow,0 1px 2px rgba(16,20,24,.04),0 6px 18px rgba(16,20,24,.05))}
+.kkgeo-map{width:100%;height:440px;background:#eef1ec}
+.kkgeo-map .leaflet-popup-content{font-family:Inter,system-ui,sans-serif;font-size:12.5px;min-width:180px}
+.kkgeo-map .leaflet-popup-content b{display:block;font-size:13.5px;color:#141a21;margin-bottom:4px}
+.kkgeo-foot{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;padding-top:12px}
+.kkgeo-legend{display:flex;gap:10px;flex-wrap:wrap}
+.kkgeo-legend span{display:inline-flex;align-items:center;gap:5px;color:#5b6472;font-size:10px;font-weight:650}
+.kkgeo-legend i{width:8px;height:8px;border-radius:2.5px;display:inline-block}
+.kkgeo-legend .blue{background:#24425F}.kkgeo-legend .green{background:#3F7A52}.kkgeo-legend .yellow{background:#A98F2E}.kkgeo-legend .orange{background:#BE6A2E}.kkgeo-legend .red{background:#B23A2C}.kkgeo-legend .gray{background:#D7DADE}
+.kkgeo-source-note{max-width:520px;margin:0;font-size:11px;color:#8b93a0;line-height:1.5}
+@media (max-width:760px){.kkgeo-shell{padding:6px 14px 32px}.kkgeo-map{height:340px}.kkgeo-head{flex-direction:column}.kkgeo-actions{width:100%;justify-content:space-between}}
+</style>
+
+<!-- V31 PHASE A: additive echte Geo-Karte auf Leaflet-Basis, hinter KK_MAP/MapAdapter.
+     Ersetzt NICHT die Schema-Karte oben (#mkk-market-map bleibt vollständig erhalten,
+     keine Funktion/kein Markup daraus entfernt) — eigenständiger, isoliert testbarer
+     neuer Baustein. Liest Auswahl/Daten ausschließlich über die bestehende, öffentliche
+     window.KK_MKK_MAP-API (getData/selectTown), keine zweite Datenhaltung. -->
+<section class="kkgeo-section" id="kk-realmap-v31" aria-labelledby="kkgeo-title">
+  <div class="kkgeo-shell">
+    <div class="kkgeo-head">
+      <div>
+        <span class="kkgeo-kicker">Marktmonitor · Kartenengine</span>
+        <h2 id="kkgeo-title">Main-Kinzig-Kreis auf echter Basiskarte</h2>
+        <p>Reale Geografie (OpenStreetMap) statt Schema-Grafik. Marker an realen Ortskoordinaten, Auswahl bleibt mit dem Gebietsvergleich oben synchron.</p>
+      </div>
+      <div class="kkgeo-actions">
+        <span class="kkgeo-updated" id="kkgeo-updated">Noch nicht aktualisiert</span>
+        <button class="kkgeo-btn" id="kkgeo-refresh-btn" type="button">Aktualisieren</button>
+      </div>
+    </div>
+    <div class="kkgeo-offline" id="kkgeo-offline" hidden="" role="status">
+      <strong>Kartenkacheln nicht verfügbar.</strong> Vermutlich kein Internetzugriff — Orte, Marker und Daten bleiben trotzdem nutzbar.
+    </div>
+    <div class="kkgeo-map-wrap">
+      <div class="kkgeo-map" id="kkgeo-map" role="img" aria-label="Interaktive Karte des Main-Kinzig-Kreises mit einem Marker je Gebiet"></div>
+    </div>
+    <div class="kkgeo-foot">
+      <div class="kkgeo-legend">
+        <span><i class="blue"></i>sehr hoch</span><span><i class="green"></i>hoch</span><span><i class="yellow"></i>mittel</span><span><i class="orange"></i>beobachten</span><span><i class="red"></i>Handlungsbedarf</span><span><i class="gray"></i>keine Daten</span>
+      </div>
+      <p class="kkgeo-source-note">Ortskoordinaten: plausible Näherungswerte aus allgemeiner Ortskenntnis, keine amtlich vermessenen Daten. Gemeindegrenzen folgen, sobald eine geprüfte GeoJSON-Quelle vorliegt (Architektur ist vorbereitet, siehe Backup → Datenqualität).</p>
     </div>
   </div>
 </section>
@@ -11766,6 +11824,10 @@ function buildData(){
 }
 function metricValues(){return TOWN_KEYS.map(function(k){return DATA[k]&&DATA[k][metric]}).filter(isNumber)}
 function colorFor(value,d){if(metric==='potential'&&!d.hasOperationalData)return COLORS.gray;if(metric==='competition'&&!isNumber(value))return COLORS.gray;if(!isNumber(value))return COLORS.gray;if(metric==='competition'){if(value>=75)return COLORS.red;if(value>=55)return COLORS.orange;if(value>=35)return COLORS.yellow;return COLORS.green}if(metric==='potential'){if(value>=90)return COLORS.blue;if(value>=70)return COLORS.green;if(value>=45)return COLORS.yellow;if(value>=20)return COLORS.orange;return COLORS.red}var vals=metricValues(),max=Math.max.apply(Math,vals.concat([0]));if(!max)return COLORS.gray;var ratio=value/max;if(ratio>=.9)return COLORS.blue;if(ratio>=.68)return COLORS.green;if(ratio>=.42)return COLORS.yellow;if(ratio>=.18)return COLORS.orange;return COLORS.red}
+/* V31: metrik-unabhängige Variante von colorFor() für externe Konsumenten (z. B. die
+   neue Leaflet-Karte), damit deren Farben nicht vom aktuell in DIESER Karte gewählten
+   Metrik-Filter abhängen. Nutzt dieselbe COLORS-Quelle, dieselben Potenzial-Schwellen. */
+function colorForPotential(d){if(!d||!d.hasOperationalData)return COLORS.gray;var v=d.potential;if(v>=90)return COLORS.blue;if(v>=70)return COLORS.green;if(v>=45)return COLORS.yellow;if(v>=20)return COLORS.orange;return COLORS.red}
 function metricText(d){return METRICS[metric].format(d[metric],d)}
 function badgeText(d){var v=d[metric],cfg=METRICS[metric];if(metric==='potential')return d.hasOperationalData?Math.round(v)+'%':'–';if(metric==='competition')return isNumber(v)?Math.round(v)+'%':'–';return cfg.short+' '+fmtCount(v)}
 function statusStyle(el,level){el.setAttribute('data-level',level||'no-data')}
@@ -11822,7 +11884,7 @@ function toggleFocus(force){var on=typeof force==='boolean'?force:!root.classLis
 function bind(){root.addEventListener('click',function(e){var sourceOpen=e.target.closest('[data-kkmkk-source-open]');if(sourceOpen){openSourceRecord(Number(sourceOpen.getAttribute('data-kkmkk-source-open')));return}var sourceMetric=e.target.closest('[data-kkmkk-source-metric]');if(sourceMetric){showMetricSources(sourceMetric.getAttribute('data-kkmkk-source-metric'));return}var assign=e.target.closest('[data-kkmkk-quality-assign]');if(assign){var idx=Number(assign.getAttribute('data-kkmkk-quality-assign')),select=root.querySelector('[data-kkmkk-quality-town="'+idx+'"]'),townKey=select&&select.value,row=assign.closest('[data-kkmkk-quality-row]');if(!townKey){qualityToast('Bitte zuerst einen Ort auswählen.');return}assignQualityRecord(idx,townKey,row);return}var open=e.target.closest('[data-kkmkk-quality-open]');if(open){openQualityItem(Number(open.getAttribute('data-kkmkk-quality-open')));return}var filter=e.target.closest('.kkmkk-filter');if(filter){metric=filter.getAttribute('data-metric');saveViewState();renderMap();renderDetail();renderRanking();renderComparison();return}var town=e.target.closest('.kkmkk-town');if(town){chooseTown(town.getAttribute('data-town'));return}var rank=e.target.closest('[data-kkmkk-rank-town]');if(rank){chooseTown(rank.getAttribute('data-kkmkk-rank-town'));return}if(e.target.closest('#kkmkk-focus-btn')){toggleFocus();return}if(e.target.closest('#kkmkk-swap-btn')){swapCompared();return}if(e.target.closest('#kkmkk-quality-filter-clear')){qualityQuery='';qualitySource='all';var search=root.querySelector('#kkmkk-quality-search'),source=root.querySelector('#kkmkk-quality-source');if(search)search.value='';if(source)source.value='all';renderQuality();return}if(e.target.closest('#kkmkk-quality-bulk-assign')){bulkAssignQuality();return}if(e.target.closest('#kkmkk-refresh-btn')){refreshData();qualityToast('Kartendaten aktualisiert.');return}if(e.target.closest('#kkmkk-export-btn')){exportCsv();return}if(e.target.closest('[data-kkmkk-new-contact]')){newContactForTown();return}if(e.target.closest('[data-kkmkk-new-followup]')){newFollowupForTown();return}if(e.target.closest('[data-kkmkk-new-object]')){newObjectForTown();return}if(e.target.closest('#kkmkk-analyse-btn')){showAnalysis();return}if(e.target.closest('#kkmkk-contacts-btn')){showContacts();return}if(e.target.closest('#kkmkk-followups-btn')){showFollowups();return}if(e.target.closest('#kkmkk-market-btn')){showMarketEditor();return}if(e.target.closest('[data-kkmkk-open-crm]')){openCrm();return}if(e.target.closest('[data-kkmkk-open-followups]')){openFollowups();return}if(e.target.closest('[data-kkmkk-clear-market]')){clearMarket();return}if(e.target.closest('#kkmkk-mobile-toggle')){var card=root.querySelector('#kkmkk-detail-card'),isOpen=!card.classList.contains('is-open');card.classList.toggle('is-open',isOpen);e.target.textContent=isOpen?'Details einklappen':'Details anzeigen';e.target.setAttribute('aria-expanded',isOpen?'true':'false')}});root.addEventListener('change',function(e){if(e.target&&e.target.id==='kkmkk-town-jump'){chooseTown(e.target.value);return}if(e.target&&e.target.id==='kkmkk-compare-town'){compared=e.target.value;saveViewState();renderComparison();return}if(e.target&&e.target.id==='kkmkk-quality-source'){qualitySource=e.target.value||'all';renderQuality();return}if(e.target&&e.target.id==='kkmkk-quality-select-all'){root.querySelectorAll('[data-kkmkk-quality-check]').forEach(function(c){c.checked=e.target.checked});updateQualityBulk();return}if(e.target&&e.target.matches('[data-kkmkk-quality-check]'))updateQualityBulk()});root.addEventListener('input',function(e){if(e.target&&e.target.id==='kkmkk-quality-search'){qualityQuery=e.target.value||'';renderQuality()}});root.addEventListener('submit',function(e){if(e.target&&e.target.id==='kkmkk-market-form'){e.preventDefault();saveMarketForm(e.target)}});root.querySelectorAll('.kkmkk-town').forEach(function(g){g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();chooseTown(g.getAttribute('data-town'))}else if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();var current=TOWN_KEYS.indexOf(g.getAttribute('data-town')),step=(e.key==='ArrowRight'||e.key==='ArrowDown')?1:-1,next=(current+step+TOWN_KEYS.length)%TOWN_KEYS.length,target=root.querySelector('.kkmkk-town[data-town="'+TOWN_KEYS[next]+'"]');if(target){target.focus();chooseTown(TOWN_KEYS[next])}}})});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&root.classList.contains('is-focus'))toggleFocus(false)})}
 function relevantChange(e){var key=e&&e.detail&&e.detail.key||e&&e.key||'';if(!key||RELEVANT_KEYS.test(String(key)))setTimeout(refreshData,40)}
 function init(){root=document.getElementById('mkk-market-map');if(!root)return;bind();DATA=buildData();loadViewState();refreshData();window.addEventListener('storage',relevantChange);window.addEventListener('kk:storage-changed',relevantChange);window.addEventListener('kk:storage-imported',function(){setTimeout(refreshData,80)});document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='marktmonitor')setTimeout(refreshData,40)});try{if(window.KK_APP_SHELL&&window.KK_APP_SHELL.registerAnchor)window.KK_APP_SHELL.registerAnchor('mkk-market-map','marktmonitor')}catch(e){}}
-window.KK_MKK_MAP={version:'29.10',refresh:refreshData,getData:function(){return DATA},selectTown:chooseTown,selectComparison:function(key){if(DATA[key]&&key!==selected){compared=key;saveViewState();renderComparison()}},swapComparison:swapCompared,marketKey:MARKET_KEY,stateKey:STATE_KEY,getQuality:function(){return QUALITY},openQualityItem:openQualityItem,assignRecordTown:assignQualityRecord,exportCsv:exportCsv,newContact:newContactForTown,newFollowup:newFollowupForTown,newObject:newObjectForTown,showSources:showMetricSources,bulkAssign:bulkAssignQuality,assignRecordBatch:assignQualityBatch,toggleFocus:toggleFocus};
+window.KK_MKK_MAP={version:'29.10',refresh:refreshData,getData:function(){return DATA},selectTown:chooseTown,selectComparison:function(key){if(DATA[key]&&key!==selected){compared=key;saveViewState();renderComparison()}},swapComparison:swapCompared,marketKey:MARKET_KEY,stateKey:STATE_KEY,getQuality:function(){return QUALITY},openQualityItem:openQualityItem,assignRecordTown:assignQualityRecord,exportCsv:exportCsv,newContact:newContactForTown,newFollowup:newFollowupForTown,newObject:newObjectForTown,showSources:showMetricSources,bulkAssign:bulkAssignQuality,assignRecordBatch:assignQualityBatch,toggleFocus:toggleFocus,colorForPotential:colorForPotential,getSelected:function(){return selected},getTownName:function(k){return (DATA[k]&&DATA[k].name)||k}};
 if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('mkk-market-map',init,{priority:76});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -11867,6 +11929,457 @@ function setup(){
 window.KK_MKK_ZOOM={version:'31.0',init:setup};
 if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('mkk-zoom-pan',setup,{priority:78});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='marktmonitor')setTimeout(setup,60)});
+})();
+</script>
+
+<!-- ==========================================================================
+     V31 PHASE A · DATENARCHITEKTUR-FUNDAMENT
+     Drei unabhängige, additive Module. Keine bestehende ID/Storage-Key/Funktion
+     verändert. Jedes Modul ist eigenständig testbar (siehe Änderungsbericht).
+     1) kk-data-core-v31-js      – generischer Cache/Refresh/LastUpdate-Kern
+     2) kk-market-providers-v31-js – Provider/Adapter-Schicht für Marktdaten,
+        wrappt die bestehende, echte Datenquelle (KK_MKK_MAP), erfindet nichts
+     3) kk-map-adapter-v31-js    – MapAdapter-Interface + LeafletMapAdapter,
+        Business-Code spricht nur mit KK_MAP, nie mit "L." direkt
+     ========================================================================== -->
+<script id="kk-data-core-v31-js">
+(function(){
+'use strict';
+if(window.KK_DATA_CORE&&window.KK_DATA_CORE.version==='31.0')return;
+
+function readJSON(key,fallback){try{return window.KK_STORE.readJSON(key,fallback)}catch(e){return fallback}}
+function writeJSON(key,value){try{return window.KK_STORE.writeJSON(key,value)}catch(e){return false}}
+
+/* ---- CacheManager: TTL-Cache über die bestehende Storage-Engine (kk_-Präfix,
+   damit Backup/Export/Import die neuen Keys automatisch mit erfassen) ---- */
+var Cache={
+  get:function(key){var rec=readJSON('kk_data_cache_'+key,null);return rec&&typeof rec==='object'?rec:null},
+  set:function(key,value,ttlMs){var rec={value:value,storedAt:Date.now(),ttlMs:ttlMs||0};writeJSON('kk_data_cache_'+key,rec);return rec},
+  isStale:function(key){var rec=Cache.get(key);if(!rec)return true;if(!rec.ttlMs)return false;return (Date.now()-rec.storedAt)>rec.ttlMs},
+  invalidate:function(key){writeJSON('kk_data_cache_'+key,null)}
+};
+
+/* ---- RefreshService: Check-on-Boot statt Dauer-Timer (Dokument wird oft
+   geschlossen/neu geöffnet, ein setInterval wäre unzuverlässig/Ressourcenkosten) ---- */
+var Refresh={
+  lastRun:function(name){var rec=readJSON('kk_data_lastrun_'+name,null);return rec&&typeof rec==='object'?rec:null},
+  markRun:function(name,info){var rec={at:new Date().toISOString(),ok:!!(info&&info.ok),source:(info&&info.source)||'',error:(info&&info.error)||null};writeJSON('kk_data_lastrun_'+name,rec);return rec},
+  isDue:function(name,intervalHours){var rec=Refresh.lastRun(name);if(!rec||!rec.at)return true;var last=new Date(rec.at).getTime();if(!isFinite(last))return true;return (Date.now()-last)>((intervalHours==null?24:intervalHours)*3600*1000)},
+  checkAndRun:function(name,fn,options){options=options||{};var hrs=options.intervalHours==null?24:options.intervalHours;if(!Refresh.isDue(name,hrs))return Promise.resolve({skipped:true,reason:'not-due',lastRun:Refresh.lastRun(name)});return Refresh.runNow(name,fn,options)},
+  runNow:function(name,fn,options){
+    options=options||{};var out;
+    try{out=fn()}catch(e){Refresh.markRun(name,{ok:false,error:String(e&&e.message||e)});return Promise.resolve({skipped:false,ok:false,error:e})}
+    return Promise.resolve(out).then(function(value){Refresh.markRun(name,{ok:true,source:options.source||''});return {skipped:false,ok:true,value:value}},
+      function(err){Refresh.markRun(name,{ok:false,error:String(err&&err.message||err)});return {skipped:false,ok:false,error:err}})
+  }
+};
+
+/* ---- LastUpdateManager: einheitliche "Zuletzt aktualisiert"-Aussage je Provider ---- */
+var LastUpdate={
+  get:function(name){return Refresh.lastRun(name)},
+  format:function(name){
+    var rec=Refresh.lastRun(name);
+    if(!rec||!rec.at)return 'Noch nie aktualisiert';
+    var txt;try{txt=new Date(rec.at).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'})}catch(e){txt=rec.at}
+    return (rec.ok?'':'Fehler beim letzten Versuch · ')+txt;
+  }
+};
+
+/* ---- Adapter-Registry: benannte Implementierungen des APIAdapter-Vertrags
+   fetch(town, metric) -> Promise<{value, unit, asOf, source}|null>
+   fetchAll(town)       -> Promise<Array<{metric,value,unit,asOf,source}>> ---- */
+var adapters={};
+function registerAdapter(name,impl){adapters[name]=impl;return impl}
+function getAdapter(name){return adapters[name]||null}
+
+window.KK_DATA_CORE={version:'31.0',cache:Cache,refresh:Refresh,lastUpdate:LastUpdate,registerAdapter:registerAdapter,getAdapter:getAdapter};
+})();
+</script>
+
+<script id="kk-market-providers-v31-js">
+(function(){
+'use strict';
+if(window.KK_MARKET&&window.KK_MARKET.version==='31.0')return;
+
+function core(){return window.KK_DATA_CORE}
+function mkkMap(){return window.KK_MKK_MAP}
+
+/* ---- StaticJsonAdapter: KEIN Mock. Wrappt Kevins tatsächliche, heute schon
+   manuell gepflegte Marktdaten (liest über das bestehende KK_MKK_MAP-Modul,
+   das diese Werte bereits aus kk_mkk_market_reference_v29_4 + Legacy-Keys
+   normalisiert). Ein künftiger RemoteHttpAdapter muss nur dasselbe 4-Felder-
+   Schema liefern; Provider- und UI-Schicht ändern sich dabei nicht. ---- */
+var StaticJsonAdapter={
+  name:'static-json',
+  label:'Manuell gepflegt',
+  fetchAll:function(town){
+    return new Promise(function(resolve){
+      var api=mkkMap();
+      if(!api||typeof api.getData!=='function'){resolve([]);return}
+      var d=(api.getData()||{})[town];
+      if(!d){resolve([]);return}
+      var asOf=d.marketUpdatedAt||null,source=d.marketSource||'Manuell gepflegt';
+      resolve([
+        {metric:'pricePerSqm',value:d.avgPrice==null?null:Number(d.avgPrice),unit:'€/m²',asOf:asOf,source:source},
+        {metric:'marketingDays',value:d.avgMarketingDays==null?null:Number(d.avgMarketingDays),unit:'Tage',asOf:asOf,source:source},
+        {metric:'competition',value:d.competition==null?null:Number(d.competition),unit:'%',asOf:asOf,source:source},
+        {metric:'trend',value:d.trend||null,unit:'',asOf:asOf,source:source},
+        {metric:'potential',value:d.potential==null?null:Number(d.potential),unit:'%',asOf:new Date().toISOString(),source:'Live aus CRM/Pipeline/Follow-ups'}
+      ]);
+    });
+  },
+  fetch:function(town,metric){return StaticJsonAdapter.fetchAll(town).then(function(rows){return rows.filter(function(r){return r.metric===metric})[0]||null})}
+};
+if(core())core().registerAdapter('market-static',StaticJsonAdapter);
+
+function activeAdapter(){return (core()&&core().getAdapter('market-static'))||StaticJsonAdapter}
+
+/* ---- PriceProvider / StatisticsProvider / ForecastProvider: dünne, benannte
+   Fassaden über dem Adapter. UI-Code ruft NIE den Adapter direkt. ---- */
+var PriceProvider={
+  get:function(town){return activeAdapter().fetchAll(town).then(function(rows){
+    var byMetric={};rows.forEach(function(r){byMetric[r.metric]=r});
+    return {pricePerSqm:byMetric.pricePerSqm||null,marketingDays:byMetric.marketingDays||null};
+  })}
+};
+var StatisticsProvider={
+  get:function(town){return activeAdapter().fetchAll(town).then(function(rows){
+    var byMetric={};rows.forEach(function(r){byMetric[r.metric]=r});
+    return {competition:byMetric.competition||null,trend:byMetric.trend||null,potential:byMetric.potential||null};
+  })}
+};
+/* Noch keine Datenquelle für Zeitreihen-Prognosen vorhanden. Bewusst NICHT mit
+   Zufallszahlen gefüllt — liefert ein leeres, aber vertragskonformes Ergebnis,
+   damit UI-Code schon heute gegen die künftige Form programmieren kann. */
+var ForecastProvider={
+  get:function(town){return Promise.resolve({available:false,series:[],note:'Noch keine Prognosedatenquelle angebunden.'})}
+};
+
+/* ---- InternalDataProvider: liest AUSSCHLIESSLICH über die bestehenden,
+   bereits berechneten Werte aus KK_MKK_MAP.getData() — keine zweite,
+   konkurrierende Aggregation der CRM-/Pipeline-/Follow-up-Rohdaten. ---- */
+var InternalDataProvider={
+  snapshot:function(town){var api=mkkMap();if(!api||typeof api.getData!=='function')return null;return (api.getData()||{})[town]||null}
+};
+
+/* ---- MarketProvider: Orchestrator, den UI-Code tatsächlich aufruft. ---- */
+var subscribers=[];
+var MarketProvider={
+  getSnapshot:function(town){
+    return Promise.all([PriceProvider.get(town),StatisticsProvider.get(town),ForecastProvider.get(town)]).then(function(res){
+      return {town:town,price:res[0],statistics:res[1],forecast:res[2],internal:InternalDataProvider.snapshot(town),lastUpdate:core()?core().lastUpdate.format('market'):null};
+    });
+  },
+  refreshAll:function(options){
+    if(!core())return Promise.resolve({ok:false,error:'KK_DATA_CORE fehlt'});
+    return core().refresh.runNow('market',function(){
+      var api=mkkMap();if(api&&typeof api.refresh==='function')api.refresh();
+      return true;
+    },{source:activeAdapter().label}).then(function(res){subscribers.forEach(function(fn){try{fn(res)}catch(e){}});return res});
+  },
+  checkDaily:function(){
+    if(!core())return Promise.resolve({skipped:true});
+    return core().refresh.checkAndRun('market',function(){var api=mkkMap();if(api&&typeof api.refresh==='function')api.refresh();return true},{intervalHours:24,source:activeAdapter().label});
+  },
+  subscribe:function(fn){if(typeof fn==='function')subscribers.push(fn);return function(){subscribers=subscribers.filter(function(x){return x!==fn})}}
+};
+
+window.KK_MARKET={
+  version:'31.0',
+  PriceProvider:PriceProvider,StatisticsProvider:StatisticsProvider,ForecastProvider:ForecastProvider,
+  InternalDataProvider:InternalDataProvider,MarketProvider:MarketProvider,
+  adapters:{StaticJsonAdapter:StaticJsonAdapter}
+};
+
+function boot(){MarketProvider.checkDaily();}
+if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('market-providers',boot,{priority:75});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+
+<script id="kk-map-adapter-v31-js">
+(function(){
+'use strict';
+if(window.KK_MAP&&window.KK_MAP.version==='31.0')return;
+
+/* ==========================================================================
+   MapAdapter-Vertrag (von jeder Engine-Implementierung einzuhalten):
+     init(containerEl, {center:[lat,lng], zoom}) -> Promise<adapter>
+     setMarkers([{id,lat,lng,label,popupHtml,color,radius}])
+     clearMarkers()
+     setHeatmap([{lat,lng,weight}])
+     clearHeatmap()
+     fitBounds([[lat,lng], ...])
+     on(eventName, handler) -> unsubscribe()
+     isReady() -> boolean
+     destroy()
+   UI-/Business-Code ruft AUSSCHLIESSLICH gegen diesen Vertrag auf, nie gegen
+   "L." oder ein anderes Engine-Objekt direkt. Ein Wechsel auf MapLibre GL
+   bedeutet: eine neue *MapAdapter-Datei schreiben, hier registrieren — kein
+   Consumer-Code ändert sich.
+   ========================================================================== */
+
+var engineFactories={};
+function registerAdapter(name,factory){engineFactories[name]=factory;return factory}
+function create(preferred){
+  var name=preferred&&engineFactories[preferred]?preferred:'leaflet';
+  var factory=engineFactories[name];
+  if(!factory)throw new Error('KK_MAP: keine Engine "'+name+'" registriert');
+  return factory();
+}
+
+/* ---- Script/CSS-Loader: lädt eine Ressource genau einmal, auch bei mehreren
+   parallelen init()-Aufrufen (z. B. schnelles Tab-Wechseln) ---- */
+var loaderCache={};
+function loadScriptOnce(src){
+  if(loaderCache[src])return loaderCache[src];
+  loaderCache[src]=new Promise(function(resolve,reject){
+    var el=document.querySelector('script[data-kk-map-src="'+src+'"]');
+    if(el){el.addEventListener('load',function(){resolve()});if(window.L)resolve();return}
+    var s=document.createElement('script');
+    s.src=src;s.async=true;s.setAttribute('data-kk-map-src',src);
+    s.onload=function(){resolve()};
+    s.onerror=function(){reject(new Error('Konnte '+src+' nicht laden (vermutlich offline)'))};
+    document.head.appendChild(s);
+  });
+  return loaderCache[src];
+}
+function loadStyleOnce(href){
+  if(document.querySelector('link[data-kk-map-href="'+href+'"]'))return;
+  var l=document.createElement('link');l.rel='stylesheet';l.href=href;l.setAttribute('data-kk-map-href',href);
+  document.head.appendChild(l);
+}
+
+var LEAFLET_JS='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+var LEAFLET_CSS='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
+var CLUSTER_JS='https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js';
+var CLUSTER_CSS_1='https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css';
+var CLUSTER_CSS_2='https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css';
+
+function ensureLeaflet(){
+  loadStyleOnce(LEAFLET_CSS);
+  return loadScriptOnce(LEAFLET_JS);
+}
+function ensureClusterPlugin(){
+  return ensureLeaflet().then(function(){
+    if(window.L&&window.L.markerClusterGroup)return true;
+    loadStyleOnce(CLUSTER_CSS_1);loadStyleOnce(CLUSTER_CSS_2);
+    return loadScriptOnce(CLUSTER_JS).then(function(){return true}).catch(function(){return false});
+  }).catch(function(){return false});
+}
+
+/* ---- eigener, leichter Canvas-Heatlayer statt einer unsicheren Plugin-CDN-
+   Abhängigkeit (dasselbe Prinzip wie der bestehende Chart.js-Offline-Fallback:
+   lieber eine schlanke Eigenimplementierung als ein fragiles Extra-Skript) ---- */
+function makeHeatLayer(L,points){
+  var Layer=L.Layer.extend({
+    onAdd:function(map){
+      this._map=map;
+      this._canvas=L.DomUtil.create('canvas','kkgeo-heat-canvas');
+      var size=map.getSize();this._canvas.width=size.x;this._canvas.height=size.y;
+      this._canvas.style.position='absolute';this._canvas.style.pointerEvents='none';
+      map.getPanes().overlayPane.appendChild(this._canvas);
+      map.on('moveend zoomend resize',this._redraw,this);
+      this._redraw();
+    },
+    onRemove:function(map){
+      if(this._canvas&&this._canvas.parentNode)this._canvas.parentNode.removeChild(this._canvas);
+      map.off('moveend zoomend resize',this._redraw,this);
+    },
+    _redraw:function(){
+      if(!this._map||!this._canvas)return;
+      var map=this._map,size=map.getSize(),topLeft=map.containerPointToLayerPoint([0,0]);
+      L.DomUtil.setPosition(this._canvas,topLeft);
+      this._canvas.width=size.x;this._canvas.height=size.y;
+      var ctx=this._canvas.getContext('2d');ctx.clearRect(0,0,size.x,size.y);
+      var maxW=Math.max.apply(null,points.map(function(p){return p.weight||1}).concat([1]));
+      points.forEach(function(p){
+        var pt=map.latLngToContainerPoint([p.lat,p.lng]);
+        var w=(p.weight||1)/maxW,r=26+w*34;
+        var grad=ctx.createRadialGradient(pt.x,pt.y,0,pt.x,pt.y,r);
+        grad.addColorStop(0,'rgba(176,67,31,'+(.38*w+.12)+')');
+        grad.addColorStop(1,'rgba(176,67,31,0)');
+        ctx.fillStyle=grad;ctx.beginPath();ctx.arc(pt.x,pt.y,r,0,Math.PI*2);ctx.fill();
+      });
+    }
+  });
+  return new Layer();
+}
+
+/* ---- LeafletMapAdapter: konkrete Implementierung des MapAdapter-Vertrags ---- */
+function LeafletMapAdapterFactory(){
+  var map=null,markerLayer=null,heatLayer=null,ready=false,listeners={},tileOk=0,tileErr=0;
+  function emit(name,payload){(listeners[name]||[]).forEach(function(fn){try{fn(payload)}catch(e){}})}
+
+  var adapter={
+    isReady:function(){return ready},
+    init:function(containerEl,options){
+      options=options||{};
+      return ensureLeaflet().then(function(){
+        var L=window.L;
+        if(!L)throw new Error('Leaflet nicht verfügbar');
+        map=L.map(containerEl,{zoomControl:true,scrollWheelZoom:true,attributionControl:true});
+        map.setView(options.center||[50.18,8.98],options.zoom||11);
+        var tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+          maxZoom:18,
+          attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" rel="noopener" target="_blank">OpenStreetMap</a>-Mitwirkende'
+        });
+        tiles.on('load',function(){tileOk++;emit('tilesOk',{ok:tileOk,err:tileErr})});
+        tiles.on('tileerror',function(){tileErr++;emit('tileError',{ok:tileOk,err:tileErr})});
+        tiles.addTo(map);
+        markerLayer=L.layerGroup().addTo(map);
+        map.on('click',function(e){emit('mapClick',e.latlng)});
+        ready=true;
+        setTimeout(function(){try{map.invalidateSize()}catch(e){}},60);
+        return adapter;
+      });
+    },
+    setMarkers:function(points){
+      if(!ready)return Promise.resolve();
+      var L=window.L;
+      adapter.clearMarkers();
+      var useCluster=points.length>30;
+      function build(group){
+        points.forEach(function(p){
+          var marker=L.circleMarker([p.lat,p.lng],{
+            radius:p.radius||11,color:'#fff',weight:2,fillColor:p.color||'#182C46',fillOpacity:.92
+          });
+          if(p.popupHtml)marker.bindPopup(p.popupHtml,{maxWidth:260});
+          marker.on('click',function(){emit('markerClick',p)});
+          marker.addTo(group);
+        });
+      }
+      if(useCluster){
+        return ensureClusterPlugin().then(function(hasCluster){
+          if(hasCluster&&L.markerClusterGroup){
+            var cluster=L.markerClusterGroup({maxClusterRadius:44});
+            build(cluster);markerLayer=cluster.addTo(map);
+          }else{markerLayer=L.layerGroup().addTo(map);build(markerLayer)}
+        });
+      }
+      markerLayer=L.layerGroup().addTo(map);build(markerLayer);
+      return Promise.resolve();
+    },
+    clearMarkers:function(){if(markerLayer&&map)map.removeLayer(markerLayer);markerLayer=null},
+    setHeatmap:function(points){
+      if(!ready)return;
+      adapter.clearHeatmap();
+      heatLayer=makeHeatLayer(window.L,points||[]);
+      heatLayer.addTo(map);
+    },
+    clearHeatmap:function(){if(heatLayer&&map)map.removeLayer(heatLayer);heatLayer=null},
+    fitBounds:function(points){
+      if(!ready||!points||!points.length)return;
+      try{map.fitBounds(points,{padding:[28,28]})}catch(e){}
+    },
+    on:function(name,handler){(listeners[name]=listeners[name]||[]).push(handler);return function(){listeners[name]=(listeners[name]||[]).filter(function(f){return f!==handler})}},
+    invalidateSize:function(){if(map)try{map.invalidateSize()}catch(e){}},
+    destroy:function(){if(map){map.remove();map=null}ready=false;markerLayer=null;heatLayer=null;listeners={}}
+  };
+  return adapter;
+}
+registerAdapter('leaflet',LeafletMapAdapterFactory);
+
+window.KK_MAP={version:'31.0',registerAdapter:registerAdapter,create:create};
+})();
+</script>
+
+<script id="kk-realmap-v31-js">
+(function(){
+'use strict';
+if(window.KK_REALMAP&&window.KK_REALMAP.version==='31.0')return;
+
+/* Ortskoordinaten (WGS84) — plausible Näherungswerte aus allgemeiner Ortskenntnis,
+   KEINE amtlich vermessenen Werte. Ehrlich im UI ausgewiesen (kkgeo-source-note).
+   Sobald eine geprüfte GeoJSON-/Koordinatenquelle vorliegt, hier austauschen —
+   der Rest der Karte (Marker, Popups, Auswahl-Sync) ändert sich dabei nicht. */
+var TOWN_COORDS={
+  hanau:[50.1269,8.9163],bruchkoebel:[50.1936,8.9508],schoeneck:[50.2167,8.8926],
+  nidderau:[50.2214,8.9317],erlensee:[50.1544,8.9967],langenselbold:[50.1822,9.0453],
+  maintal:[50.1500,8.8333],rodenbach:[50.1381,9.0164],freigericht:[50.1219,9.0961],
+  gelnhausen:[50.1989,9.1900],neuberg:[50.2214,8.9814],hammersbach:[50.2489,8.9667]
+};
+
+var adapter=null,initPromise=null,offlineTimer=null;
+function esc(v){return window.KK_UTIL&&KK_UTIL.esc?KK_UTIL.esc(v):String(v==null?'':v)}
+function mkkMap(){return window.KK_MKK_MAP}
+
+function buildMarkers(){
+  var api=mkkMap();if(!api)return [];
+  var data=api.getData()||{};
+  return Object.keys(TOWN_COORDS).map(function(key){
+    var d=data[key]||{},coords=TOWN_COORDS[key],name=(d.name||api.getTownName&&api.getTownName(key)||key);
+    var color=(api.colorForPotential?api.colorForPotential(d):'#D7DADE');
+    var popup='<b>'+esc(name)+'</b>'+esc(d.status||'Keine Daten')+
+      '<br>Potenzial: '+esc(d.hasOperationalData?Math.round(d.potential)+'%':'–')+
+      (d.avgPrice?('<br>Ø '+esc(Number(d.avgPrice).toLocaleString('de-DE'))+' €/m²'):'');
+    return {id:key,lat:coords[0],lng:coords[1],label:name,color:color,popupHtml:popup};
+  });
+}
+
+function updateStatusLine(){
+  var el=document.getElementById('kkgeo-updated');
+  if(!el)return;
+  if(window.KK_DATA_CORE)el.textContent=window.KK_DATA_CORE.lastUpdate.format('market');
+}
+
+function showOffline(show){
+  var el=document.getElementById('kkgeo-offline');
+  if(el)el.hidden=!show;
+}
+
+function render(){
+  if(!adapter||!adapter.isReady())return;
+  var markers=buildMarkers();
+  adapter.setMarkers(markers);
+  if(markers.length)adapter.fitBounds(markers.map(function(m){return [m.lat,m.lng]}));
+  updateStatusLine();
+}
+
+function init(){
+  var container=document.getElementById('kkgeo-map');
+  if(!container||initPromise)return initPromise;
+  initPromise=window.KK_MAP.create('leaflet').init(container,{center:[50.18,8.98],zoom:11}).then(function(a){
+    adapter=a;
+    adapter.on('tileError',function(info){
+      if(offlineTimer)return;
+      offlineTimer=setTimeout(function(){if(info.ok===0)showOffline(true)},1200);
+    });
+    adapter.on('tilesOk',function(){showOffline(false);if(offlineTimer){clearTimeout(offlineTimer);offlineTimer=null}});
+    adapter.on('markerClick',function(p){if(mkkMap()&&mkkMap().selectTown)mkkMap().selectTown(p.id)});
+    render();
+    return adapter;
+  }).catch(function(err){
+    showOffline(true);
+    updateStatusLine();
+    console.warn('KK_REALMAP: Leaflet konnte nicht initialisiert werden',err);
+  });
+  return initPromise;
+}
+
+function bind(){
+  updateStatusLine();
+  var btn=document.getElementById('kkgeo-refresh-btn');
+  if(btn)btn.addEventListener('click',function(){
+    if(window.KK_MARKET)window.KK_MARKET.MarketProvider.refreshAll().then(function(){updateStatusLine();render()});
+    else render();
+  });
+  window.addEventListener('storage',function(e){if(e&&/kk_mkk_market_reference|kk_crm_|kk_sales_pipeline|kk_followups/.test(e.key||''))render()});
+  window.addEventListener('kk:storage-changed',function(){render()});
+  document.addEventListener('kk-app-tab-changed',function(e){
+    if(!e.detail||e.detail.tab==='marktmonitor'){
+      init().then(function(){if(adapter)adapter.invalidateSize();render()});
+    }
+  });
+}
+
+function boot(){
+  bind();
+  var active=window.KK_APP_SHELL&&window.KK_APP_SHELL.getActiveTab&&window.KK_APP_SHELL.getActiveTab();
+  if(active==='marktmonitor')init();
+}
+
+window.KK_REALMAP={version:'31.0',init:init,render:render,getMarkers:buildMarkers,townCoords:TOWN_COORDS};
+if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('realmap-v31',boot,{priority:79});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
 
