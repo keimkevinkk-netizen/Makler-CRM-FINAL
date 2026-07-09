@@ -70,7 +70,11 @@
 </script>
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800&display=swap");
-:root{--primary:#1e2a3a;--accent:#c0392b;--bg:#f4f3f1;--box:#edf0f2;--text:#1a1a1a;--muted:#667085;--line:rgba(20,28,40,.16);--green:#27ae60;--blue:#28425F;--orange:#f39c12;}
+/* V31 Phase 5 (Design-System-Konsolidierung): die urspruengliche Basis-Token-Definition
+   stand hier; sie wurde vollstaendig vom spaeteren, einzigen Basis-Token-Block
+   (Kommentar "Einzige Quelle fuer Basis-/App-Shell-Tokens") ueberschrieben, da beide
+   :root-Bloecke dieselbe Spezifitaet haben und der spaetere in der Quellreihenfolge
+   gewinnt. Computed-Style-Vergleich vor der Entfernung bestaetigt: keine Werteaenderung. */
 *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;line-height:1.55;font-size:15px} .container{max-width:860px;margin:0 auto;padding:44px 22px} .wide{max-width:1120px}
 h1,h2,h3{font-family:"Playfair Display",serif;color:var(--primary);line-height:1.08;margin:0 0 16px} h1{font-size:clamp(42px,7vw,74px)} h2{font-size:clamp(31px,4vw,48px);letter-spacing:-.02em} h3{font-size:28px;margin-top:32px} h4{margin:0 0 8px;color:var(--primary);font-size:15px} p{margin:0 0 14px} a{color:var(--accent)} 
 .topnav{position:sticky;top:0;z-index:50;background:rgba(20,28,40,.94);backdrop-filter:blur(10px);color:#fff;border-bottom:1px solid rgba(255,255,255,.12)} .topnav .inner{max-width:1120px;margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 18px} .brand{font-weight:900;letter-spacing:.02em} .navlinks{display:flex;gap:6px;overflow:auto} .navlinks a{color:#fff;text-decoration:none;font-size:12px;font-weight:800;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.08);white-space:nowrap} .navlinks a:hover{background:var(--accent)}
@@ -883,32 +887,12 @@ body.kkmkk-focus-open{overflow:hidden}
 
 <style id="kk-v30-designsystem-shell-css">
 /* V30.1 + V30.2 · modernes SaaS-Designsystem und neue App-Shell */
-:root{
-  --v30-blue:#182C46;
-  --v30-blue-strong:#0D1A2C;
-  --v30-blue-soft:#EAEDF2;
-  --v30-green:#16a34a;
-  --v30-green-soft:#ecfdf3;
-  --v30-orange:#f59e0b;
-  --v30-orange-soft:#fff7e6;
-  --v30-red:#ef4444;
-  --v30-red-soft:#fff1f2;
-  --v30-violet:#182C46;
-  --v30-violet-soft:#EAEDF2;
-  --v30-ink:#172033;
-  --v30-muted:#667085;
-  --v30-border:#e5e9f0;
-  --v30-surface:#ffffff;
-  --v30-surface-2:#f8fafc;
-  --v30-canvas:#f4f7fb;
-  --v30-sidebar:244px;
-  --v30-topbar:72px;
-  --v30-radius-sm:10px;
-  --v30-radius:14px;
-  --v30-radius-lg:18px;
-  --v30-shadow:0 1px 2px rgba(20,28,40,.04),0 8px 24px rgba(20,28,40,.055);
-  --v30-shadow-lg:0 18px 50px rgba(20,28,40,.12);
-}
+/* V31 Phase 6 (Design-System-Konsolidierung): dieser Block definierte frueher den
+   kompletten --v30-*-Tokensatz inkl. Farben/Radius/Schatten. Alle Werte AUSSER
+   --v30-sidebar/--v30-topbar wurden vom spaeteren "Einzige Quelle"-Block ueberschrieben
+   (spaetere :root-Deklaration gewinnt bei gleicher Spezifitaet). Die zwei noch aktiven
+   Layout-Tokens sind dorthin verschoben, damit es nur noch einen Basis-Tokens-Block gibt.
+   Computed-Style-Vergleich vor der Aenderung bestaetigt: keine Werteaenderung. */
 html{background:var(--v30-canvas)}
 body.kk-v30-shell-ready{
   margin:0!important;
@@ -1369,6 +1353,11 @@ body.kk-v30-shell-ready [data-app-panel] button[disabled],body.kk-v30-shell-read
    Kapitel 11 · Personal Brand) statt eines generischen SaaS-Blaus/-Violetts.
    ========================================================================== */
 
+/* V31 Phase 6: Einzige Quelle fuer Basis-/App-Shell-Tokens. Zwei aeltere, jetzt
+   entfernte :root-Bloecke (frueher ~Zeile 73 und ~890) definierten teilweise dieselben
+   Custom Properties mit abweichenden Werten; da spaetere :root-Deklarationen bei
+   gleicher Selektor-Spezifitaet gewinnen, waren diese Werte hier bereits die einzig
+   wirksamen. Konsolidiert, damit nur noch eine Stelle geaendert werden muss. */
 :root{
   /* Basis-Tokens (Buch-/Wissensbereich + viele Altmodule leiten daraus ab) */
   --primary:#141C28;
@@ -1400,6 +1389,8 @@ body.kk-v30-shell-ready [data-app-panel] button[disabled],body.kk-v30-shell-read
   --v30-surface:#FFFFFF;
   --v30-surface-2:#F1F2F4;
   --v30-canvas:#F6F6F5;
+  --v30-sidebar:244px;
+  --v30-topbar:72px;
   --v30-radius-sm:8px;
   --v30-radius:12px;
   --v30-radius-lg:16px;
