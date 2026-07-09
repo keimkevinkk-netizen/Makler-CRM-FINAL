@@ -44,6 +44,27 @@ Nach Rückmeldung, dass die Phasen 0–4 zwar sinnvolle Grundlagen, aber noch ke
 
 **Gate erfüllt:** Nach jeder Phase vollständige Regressionssuite (10 Tabs × Desktop 1440/Mobile 390, XSS, Console, Overflow) grün; zusätzlich phasenspezifische Playwright-Tests. Siehe `docs/releases/phase6-*` bis `phase12-*` für Details.
 
+## Phase 14 — Design-System-Konsolidierung, neue App-Shell, Daily Command Center, Telefonie-Command-Center ✅ ABGESCHLOSSEN
+Nach Freigabe der Phasen 6–12 kam die explizite Anweisung, ohne erneute Analyse direkt mit weiteren sichtbaren/funktionalen Produktänderungen fortzufahren. Vier Teilphasen, jede einzeln getestet und committet:
+
+- **14.1 — Semantische Design-Token-Schicht** (Commit `597479b`): PRD-§22-Token-Vokabular (`--color-*`/`--space-*`/`--radius-*`/`--shadow-*`/`--text-*`/`--duration-*`/`--z-*`) additiv auf die bestehende Basis-Token-Quelle gemappt; Toast-Z-Index-Inkonsistenz (9999 vs. 99999) behoben.
+- **14.2 — Neue Desktop-App-Shell mit "Mehr"-Menü** (Commit `f275fbb`): Sidebar zeigte bisher alle 10 Module gleichrangig (Regelverstoß gegen die PRD-Primärnavigations-Tabelle) — jetzt 6 primäre Ziele + Flyout-"Mehr"-Menü für die 4 sekundären Module.
+- **14.3 — Dashboard-Reihenfolge korrigiert + "Jetzt erledigen"** (Commit `17f699b`): Telefonie-Command-Center von Position 3 auf Position 2 vorgezogen; neue modulübergreifende "Jetzt erledigen"-Karte (überfällige/heute fällige Aufgaben + Follow-ups) ergänzt.
+- **14.4 — Vollständiges Telefonie-Command-Center** (Commit `ee79aaa`): echter PRD-Regelverstoß behoben ("Ein Anruf gilt nicht als abgeschlossen, wenn lediglich ein Zähler erhöht wurde") — `tel:`-Link, Kontaktkontext (Rolle/Ort/letzte Aktivität), vollständiger Ergebnis-Dialog mit allen 6 Ergebnistypen, automatischer Follow-up-/Termin-Folgeaktion.
+
+**Gate erfüllt:** volle Regressionssuite + 6-Viewport-Matrix nach jeder Teilphase grün, phasenspezifische Playwright-Tests. Siehe `docs/releases/phase14-design-system-appshell-dashboard-callcenter.md`. Gemergt nach `main` via PR #2 (Merge-Commit `bfc5a69`), Netlify-Produktions-Deploy erfolgreich.
+
+## Phase 15 — Gap-Analyse gegen Master-PRD Teil 2–4, verbleibende nicht blockierte Anforderungen (laufend)
+Systematische Gap-Analyse (Read-only-Agent, alle 5 PRD-Teile gegen `index.html` geprüft) nach Merge von Phase 14 ergab sechs konkrete, nicht blockierte Lücken, priorisiert:
+1. Import-Vorschau/Zusammenfassung (Teil 3 §29) — aktuell nur `window.confirm()`.
+2. CRM-/Pipeline-Filter-Chips + benannte Standardansichten (Teil 2 §9.1/§19).
+3. Tippgeber-Modul-Konsolidierung auf das neue Card-/Detail-Muster (Teil 2 §14).
+4. Marktmonitor-Präsentationsmodus + barrierefreie Tabellenalternative zur Karte (Teil 4 §42/§46).
+5. Pipeline-Deep-Link aus dem Gebietsdetailpanel der Karte.
+6. Monitor-/TV-Modus (Teil 2 §31.2, niedrige Priorität).
+
+Wird als Phase 15.1–15.x einzeln umgesetzt, getestet und committet.
+
 ## Spätere Phasen mit externen Abhängigkeiten (nicht autonom auslösbar)
 - **M2 — Amtliche Gemeindegeometrie (BKG VG250):** benötigt echten Internetzugang zum Download + Lizenzprüfung; im aktuellen Sandbox-Dev-Environment nicht durchführbar (siehe frühere Session-Historie: kein allgemeiner Internetzugriff). Bleibt dokumentierte Lücke, Näherungskoordinaten bleiben als solche gekennzeichnet.
 - **M7 — Erster echter Marktdaten-Provider:** benötigt eine Provider-/Kosten-/Lizenzentscheidung (Teil 4 §12/§51) — echter Blocker im Sinne der Auftragsvorgabe ("notwendige kostenpflichtige Datenquelle").
