@@ -657,6 +657,26 @@ body.kk-v11-sales-machine details:not([open]){background:#fff}
 
 
 .kkref20-kpi-insert{margin:14px 0;border-left:6px solid var(--accent)}
+/* V31 Phase 15.3: Detaildialog + Netzwerk-Ort/Branche-Umschalter */
+.kkref20-network-toggle{display:flex;gap:6px;margin-bottom:10px}
+.kkref20-name-btn{border:0;background:none;padding:0;font:inherit;font-weight:900;color:var(--p);text-decoration:underline;cursor:pointer;text-align:left}
+.kkref20-detail-dialog{border:0;border-radius:18px;box-shadow:0 20px 48px rgba(16,20,24,.16);padding:0;width:min(560px,92vw);max-height:85vh;color:var(--p);background:#fff}
+.kkref20-detail-dialog::backdrop{background:rgba(20,26,32,.5)}
+.kkref20-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+.kkref20-detail-head h3{margin:0 0 4px;font-family:Inter,system-ui,sans-serif;font-size:18px;color:var(--p)}
+.kkref20-detail-meta{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted);font-weight:750}
+.kkref20-detail-close{border:1px solid var(--line);background:#fff;border-radius:10px;width:34px;height:34px;cursor:pointer;font-size:14px;color:var(--muted);flex:0 0 auto}
+.kkref20-detail-close:hover{background:var(--box)}
+.kkref20-detail-body{padding:14px 20px;overflow:auto}
+.kkref20-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kkref20-detail-grid div{background:var(--box);border-radius:10px;padding:8px 10px}
+.kkref20-detail-grid b{display:block;font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em;margin-bottom:2px}
+.kkref20-detail-block{margin-bottom:12px}
+.kkref20-detail-block h4{margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.kkref20-detail-block p{margin:0;font-size:13px;color:var(--p)}
+.kkref20-detail-notes{white-space:pre-wrap;background:var(--box);border-radius:10px;padding:10px 12px}
+.kkref20-detail-actions{display:flex;gap:8px;flex-wrap:wrap;padding:14px 20px 18px;border-top:1px solid var(--line)}
+@media(max-width:620px){.kkref20-detail-grid{grid-template-columns:1fr}}
 @media (max-width:980px){.kkref20-head{display:block}.kkref20-actions{justify-content:flex-start;margin-top:12px}.kkref20-two,.kkref20-three,.kkref20-five,.kkref20-row,.kkref20-row.two,.kkref20-row.three,.kkref20-row.five,.kkref20-groupgrid{grid-template-columns:1fr 1fr}}
 @media (max-width:640px){.kkref20-shell{padding:28px 14px}.kkref20-two,.kkref20-three,.kkref20-five,.kkref20-row,.kkref20-row.two,.kkref20-row.three,.kkref20-row.five,.kkref20-groupgrid{grid-template-columns:1fr}.kkref20-actions .kkref20-btn,.kkref20-btn{width:100%}}
 @media print{#kk-referral-machine-v20 .kkref20-actions,#kk-referral-machine-v20 .kkref20-btn,#kk-referral-machine-v20 .kkref20-tabs,#kk-referral-machine-v20 .kkref20-item-actions,.kkref20-toast{display:none!important}.kkref20-card{box-shadow:none;break-inside:avoid}.kkref20-table th{position:static}}
@@ -1596,21 +1616,22 @@ body.kk-v30-shell-ready #kk-app-shell :is(.kkmkk-filter,.kkcp-tab,.kkref20-tab,.
   background:var(--v30-blue,#182c46)!important;color:#fff!important;border-color:transparent!important;
 }
 
-/* -------- Phase D: einheitliche Optik für "Archiv/Alternative einklappen"-Bausteine
-   (kk-heute-legacy-wrap, kk-crm-legacy-wrap) statt nackter Browser-Standard-Disclosure -------- */
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap){
+/* -------- Phase D/15.3: einheitliche Optik für "Archiv/Alternative einklappen"-Bausteine
+   (kk-heute-legacy-wrap, kk-crm-legacy-wrap, kk-mkk-legacy-wrap, kk-tippgeber-legacy-wrap)
+   statt nackter Browser-Standard-Disclosure -------- */
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap){
   margin:18px 0;border:1px solid var(--v30-border,#e3e5e8);border-radius:var(--v30-radius-lg,16px);background:#fff;overflow:hidden;
 }
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary{
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)>summary{
   list-style:none;cursor:pointer;padding:14px 18px;font-size:13px;font-weight:700;color:var(--v30-muted,#5b6472);
   display:flex;align-items:center;gap:8px;background:var(--v30-surface-2,#f1f2f4);
 }
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary::-webkit-details-marker{display:none}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary:before{content:"▸";font-size:11px;color:var(--v30-muted,#5b6472);transition:transform .15s ease}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)[open]>summary:before{transform:rotate(90deg)}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)[open]>summary{border-bottom:1px solid var(--v30-border,#e3e5e8)}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary:hover{color:var(--v30-ink,#141a21)}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary:focus-visible{outline:2px solid var(--v30-blue,#182c46);outline-offset:-2px}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)>summary::-webkit-details-marker{display:none}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)>summary:before{content:"▸";font-size:11px;color:var(--v30-muted,#5b6472);transition:transform .15s ease}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)[open]>summary:before{transform:rotate(90deg)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)[open]>summary{border-bottom:1px solid var(--v30-border,#e3e5e8)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)>summary:hover{color:var(--v30-ink,#141a21)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)>summary:focus-visible{outline:2px solid var(--v30-blue,#182c46);outline-offset:-2px}
 
 /* -------- Phase D: ein konsistenter Empty-State-Baustein statt Mischung aus grauem
    Kasten, farbigem Alert-Balken und unterschiedlichen Formulierungstönen -------- */
@@ -6438,7 +6459,15 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <details class="kkops-card kk-mobile-form-card" open><summary><h3>Bewertungstermin hinzufügen / bearbeiten</h3><span class="kk-mobile-form-hint" aria-hidden="true"></span></summary><form class="kkops-form" id="valuationForm"><input id="valuationId" type="hidden"/><div class="kkops-row"><div class="kkops-field"><label>Eigentümername</label><input aria-label="valuationName" id="valuationName" required=""/></div><div class="kkops-field"><label>Objektadresse</label><input aria-label="valuationAddress" id="valuationAddress"/></div><div class="kkops-field"><label>Gebiet</label><select aria-label="valuationArea" id="valuationArea"></select></div><div class="kkops-field"><label>Objektart</label><select aria-label="valuationObject" id="valuationObject"><option>Haus</option><option>Wohnung</option><option>Mehrfamilienhaus</option><option>Grundstück</option></select></div></div><div class="kkops-row"><div class="kkops-field"><label>Status</label><select aria-label="valuationStatus" id="valuationStatus"><option>angefragt</option><option>vereinbart</option><option>durchgeführt</option><option>Nachfassung läuft</option><option>Auftrag gewonnen</option><option>Auftrag verloren</option></select></div><div class="kkops-field"><label>Termin-Datum</label><input aria-label="valuationDate" id="valuationDate" type="date"/></div><div class="kkops-field"><label>Objektwert €</label><input aria-label="valuationValue" id="valuationValue" step="1000" type="number"/></div><div class="kkops-field"><label>Motivation</label><select aria-label="valuationMotivation" id="valuationMotivation"><option>hoch</option><option>mittel</option><option>niedrig</option></select></div></div><div class="kkops-row"><div class="kkops-field"><label>Verkaufszeitraum</label><select aria-label="valuationTimeframe" id="valuationTimeframe"><option>0–30 Tage</option><option>31–90 Tage</option><option>3–6 Monate</option><option>6–12 Monate</option><option>langfristig</option></select></div><div class="kkops-field"><label>Konkurrenzmakler</label><select aria-label="valuationCompetitor" id="valuationCompetitor"><option>nein</option><option>ja</option></select></div><div class="kkops-field"><label>Unterlagen vollständig</label><select aria-label="valuationDocs" id="valuationDocs"><option>nein</option><option>ja</option></select></div><div class="kkops-field"><label>Follow-up</label><input aria-label="valuationFollow" id="valuationFollow" type="date"/></div></div><div class="kkops-row"><div class="kkops-field"><label>Nächster Schritt</label><input aria-label="valuationNext" id="valuationNext"/></div><div class="kkops-field"><label>Auftragspotenzial €</label><input aria-label="valuationCommission" id="valuationCommission" type="number" value="6000"/></div><div class="kkops-field"><label>Wahrscheinlichkeit %</label><input aria-label="valuationProbability" id="valuationProbability" max="100" min="0" type="number" value="25"/></div><div class="kkops-field"><label>Verlustgrund</label><input aria-label="valuationLoss" id="valuationLoss"/></div></div><div class="kkops-field"><label>Notizen</label><textarea aria-label="valuationNotes" id="valuationNotes"></textarea></div><button class="kkops-btn" type="submit">Bewertung speichern</button></form></details>
 <div class="kkops-card" style="margin-top:14px"><h3>Bewertungstermine nach Dringlichkeit</h3><div class="kkops-list" id="valuationList"></div></div>
 </div>
-</section></div><div aria-label="Tippgeber" class="kk-app-panel" data-app-panel="tippgeber" hidden="" id="kk-app-panel-tippgeber" role="tabpanel"><section class="kkops-section" id="tippgeber-pipeline">
+</section></div><div aria-label="Tippgeber" class="kk-app-panel" data-app-panel="tippgeber" hidden="" id="kk-app-panel-tippgeber" role="tabpanel">
+<!-- V31 Phase 15.3 (PRD Teil 2 §14): "Empfehlungsmaschine V20" (kk-referral-machine-v20,
+     unten) ist jetzt die primäre Tippgeber-Ansicht mit den 5 PRD-Standardansichten,
+     Detaildialog und ohne Personen-Scoring. Diese ältere Kennzahlen-/Formularvariante
+     lief bisher gleichzeitig sichtbar daneben - komplett funktionsfähig, aber bewusst
+     eingeklappt (Phase-D-Muster). Nichts entfernt, keine ID/Storage/Logik verändert. -->
+<details class="kk-tippgeber-legacy-wrap" id="kk-tippgeber-pipeline-legacy-wrap">
+<summary>Alternative Tippgeber-Übersicht öffnen · Kennzahlen und Formular (nutzt kk_referral_pipeline, fließt in die Empfehlungsmaschine V20 unten mit ein)</summary>
+<section class="kkops-section" id="tippgeber-pipeline">
 <div class="kkops-shell">
 <div class="kkops-head"><div><span class="kkops-kicker">Ebene 2 · Management</span><h2>Empfehlungsmaschine: Tippgeber → Eigentümerkontakt</h2><p>Aufbau und Pflege lokaler Multiplikatoren mit Kontaktfrequenz, Gegenwert und messbarem Ergebnis.</p></div><div class="kkops-actions"><button class="kkops-btn light" data-export="kk_referral_pipeline" type="button">Export</button></div></div>
 <div class="kkops-grid kkops-four" id="referralStats"></div>
@@ -6446,6 +6475,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <div class="kkops-card" style="margin-top:14px"><h3>Tippgeber und offene Pflege</h3><div class="kkops-list" id="referralList"></div></div>
 </div>
 </section>
+</details>
 <section aria-label="Tippgeber Empfehlungsmaschine" class="kkref20-section" id="kk-referral-machine-v20">
 <div class="kkref20-shell">
 <div class="kkref20-head">
@@ -6455,7 +6485,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <p>Dieses Modul verwaltet lokale Tippgeber nach Kategorie, Ort, Status sowie manuell gesetzten Kontaktterminen. Es berechnet keine Personen-Scores und erstellt keine automatischen Prioritäten.</p>
 </div>
 <div class="kkref20-actions">
-<button class="kkref20-btn light" data-kkref20-view="week" type="button">Diese Woche</button>
+<button class="kkref20-btn light" data-kkref20-view="due" type="button">Pflege fällig</button>
 <button class="kkref20-btn light" data-kkref20-migrate="" type="button">Bestehende Daten übernehmen</button>
 <button class="kkref20-btn light" data-kkref20-export="" type="button">Export</button>
 </div>
@@ -6492,14 +6522,19 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 </div>
 </form>
 </article>
-<article class="kkref20-card">
+<article class="kkref20-card" id="kkref20ViewsCard" tabindex="-1">
 <h3>Operative Ansichten</h3>
+<!-- V31 Phase 15.3 (PRD Teil 2 §14): die 5 vom PRD benannten Standardansichten
+     zuerst, in PRD-Reihenfolge/-Wortlaut; "Vernachlässigte Kontakte" ist keine
+     PRD-Pflichtansicht, bleibt aber als bestehende, funktionierende Zusatzansicht
+     erhalten statt entfernt zu werden. -->
 <div aria-label="Tippgeber Ansichten" class="kkref20-tabs" role="tablist">
-<button class="kkref20-tab is-active" data-kkref20-view="top" type="button">Alle Tippgeber</button>
-<button class="kkref20-tab" data-kkref20-view="week" type="button">Diese Woche pflegen</button>
+<button class="kkref20-tab is-active" data-kkref20-view="due" type="button">Pflege fällig</button>
+<button class="kkref20-tab" data-kkref20-view="new" type="button">Neue Partner</button>
+<button class="kkref20-tab" data-kkref20-view="active" type="button">Aktive Empfehlungen</button>
+<button class="kkref20-tab" data-kkref20-view="recent" type="button">Letzte Kontakte</button>
+<button class="kkref20-tab" data-kkref20-view="network" type="button">Netzwerk nach Ort/Branche</button>
 <button class="kkref20-tab" data-kkref20-view="neglected" type="button">Vernachlässigte Kontakte</button>
-<button class="kkref20-tab" data-kkref20-view="town" type="button">Nach Ort</button>
-<button class="kkref20-tab" data-kkref20-view="category" type="button">Nach Kategorie</button>
 </div>
 <div id="kkref20ViewContent"></div>
 </article>
@@ -6510,8 +6545,48 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <div class="kkref20-validation" id="kkref20Validation">Validierung läuft.</div>
 </article>
 </div>
+<!-- V31 Phase 15.3 (PRD Teil 2 §14 "Listenansicht + Detailansicht"): natives <dialog>,
+     kein zweites Dialogsystem - gleiches Muster wie kkcrmproContactDetailDialog (Phase 8). -->
+<dialog class="kkref20-detail-dialog" id="kkref20DetailDialog" aria-labelledby="kkref20DetailName">
+  <div class="kkref20-detail-head">
+    <div>
+      <h3 id="kkref20DetailName"></h3>
+      <div class="kkref20-detail-meta" id="kkref20DetailMeta"></div>
+    </div>
+    <button type="button" class="kkref20-detail-close" id="kkref20DetailClose" aria-label="Schließen">✕</button>
+  </div>
+  <div class="kkref20-detail-body">
+    <div class="kkref20-detail-grid" id="kkref20DetailGrid"></div>
+    <div class="kkref20-detail-block">
+      <h4>Nächster Pflegeschritt</h4>
+      <p id="kkref20DetailNextAction"></p>
+    </div>
+    <div class="kkref20-detail-block">
+      <h4>Empfehlungshistorie</h4>
+      <p id="kkref20DetailHistory"></p>
+    </div>
+    <div class="kkref20-detail-block">
+      <h4>Notizen</h4>
+      <p class="kkref20-detail-notes" id="kkref20DetailNotes"></p>
+    </div>
+  </div>
+  <div class="kkref20-detail-actions">
+    <button type="button" class="kkref20-btn light" id="kkref20DetailTouchBtn">Heute kontaktiert</button>
+    <button type="button" class="kkref20-btn light" id="kkref20DetailEditBtn">Bearbeiten</button>
+  </div>
+</dialog>
 </section>
 
+<!-- V31 Phase 15.3 (PRD Teil 2 §14): Netzwerk-Playbook-Kapitel (Skripte je Branche) und
+     das alte "Tippgeber-Betriebssystem" (kkref-, eigenes Storage kk_referral_partners_os)
+     liefen bisher permanent sichtbar unterhalb der neuen Empfehlungsmaschine V20 -
+     Verstoß gegen PRD §14 ("Skripte kontextbezogen aufrufbar, nicht dauerhaft dominant")
+     und die Navigationsregel, kein Modul allein wegen seines Umfangs primär zu halten
+     (dieser Block ist selbst >2000 Zeilen). Eingeklappt, nicht gelöscht (Phase-D-Muster);
+     kkref-Formulare/-Board bleiben voll funktionsfähig, ihre Daten fließen weiterhin über
+     migrate() in kk_referral_network_v1 (V20) ein. -->
+<details class="kk-tippgeber-legacy-wrap" id="kk-tippgeber-netzwerk-legacy-wrap">
+<summary>Netzwerk-Playbook &amp; altes Tippgeber-Betriebssystem öffnen · Branchenskripte, Kontaktmatrix, Legacy-Formular</summary>
 <section class="chapter" id="netzwerk"><div class="container wide"><h2>06 · Netzwerk &amp; Tippgeber: bestehende Kontaktbasis</h2><p>Die vorhandenen Kontaktgruppen bleiben erhalten. Sie werden durch das Tippgeber-System operativ über Status, Einwilligung, Wiedervorlage, Skripte und messbare Ergebnisse gepflegt.</p><div class="callout"><strong>Arbeitslogik:</strong> Kontaktkarten sind nur Rohmaterial. Wert entsteht erst, wenn pro Kontakt ein Verkaufsanlass, eine saubere Empfehlungsformulierung, ein nächster Touchpoint und ein messbares Ergebnis gepflegt werden.</div>
 <div class="partner-section" id="pg-hausverwaltungen">
 <h3>Hausverwaltungen</h3>
@@ -8531,7 +8606,9 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <article class="kkref-card" style="margin-top:14px"><h3>Tägliche, wöchentliche und monatliche Tippgeber-KPIs</h3><div class="kkref-grid kkref-three"><div class="kkref-card"><h4>Täglich</h4><p>Neue Tippgeberkontakte, Erstkontakte, erledigte Follow-ups, Partnergespräche, neue Hinweise.</p></div><div class="kkref-card"><h4>Wöchentlich</h4><p>Ziel: 10–20 geprüfte Kontakte, 8–15 Erstkontakte, 4–8 echte Gespräche, 1–3 Termine, 1–3 Hinweise.</p></div><div class="kkref-card"><h4>Monatlich</h4><p>Ziel: 10–25 aktive Tippgeber, 3–8 qualifizierte Hinweise, 1–4 Bewertungstermine, 1–2 Aufträge als Zielbild.</p></div></div></article>
 <article class="kkref-card" style="margin-top:14px"><h3>50 Maßnahmen für das Tippgeber-System</h3><ol class="kkref-top50"><li>Eigene Kategorie Senioren &amp; Pflege als großen Netzwerkhebel führen.</li><li>Entrümpler &amp; Haushaltsauflöser als Kanal aufnehmen.</li><li>Partnerstatus von Rohkontakt bis Aktiver Partner pflegen.</li><li>Ansprechpartner-Feld verpflichtend machen; keine Firmen ohne Person.</li><li>Trigger-Feld pro Partnergruppe ergänzen.</li><li>Einwilligung als Pflichtfeld vor jeder Kontaktaufnahme setzen.</li><li>Empfehlungsformulierung pro Partnergruppe hinterlegen.</li><li>Nachlassimmobilien-Prozess mit 7/21/45-Tage-Follow-up aufnehmen.</li><li>Senioren-Wohnwechsel-Prozess mit Angehörigenleitfaden ergänzen.</li><li>WEG-Beirat-Strategie in A-Gebieten aufbauen.</li><li>Handwerker nach Gewerk segmentieren.</li><li>SHK, Dachdecker, Elektriker, Entrümpler und Gartenbau zuerst aktivieren.</li><li>Steuerberater-Angebot auf Immobilien-Schnellcheck und Vermieter-Frust-Check verdichten.</li><li>Anwälte-Angebot auf Erbe, Scheidung, Immobilienwert und Unterlagenstruktur fokussieren.</li><li>Notare aus Tippgeberlogik herausnehmen und als Qualitätskanal führen.</li><li>Vereine auf drei Kernvereine pro A-Gebiet reduzieren.</li><li>Unternehmerliste pro Region starten.</li><li>Monatliche Partnerpflege-Routine einbauen.</li><li>Conversion Tipp → Gespräch → Bewertung → Auftrag messen.</li><li>Wöchentliche Tippgeber-Aktivierung ins Dashboard setzen.</li><li>Jeden Hinweis mit Quelle, Einwilligung und Qualität erfassen.</li><li>Nach jedem Hinweis Dank und Statusupdate ohne vertrauliche Details senden.</li><li>Nach erfolgreichem Abschluss persönlichen Dank senden, ohne unseriöse Vergütungsversprechen.</li><li>Quartalsweise anonymisierte Fallbeispiele für Steuerberater und Anwälte erstellen.</li><li>WEG-Verkaufsservice als klares Angebot für Hausverwaltungen formulieren.</li><li>Notar-ready-Unterlagenliste in WEG- und Nachlassfällen nutzen.</li><li>Sanieren-oder-Verkaufen-Check für Handwerker als Türöffner einsetzen.</li><li>Immobilie-im-Alter-Checkliste für Pflegedienste und Seniorenberater nutzen.</li><li>Angehörigen-Gesprächsleitfaden in Nachlass- und Pflegefällen hinterlegen.</li><li>Jede aktive Quelle mindestens mit nächstem Touchpoint versehen.</li><li>C-Kontakte nicht aktiv pflegen, wenn keine klare Relevanz besteht.</li><li>Jeden Montag 10 neue oder bestehende Kontakte qualifizieren.</li><li>Jeden Dienstag fünf Handwerker/Hausverwaltungen anrufen.</li><li>Jeden Mittwoch Fachpartner ohne Lead-Sprache kontaktieren.</li><li>Jeden Donnerstag eine echte lokale Präsenzaktion durchführen.</li><li>Jeden Freitag alle Tippgeber-Follow-ups schließen.</li><li>Mindestens 10–20 neue geprüfte Tippgeberkontakte pro Woche aufbauen.</li><li>Wöchentlich 4–8 echte Partnergespräche führen.</li><li>Monatlich 3–8 qualifizierte Hinweise als Zielwert kontrollieren.</li><li>Monatlich 1–4 Bewertungstermine aus Empfehlungen anstreben.</li><li>A-Gebiete bei allen Partnern sichtbar priorisieren.</li><li>B-Gebiete nur bei guter Qualität pflegen; C-Gebiete anlassbezogen.</li><li>Jeden Partner mit konkreter Nutzenhypothese ansprechen.</li><li>Keine pauschalen „Haben Sie jemanden?”-Fragen verwenden.</li><li>Keine personenbezogenen Daten ohne ausdrückliche Zustimmung annehmen.</li><li>Keine Rechts- oder Steuerberatung simulieren.</li><li>Senioren- und Nachlasssprache ruhig, würdevoll und nicht verkäuferisch halten.</li><li>Bestehende Kontaktkarten aus dem Netzwerk-Kapitel ins neue Partner-OS übernehmbar machen.</li><li>Exportfunktion für Tippgeberdaten regelmäßig zur Datensicherung nutzen.</li></ol></article>
 </div>
-</section></div>
+</section>
+</details>
+</div>
 <div aria-label="KI-Prompt-Assistent" class="kk-app-panel" data-app-panel="ki-prompts" hidden="" id="kk-app-panel-ki-prompts" role="tabpanel">
 <section class="kkai-section" id="ki-prompt-assistent" aria-label="KI-Prompt-Assistent ohne API">
   <div class="kkai-shell">
@@ -12335,7 +12412,7 @@ window.KK_BOOT.register('markt-tagesmonitor',init,{priority:64});
   var DAY=86400000;
   var TOWNS=['Bruchköbel','Hanau','Schöneck','Nidderau','Erlensee','Langenselbold','Maintal','Neuberg','Hammersbach','Rodenbach','Freigericht','Gelnhausen','Main-Kinzig-Kreis','Rhein-Main','überregional / prüfen'];
   var CATEGORIES=['Handwerker','Hausverwaltungen','Steuerberater','Anwälte','Notare','Architekten','Energieberater','Gutachter','Versicherungen','Bankberater','Unternehmer','Vereinskontakte','Gastronomen','Friseure','Bestatter','Pflege-/Seniorenkontakte','Arbeitgeber / Industrie','lokale Multiplikatoren'];
-  var state={view:'top'};
+  var state={view:'due',networkBy:'town'};
   var qs=window.KK_UTIL.qs;
   var qsa=window.KK_UTIL.qsa;
   var esc=window.KK_UTIL.esc;
@@ -12368,21 +12445,55 @@ window.KK_BOOT.register('markt-tagesmonitor',init,{priority:64});
   function saveForm(e){if(e)e.preventDefault();var x=normalize(form());if(!x.name||x.name==='Unbenannter Tippgeber'){toast('Name fehlt.');return}var list=items(),idx=list.findIndex(function(a){return a.id===x.id});if(idx>-1){x.createdAt=list[idx].createdAt||x.createdAt;x.legacyScore=list[idx].legacyScore;x.legacyScoreCategory=list[idx].legacyScoreCategory;x.legacyTipQuality=list[idx].legacyTipQuality;list[idx]=x}else list.push(x);save(list);render();clearForm();toast('Tippgeber gespeichert.')}
   function touch(id){var list=items(),x=list.find(function(a){return a.id===id});if(!x)return;x.lastContact=todayISO();x.updatedAt=new Date().toISOString();save(list);render();toast('Kontakt als heute dokumentiert. Nächsten Termin bei Bedarf manuell setzen.')}
   function remove(id){save(items().filter(function(x){return x.id!==id}));render();toast('Tippgeber entfernt. Legacy-Daten bleiben erhalten.')}
+  /* V31 Phase 15.3 (PRD Teil 2 §14, 5 benannte Standardansichten): jede Liste ist ein
+     rein faktenbasierter Filter/Sortierung auf vorhandenen Feldern - keine berechneten
+     Scores oder Rankings, entsprechend der PRD-Vorgabe "keine automatische Personen-
+     bewertung". */
   function dueList(){return items().filter(function(x){var d=daysUntil(x.nextContact);return d<=7}).sort(function(a,b){return String(a.nextContact||'9999').localeCompare(String(b.nextContact||'9999'))})}
   function neglectedList(){return items().filter(function(x){return daysSince(x.lastContact)>90}).sort(function(a,b){return daysSince(b.lastContact)-daysSince(a.lastContact)})}
   function allList(){return items().slice().sort(function(a,b){return String(a.name||'').localeCompare(String(b.name||''),'de')})}
-  function itemCard(x){return '<div class="kkref20-item"><strong>'+esc(x.name)+'</strong><span class="kkref20-pill">'+esc(x.status)+'</span><span class="kkref20-pill">'+esc(x.category)+'</span><small>'+esc(x.ort)+' · letzter Kontakt: '+esc(x.lastContact||'—')+' · nächster Kontakt: '+esc(x.nextContact||'—')+'</small><small>Nächste Aktion: '+esc(x.nextAction||'—')+'</small><div class="kkref20-item-actions"><button class="kkref20-btn light" data-kkref20-edit="'+esc(x.id)+'">Bearbeiten</button><button class="kkref20-btn light" data-kkref20-touch="'+esc(x.id)+'">Heute kontaktiert</button><button class="kkref20-btn danger" data-kkref20-delete="'+esc(x.id)+'">Löschen</button></div></div>'}
-  function table(){var box=qs('#kkref20Table');if(!box)return;var list=allList();box.innerHTML=list.length?'<div class="kkref20-tablewrap"><table class="kkref20-table"><thead><tr><th>Name</th><th>Kategorie</th><th>Ort</th><th>Status</th><th>Letzter Kontakt</th><th>Nächster Kontakt</th><th>Tipps</th><th>Wert</th><th>Aktion</th></tr></thead><tbody>'+list.map(function(x){return '<tr><td><b>'+esc(x.name)+'</b></td><td>'+esc(x.category)+'</td><td>'+esc(x.ort)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.lastContact||'—')+'</td><td>'+esc(x.nextContact||'—')+'</td><td>'+esc(x.previousTips)+'</td><td>'+esc(euro(x.estimatedReferralValue))+'</td><td><button class="kkref20-btn light" data-kkref20-edit="'+esc(x.id)+'">Bearbeiten</button></td></tr>'}).join('')+'</tbody></table></div>':'<div class="kkref20-empty">Noch keine Tippgeber erfasst.</div>'}
+  /* "Neue Partner" = Onboarding unvollständig: noch in den beiden frühesten,
+     nicht-aktiven Status-Stufen (Recherche/Neu), neueste zuerst. */
+  function newPartnerList(){return items().filter(function(x){return x.status==='Recherche'||x.status==='Neu'}).sort(function(a,b){return String(b.createdAt||'').localeCompare(String(a.createdAt||''))})}
+  /* "Aktive Empfehlungen" = offener Status (alles außer bewusst pausiert). */
+  function activeList(){return items().filter(function(x){return x.status!=='Pausiert'}).sort(function(a,b){return String(a.name||'').localeCompare(String(b.name||''),'de')})}
+  /* "Letzte Kontakte" = chronologische Historie der zuletzt dokumentierten Kontakte. */
+  function recentList(){return items().filter(function(x){return !!x.lastContact}).sort(function(a,b){return String(b.lastContact).localeCompare(String(a.lastContact))})}
+  function itemCard(x){return '<div class="kkref20-item"><button type="button" class="kkref20-name-btn" data-kkref20-detail="'+esc(x.id)+'">'+esc(x.name)+'</button><span class="kkref20-pill">'+esc(x.status)+'</span><span class="kkref20-pill">'+esc(x.category)+'</span><small>'+esc(x.ort)+' · letzter Kontakt: '+esc(x.lastContact||'—')+' · nächster Kontakt: '+esc(x.nextContact||'—')+'</small><small>Nächste Aktion: '+esc(x.nextAction||'—')+'</small><div class="kkref20-item-actions"><button class="kkref20-btn light" data-kkref20-edit="'+esc(x.id)+'">Bearbeiten</button><button class="kkref20-btn light" data-kkref20-touch="'+esc(x.id)+'">Heute kontaktiert</button><button class="kkref20-btn danger" data-kkref20-delete="'+esc(x.id)+'">Löschen</button></div></div>'}
+  function table(){var box=qs('#kkref20Table');if(!box)return;var list=allList();box.innerHTML=list.length?'<div class="kkref20-tablewrap"><table class="kkref20-table"><thead><tr><th>Name</th><th>Kategorie</th><th>Ort</th><th>Status</th><th>Letzter Kontakt</th><th>Nächster Kontakt</th><th>Tipps</th><th>Wert</th><th>Aktion</th></tr></thead><tbody>'+list.map(function(x){return '<tr><td><button type="button" class="kkref20-name-btn" data-kkref20-detail="'+esc(x.id)+'">'+esc(x.name)+'</button></td><td>'+esc(x.category)+'</td><td>'+esc(x.ort)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.lastContact||'—')+'</td><td>'+esc(x.nextContact||'—')+'</td><td>'+esc(x.previousTips)+'</td><td>'+esc(euro(x.estimatedReferralValue))+'</td><td><button class="kkref20-btn light" data-kkref20-edit="'+esc(x.id)+'">Bearbeiten</button></td></tr>'}).join('')+'</tbody></table></div>':'<div class="kkref20-empty">Noch keine Tippgeber erfasst.</div>'}
   function renderStats(){var list=items(),active=list.filter(function(x){return x.status==='Aktiv'}).length,due=dueList().length,neg=neglectedList().length,value=list.reduce(function(s,x){return s+n(x.estimatedReferralValue)},0),stats=[['Tippgeber gesamt',list.length,'Speicher: '+KEY],['Aktiv',active,'manuell gepflegter Status'],['Kontakttermine fällig',due,'manuell gesetzte Termine'],['Länger nicht kontaktiert',neg,'über 90 Tage'],['erfasster Tippgeberwert',euro(value),'Summe Netzwerk']];var el=qs('#kkref20Stats');if(el)el.innerHTML=stats.map(function(x){return '<div class="kkref20-card kkref20-stat"><b>'+esc(x[1])+'</b><span>'+esc(x[0])+'</span><small>'+esc(x[2])+'</small></div>'}).join('')}
   function renderGrouped(by){var list=items(),groups={};list.forEach(function(x){var key=by==='category'?x.category:x.ort;if(!groups[key])groups[key]=[];groups[key].push(x)});var keys=Object.keys(groups).sort(function(a,b){return a.localeCompare(b,'de')});if(!keys.length)return '<div class="kkref20-empty">Noch keine gruppierbaren Tippgeber vorhanden.</div>';return '<div class="kkref20-groupgrid">'+keys.map(function(k){var a=groups[k].slice().sort(function(x,y){return String(x.name).localeCompare(String(y.name),'de')});return '<div class="kkref20-group"><h4>'+esc(k)+' <span class="kkref20-pill">'+a.length+'</span></h4><ul>'+a.slice(0,8).map(function(x){return '<li><strong>'+esc(x.name)+'</strong> · '+esc(x.status)+' · '+esc(x.nextContact||'offen')+'</li>'}).join('')+'</ul></div>'}).join('')+'</div>'}
-  function renderView(view){state.view=view||state.view||'top';qsa('[data-kkref20-view]').forEach(function(b){b.classList.toggle('is-active',b.getAttribute('data-kkref20-view')===state.view)});var box=qs('#kkref20ViewContent');if(!box)return;if(state.view==='top'){var a=allList();box.innerHTML=a.length?'<div class="kkref20-list">'+a.slice(0,30).map(itemCard).join('')+'</div>':'<div class="kkref20-empty">Noch keine Tippgeber erfasst.</div>';return}if(state.view==='week'){var w=dueList();box.innerHTML=w.length?'<div class="kkref20-list">'+w.map(itemCard).join('')+'</div>':'<div class="kkref20-alert green">Keine manuell gesetzten Kontakttermine in den nächsten sieben Tagen.</div>';return}if(state.view==='neglected'){var nlist=neglectedList();box.innerHTML=nlist.length?'<div class="kkref20-list">'+nlist.map(itemCard).join('')+'</div>':'<div class="kkref20-alert green">Keine Kontakte seit mehr als 90 Tagen ohne Pflege.</div>';return}if(state.view==='town'){box.innerHTML=renderGrouped('town');return}if(state.view==='category'){box.innerHTML=renderGrouped('category')}}
+  function networkToggleHtml(){return '<div class="kkref20-network-toggle"><button type="button" class="kkref20-tab'+(state.networkBy==='town'?' is-active':'')+'" data-kkref20-network-by="town">Nach Ort</button><button type="button" class="kkref20-tab'+(state.networkBy==='category'?' is-active':'')+'" data-kkref20-network-by="category">Nach Branche</button></div>'}
+  function renderView(view){state.view=view||state.view||'due';qsa('[data-kkref20-view]').forEach(function(b){b.classList.toggle('is-active',b.getAttribute('data-kkref20-view')===state.view)});var box=qs('#kkref20ViewContent');if(!box)return;
+    if(state.view==='due'){var w=dueList();box.innerHTML=w.length?'<div class="kkref20-list">'+w.map(itemCard).join('')+'</div>':'<div class="kkref20-alert green">Keine fällige oder überfällige Pflege in den nächsten sieben Tagen.</div>';return}
+    if(state.view==='new'){var np=newPartnerList();box.innerHTML=np.length?'<div class="kkref20-list">'+np.map(itemCard).join('')+'</div>':'<div class="kkref20-empty">Keine Partner in der Onboarding-Phase (Recherche/Neu).</div>';return}
+    if(state.view==='active'){var ac=activeList();box.innerHTML=ac.length?'<div class="kkref20-list">'+ac.slice(0,30).map(itemCard).join('')+'</div>':'<div class="kkref20-empty">Keine aktiven Empfehlungen (alle Partner pausiert).</div>';return}
+    if(state.view==='recent'){var rc=recentList().slice(0,30);box.innerHTML=rc.length?'<div class="kkref20-list">'+rc.map(itemCard).join('')+'</div>':'<div class="kkref20-empty">Noch kein dokumentierter Kontakt.</div>';return}
+    if(state.view==='network'){box.innerHTML=networkToggleHtml()+renderGrouped(state.networkBy);return}
+    if(state.view==='neglected'){var nlist=neglectedList();box.innerHTML=nlist.length?'<div class="kkref20-list">'+nlist.map(itemCard).join('')+'</div>':'<div class="kkref20-alert green">Keine Kontakte seit mehr als 90 Tagen ohne Pflege.</div>';return}
+  }
   function renderKpi(){var panel=qs('#kk-app-panel-kpis');if(!panel)return;var box=qs('#kkref20KpiCard');if(!box){box=document.createElement('section');box.id='kkref20KpiCard';box.className='kkref20-card kkref20-kpi-insert';panel.insertBefore(box,panel.firstElementChild||null)}var list=items(),value=list.reduce(function(sum,item){return sum+n(item.estimatedReferralValue)},0);box.innerHTML='<h3>Tippgeber-KPIs</h3><div class="kkref20-grid kkref20-three"><div class="kkref20-stat"><b>'+esc(list.length)+'</b><span>Tippgeber gesamt</span></div><div class="kkref20-stat"><b>'+esc(list.filter(function(item){return item.status==='Aktiv'}).length)+'</b><span>aktive Tippgeber</span></div><div class="kkref20-stat"><b>'+esc(euro(value))+'</b><span>erfasster Tippgeberwert</span></div></div><p class="kkref20-validation">Keine automatische Personenbewertung oder Kontaktpriorisierung.</p>'}
   function renderValidation(){var el=qs('#kkref20Validation');if(el)el.innerHTML='Prüfung: Tippgeber sichtbar '+(qs('#kkref20Table')?'✓':'✕')+' · Personen-Scoring deaktiviert ✓ · Daten in <strong>'+KEY+'</strong>'}
   function render(){renderStats();renderView(state.view);table();renderKpi();renderValidation()}
   function populateSelects(){var cat=qs('#kkref20Category'),t=qs('#kkref20Town');if(cat&&!cat.dataset.ready){cat.innerHTML=CATEGORIES.map(function(c){return '<option>'+esc(c)+'</option>'}).join('');cat.dataset.ready='1'}if(t&&!t.dataset.ready){t.innerHTML=TOWNS.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');t.dataset.ready='1'}}
   function exportData(){window.KK_STORE.downloadJSON('kk_referral_network_v1_export.json',getStore());}
   var toast=function(msg){return window.KK_UTIL.toast(msg,{selector:'.kkref20-toast',className:'kkref20-toast',visibleClass:'is-visible',duration:1900,create:true})};
-  function bind(){var root=qs('#kk-referral-machine-v20');if(root){qs('#kkref20Form')?.addEventListener('submit',saveForm);root.addEventListener('click',function(e){var b=e.target.closest('[data-kkref20-view],[data-kkref20-migrate],[data-kkref20-export],[data-kkref20-reset],[data-kkref20-edit],[data-kkref20-touch],[data-kkref20-delete]');if(!b)return;if(b.hasAttribute('data-kkref20-view')){state.view=b.getAttribute('data-kkref20-view');renderView(state.view);return}if(b.hasAttribute('data-kkref20-migrate')){migrate(false);render();return}if(b.hasAttribute('data-kkref20-export')){exportData();return}if(b.hasAttribute('data-kkref20-reset')){clearForm();return}if(b.hasAttribute('data-kkref20-edit')){var x=items().find(function(i){return i.id===b.getAttribute('data-kkref20-edit')});if(x)fill(x);return}if(b.hasAttribute('data-kkref20-touch')){touch(b.getAttribute('data-kkref20-touch'));return}if(b.hasAttribute('data-kkref20-delete')){if(confirm('Diesen Tippgeber wirklich löschen? Der Datensatz wird aus der aktiven Tippgeberliste entfernt; alte Legacy-Daten bleiben erhalten.'))remove(b.getAttribute('data-kkref20-delete'));return}})}window.addEventListener('storage',function(ev){if(ev.key===KEY)render()})}
+  /* V31 Phase 15.3 (PRD Teil 2 §10-Muster übertragen auf Tippgeber): Detaildialog
+     analog zur CRM-Kontakt-Detailansicht (Phase 8) - Partnerstatus, letzter/nächster
+     Kontakt, nächster Pflegeschritt, Empfehlungshistorie (Tipps/Wert/Erfasst-seit,
+     da Tippgeber keine eigene Aktivitäts-Log-Entität wie kk_crm_activities besitzen). */
+  var detailPartnerId=null,detailLastFocus=null;
+  function populateDetail(x){
+    var name=qs('#kkref20DetailName');if(name)name.textContent=x.name;
+    var meta=qs('#kkref20DetailMeta');if(meta)meta.innerHTML=['<span class="kkref20-pill">'+esc(x.status)+'</span>','<span class="kkref20-pill">'+esc(x.category)+'</span>','<span class="kkref20-pill">'+esc(x.ort)+'</span>'].join('');
+    var grid=qs('#kkref20DetailGrid');if(grid)grid.innerHTML=[['Letzter Kontakt',x.lastContact||'—'],['Nächster Kontakt',x.nextContact||'—'],['Kontaktkanal',x.contactChannel||'—'],['Beziehungstiefe',x.relationshipDepth||'—']].map(function(p){return '<div><b>'+esc(p[0])+'</b>'+esc(p[1])+'</div>'}).join('');
+    var na=qs('#kkref20DetailNextAction');if(na)na.textContent=x.nextAction||'Kein nächster Schritt dokumentiert.';
+    var hist=qs('#kkref20DetailHistory');if(hist)hist.textContent=n(x.previousTips)+' bisherige Tipps · geschätzter Empfehlungswert '+euro(x.estimatedReferralValue)+' · erfasst seit '+(x.createdAt?new Date(x.createdAt).toLocaleDateString('de-DE'):'—');
+    var notes=qs('#kkref20DetailNotes');if(notes)notes.textContent=x.notes||'Keine Notizen.';
+  }
+  function openDetail(id){var x=items().find(function(i){return i.id===id});if(!x)return;var dlg=qs('#kkref20DetailDialog');if(!dlg||typeof dlg.showModal!=='function')return;detailPartnerId=id;populateDetail(x);detailLastFocus=document.activeElement;dlg.showModal()}
+  function initDetailDialogOnce(){if(window.__kkref20DetailInit)return;var dlg=qs('#kkref20DetailDialog');if(!dlg)return;window.__kkref20DetailInit=true;var closeBtn=qs('#kkref20DetailClose');if(closeBtn)closeBtn.onclick=function(){dlg.close()};dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});dlg.addEventListener('close',function(){var t=detailLastFocus,pid=detailPartnerId;detailPartnerId=null;setTimeout(function(){var target=(t&&t.isConnected)?t:(pid&&qs('[data-kkref20-detail="'+pid+'"]'))||qs('#kkref20ViewsCard');if(target&&typeof target.focus==='function')target.focus()},0)});var touchBtn=qs('#kkref20DetailTouchBtn');if(touchBtn)touchBtn.onclick=function(){if(!detailPartnerId)return;touch(detailPartnerId);var x=items().find(function(i){return i.id===detailPartnerId});if(x)populateDetail(x)};var editBtn=qs('#kkref20DetailEditBtn');if(editBtn)editBtn.onclick=function(){var x=items().find(function(i){return i.id===detailPartnerId});dlg.close();if(x)fill(x)}}
+  function bind(){var root=qs('#kk-referral-machine-v20');if(root){qs('#kkref20Form')?.addEventListener('submit',saveForm);root.addEventListener('click',function(e){var netBy=e.target.closest('[data-kkref20-network-by]');if(netBy){state.networkBy=netBy.getAttribute('data-kkref20-network-by');renderView('network');return}var detail=e.target.closest('[data-kkref20-detail]');if(detail){openDetail(detail.getAttribute('data-kkref20-detail'));return}var b=e.target.closest('[data-kkref20-view],[data-kkref20-migrate],[data-kkref20-export],[data-kkref20-reset],[data-kkref20-edit],[data-kkref20-touch],[data-kkref20-delete]');if(!b)return;if(b.hasAttribute('data-kkref20-view')){state.view=b.getAttribute('data-kkref20-view');renderView(state.view);return}if(b.hasAttribute('data-kkref20-migrate')){migrate(false);render();return}if(b.hasAttribute('data-kkref20-export')){exportData();return}if(b.hasAttribute('data-kkref20-reset')){clearForm();return}if(b.hasAttribute('data-kkref20-edit')){var x=items().find(function(i){return i.id===b.getAttribute('data-kkref20-edit')});if(x)fill(x);return}if(b.hasAttribute('data-kkref20-touch')){touch(b.getAttribute('data-kkref20-touch'));return}if(b.hasAttribute('data-kkref20-delete')){if(confirm('Diesen Tippgeber wirklich löschen? Der Datensatz wird aus der aktiven Tippgeberliste entfernt; alte Legacy-Daten bleiben erhalten.'))remove(b.getAttribute('data-kkref20-delete'));return}});initDetailDialogOnce()}window.addEventListener('storage',function(ev){if(ev.key===KEY)render()})}
   function init(){populateSelects();clearForm();migrate(true);bind();render();setTimeout(render,250)}
   window.KK_REFERRAL_NETWORK_V1={version:VERSION,storeKey:KEY,categories:CATEGORIES.slice(),towns:TOWNS.slice(),items:items,render:render,migrate:migrate,save:function(list){return save(list||items())},validate:renderValidation};
   window.KK_BOOT.register('tippgeber-netzwerk',init,{priority:68});
