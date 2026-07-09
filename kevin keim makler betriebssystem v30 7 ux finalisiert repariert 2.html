@@ -2814,7 +2814,7 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
       <input id="kkTodayDoneOwnerContacts" data-kk-today-field="doneOwnerContacts" type="number"><input id="kkTodayDoneCalls" data-kk-today-field="doneCalls" type="number"><input id="kkTodayDoneFollowups" data-kk-today-field="doneFollowups" type="number"><input id="kkTodayDoneOffers" data-kk-today-field="doneValuationOffers" type="number"><input id="kkTodayDoneAppointments" data-kk-today-field="doneValuationsSet" type="number"><input id="kkTodayLearning" data-kk-today-field="learning" type="text"><input id="kkTodayTomorrowStep" data-kk-today-field="tomorrowStep" type="text">
       <form id="kkTodayManualActionForm"><input id="kkTodayManualTitle" name="kkTodayManualTitle" type="text"><select id="kkTodayManualCategory" name="kkTodayManualCategory"><option>CRM</option></select><select id="kkTodayManualPriority" name="kkTodayManualPriority"><option>Mittel</option></select><input id="kkTodayManualNote" name="kkTodayManualNote" type="text"></form>
     </div>
-    <div class="kkh-toast" id="kkhToast">Gespeichert</div>
+    <div class="kkh-toast" id="kkhToast" role="status" aria-live="polite">Gespeichert</div>
   </div>
 </section>
 
@@ -3289,7 +3289,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 </div>
 </div>
 </div>
-<div class="kk12-toast" id="kk12Toast">Gespeichert</div>
+<div class="kk12-toast" id="kk12Toast" role="status" aria-live="polite">Gespeichert</div>
 </section><section class="kkops-section" id="ceo-cockpit">
 <div class="kkops-shell">
 <div class="kkops-head"><div><span class="kkops-kicker">Ebene 1 · Operativ</span><h2>CEO-Cockpit</h2><p>Die Steuerzentrale verdichtet Pipeline, Bewertungstermine, Follow-ups, Tippgeber und Zeitbudget zu einer Frage: Welche Aktion bringt heute am wahrscheinlichsten einen Verkaufsauftrag näher?</p></div><div class="kkops-actions"><button class="kkops-btn light" data-ops-refresh="" type="button">Aktualisieren</button></div></div>
@@ -5295,7 +5295,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
     <p class="kkcp-detail-notes" id="kkcrmproDetailNotes"></p>
   </div>
 </dialog>
-<div class="kkcp-toast" id="kkcrmproToast">Gespeichert</div>
+<div class="kkcp-toast" id="kkcrmproToast" role="status" aria-live="polite">Gespeichert</div>
 <script>
 (function(){
   var root=document.getElementById('crm-pro-os');
@@ -5352,8 +5352,17 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
      erzeugt keine neue Datenquelle. Aktivitaeten sind im Bestand ueber den
      Kontaktnamen verknuepft (kkcrmproActContact ist ein Freitextfeld, kein
      ID-Verweis) - das ist ein bestehendes Legacy-Muster, hier nur gelesen. */
+  /* V31 Phase 12 (PRD Teil 5 §25 Accessibility-Verifikation, "Dialog/Drawer:
+     ... Fokus zurueckgeben"): natives <dialog> traegt bei Escape/close() den
+     Fokus NICHT zuverlaessig zum aufrufenden Element zurueck (per Test
+     bestaetigt: activeElement landet auf <body>). Merkt sich daher das
+     zuletzt fokussierte Element manuell und stellt es beim 'close'-Event
+     wieder her — deckt Escape, Schliessen-Button und Backdrop-Klick
+     einheitlich ab, da alle denselben nativen Event ausloesen. */
+  var lastDetailTrigger=null;
   function openContactDetail(cid){
     var c=arr(KEYS.contacts).find(function(x){return x.id===cid}); if(!c)return;
+    lastDetailTrigger=document.activeElement;
     $('#kkcrmproDetailName').textContent=c.name||'Ohne Namen';
     $('#kkcrmproDetailMeta').innerHTML=[c.category,c.role,c.status,c.area].filter(Boolean).map(function(m){return '<span class="kkcp-pill">'+esc(m)+'</span>'}).join('');
     var actions=[];
@@ -5439,7 +5448,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
   function importData(file){if(!file)return;window.KK_STORE.importFile(file,{mode:'merge'},function(result){if(result.ok){renderAll();toast('CRM-Backup importiert: '+result.imported+' Datenbereiche')}else if(!result.cancelled)toast(result.error||'Import fehlgeschlagen')});}
   function showTab(name){$$('[data-kkcrmpro-tab]').forEach(function(b){b.classList.toggle('is-active',b.dataset.kkcrmproTab===name)}); $$('[data-kkcrmpro-panel]').forEach(function(p){p.classList.toggle('is-active',p.dataset.kkcrmproPanel===name)})}
   function renderAll(){renderStats();renderCockpit();renderContacts();renderPipeline();renderObjects();renderFollowups();renderRefs();renderQuality();renderROI();renderActivities();renderTarget()}
-  function bind(){ $$('[data-kkcrmpro-tab]').forEach(function(b){b.onclick=function(){showTab(b.dataset.kkcrmproTab)}}); $('#kkcrmproLeadForm').onsubmit=saveLead; $('#kkcrmproLeadReset').onclick=resetLeadForm; $('#kkcrmproObjectForm').onsubmit=saveObject; $('#kkcrmproFollowupForm').onsubmit=saveFollowupForm; $('#kkcrmproReferralForm').onsubmit=saveReferral; $('#kkcrmproActivityForm').onsubmit=saveActivity; ['kkcrmproContactSearch','kkcrmproContactAreaFilter','kkcrmproContactStatusFilter','kkcrmproPipeStageFilter','kkcrmproPipeAreaFilter','kkcrmproPipeSort'].forEach(function(id){var el=$('#'+id); if(el)el.oninput=el.onchange=renderAll}); $('#kkcrmproSyncBtn').onclick=syncExisting; $('#kkcrmproExportBtn').onclick=exportData; $('#kkcrmproImportInput').onchange=function(e){importData(e.target.files[0])}; var qfClear=$('#kkcrmproQuickFilterClear'); if(qfClear)qfClear.onclick=clearQuickFilter; var detailDlg=$('#kkcrmproContactDetailDialog'); var detailClose=$('#kkcrmproDetailClose'); if(detailClose&&detailDlg)detailClose.onclick=function(){detailDlg.close()}; if(detailDlg)detailDlg.addEventListener('click',function(e){if(e.target===detailDlg)detailDlg.close()}); window.addEventListener('storage',function(){renderAll()})}
+  function bind(){ $$('[data-kkcrmpro-tab]').forEach(function(b){b.onclick=function(){showTab(b.dataset.kkcrmproTab)}}); $('#kkcrmproLeadForm').onsubmit=saveLead; $('#kkcrmproLeadReset').onclick=resetLeadForm; $('#kkcrmproObjectForm').onsubmit=saveObject; $('#kkcrmproFollowupForm').onsubmit=saveFollowupForm; $('#kkcrmproReferralForm').onsubmit=saveReferral; $('#kkcrmproActivityForm').onsubmit=saveActivity; ['kkcrmproContactSearch','kkcrmproContactAreaFilter','kkcrmproContactStatusFilter','kkcrmproPipeStageFilter','kkcrmproPipeAreaFilter','kkcrmproPipeSort'].forEach(function(id){var el=$('#'+id); if(el)el.oninput=el.onchange=renderAll}); $('#kkcrmproSyncBtn').onclick=syncExisting; $('#kkcrmproExportBtn').onclick=exportData; $('#kkcrmproImportInput').onchange=function(e){importData(e.target.files[0])}; var qfClear=$('#kkcrmproQuickFilterClear'); if(qfClear)qfClear.onclick=clearQuickFilter; var detailDlg=$('#kkcrmproContactDetailDialog'); var detailClose=$('#kkcrmproDetailClose'); if(detailClose&&detailDlg)detailClose.onclick=function(){detailDlg.close()}; if(detailDlg){detailDlg.addEventListener('click',function(e){if(e.target===detailDlg)detailDlg.close()}); detailDlg.addEventListener('close',function(){var t=lastDetailTrigger;setTimeout(function(){if(t&&typeof t.focus==='function')t.focus();},0);});} window.addEventListener('storage',function(){renderAll()})}
   function init(){initOptions(); bind(); renderAll();}
   window.KK_CRM_PRO=Object.assign(window.KK_CRM_PRO||{}, {
     version:'29.7',
@@ -5450,8 +5459,14 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
     newFollowup:function(area){newFollowupForm(String(area||''));},
     showTab:function(name){showTab(String(name||'cockpit'));},
     render:function(){renderAll();},
-    showOpenLeads:function(){quickLeadFilter=true;showTab('cockpit');renderAll();setTimeout(function(){var t=$('#kkcrmproContactRows');if(t)t.closest('.kkcp-table-wrap').scrollIntoView({behavior:'smooth',block:'start'})},120);},
-    openContactByName:function(name){var c=arr(KEYS.contacts).find(function(x){return norm(x.name)===norm(name)}); if(!c){toast('Kein passender CRM-Kontakt gefunden'); return false} showTab('cockpit'); renderAll(); openContactDetail(c.id); return true;},
+    /* V31 Phase 12: showTab('cockpit') zeigte bisher das unabhaengige "Heute"-
+       Uebersichtspanel, NICHT die Kontaktliste — #kkcrmproContactRows liegt im
+       Panel "capture" ("Kontakt / Lead"). Ein Klick auf "Offene Leads" im
+       Dashboard oder "Kontakt oeffnen" aus den Follow-ups landete dadurch auf
+       einem Panel ohne die gefilterte Liste. Per Playwright-Sichtbarkeitscheck
+       bestaetigt (offsetParent) und auf das tatsaechlich richtige Panel korrigiert. */
+    showOpenLeads:function(){quickLeadFilter=true;showTab('capture');renderAll();setTimeout(function(){var t=$('#kkcrmproContactRows');if(t)t.closest('.kkcp-table-wrap').scrollIntoView({behavior:'smooth',block:'start'})},120);},
+    openContactByName:function(name){var c=arr(KEYS.contacts).find(function(x){return norm(x.name)===norm(name)}); if(!c){toast('Kein passender CRM-Kontakt gefunden'); return false} showTab('capture'); renderAll(); openContactDetail(c.id); return true;},
     findContactIdByName:function(name){var c=arr(KEYS.contacts).find(function(x){return norm(x.name)===norm(name)}); return c?c.id:''}
   });
   window.KK_BOOT.register('crm-pro',init,{priority:22});
@@ -5609,7 +5624,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 </article>
 </div>
 </div>
-<div class="kk-crm-toast" id="kkCrmToast">Gespeichert</div>
+<div class="kk-crm-toast" id="kkCrmToast" role="status" aria-live="polite">Gespeichert</div>
 <script>
     (function(){
       var STORAGE_KEY='kk_crm_contacts';
@@ -5789,7 +5804,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 </article>
 </div>
 </div>
-<div class="kk-fu-toast" id="kkFuToast">Gespeichert</div>
+<div class="kk-fu-toast" id="kkFuToast" role="status" aria-live="polite">Gespeichert</div>
 <script>
 (function(){
   var FOLLOWUP_KEY='kk_followups';
