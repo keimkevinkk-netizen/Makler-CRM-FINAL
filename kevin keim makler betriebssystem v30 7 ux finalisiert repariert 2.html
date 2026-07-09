@@ -2415,7 +2415,9 @@ REVOPS-UPDATE 2026-06-11 · Kevin Keim Makler-Betriebssystem
 #kk-heute-v27 .kkh-call-hero-left{display:flex;flex-direction:column;align-items:center;gap:8px}
 #kk-heute-v27 .kkh-call-hero-right{display:flex;flex-direction:column;gap:10px;min-width:0}
 #kk-heute-v27 .kkh-call-hero-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-#kk-heute-v27 .kkh-call-hero-stat{background:var(--box);border-radius:12px;padding:10px 8px;text-align:center}
+#kk-heute-v27 .kkh-call-hero-stat{background:var(--box);border-radius:12px;padding:10px 8px;text-align:center;border:1px solid transparent;font:inherit;cursor:pointer;width:100%;transition:border-color .15s ease,background .15s ease}
+#kk-heute-v27 .kkh-call-hero-stat:hover,#kk-heute-v27 .kkh-call-hero-stat:focus-visible{border-color:var(--accent);background:#fff}
+#kk-heute-v27 .kkh-call-hero-stat:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #kk-heute-v27 .kkh-call-hero-stat b{display:block;font-size:20px;color:var(--primary);line-height:1;font-variant-numeric:tabular-nums}
 #kk-heute-v27 .kkh-call-hero-stat b.is-alert{color:var(--accent)}
 #kk-heute-v27 .kkh-call-hero-stat span{display:block;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:3px}
@@ -2906,7 +2908,7 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
         ['Überfällig',overdue,overdue>0],
         ['Quote',rate==null?'–':rate+'%',false]
       ];
-      metricsBox.innerHTML=cells.map(function(c){return '<div class="kkh-call-hero-stat"><b class="'+(c[2]?'is-alert':'')+'">'+esc(c[1])+'</b><span>'+esc(c[0])+'</span></div>'}).join('');
+      metricsBox.innerHTML=cells.map(function(c){return '<button type="button" class="kkh-call-hero-stat" data-open-tool="anruftracker" aria-label="'+esc(c[0])+': '+esc(c[1])+' — Anrufliste öffnen"><b class="'+(c[2]?'is-alert':'')+'">'+esc(c[1])+'</b><span>'+esc(c[0])+'</span></button>'}).join('');
     }
     var nextBox=q('#kkhCallHeroNext');
     if(nextBox){
