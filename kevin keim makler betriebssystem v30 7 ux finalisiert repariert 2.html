@@ -2590,6 +2590,16 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
 
 #kk-heute-v27 .kkv30-call-hero-row{margin-bottom:2px}
 #kk-heute-v27 .kkv30-call-hero-row .kkv30-call-hero{box-shadow:var(--v30-shadow-lg,0 20px 48px rgba(16,20,24,.16));border-color:var(--v30-blue,#182c46)!important}
+#kk-heute-v27 .kkv30-now-row-wrap{margin-bottom:2px}
+#kk-heute-v27 .kkv30-now-card{padding:14px 16px!important}
+#kk-heute-v27 .kkv30-now-card .kkv30-card-head{margin-bottom:8px!important}
+#kk-heute-v27 .kkv30-now-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}
+#kk-heute-v27 .kkv30-now-item{appearance:none;flex:0 0 auto;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--v30-border);background:#fff;color:var(--v30-ink);font:inherit;font-size:12.5px;font-weight:750;cursor:pointer;white-space:nowrap;transition:border-color .14s ease,background .14s ease}
+#kk-heute-v27 .kkv30-now-item:hover{background:var(--v30-surface-2);border-color:var(--v30-blue)}
+#kk-heute-v27 .kkv30-now-icon{font-size:13px;line-height:1}
+#kk-heute-v27 .kkv30-now-due{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;color:var(--v30-muted);padding:2px 7px;border-radius:999px;background:var(--v30-surface-2)}
+#kk-heute-v27 .kkv30-now-item.is-overdue .kkv30-now-due{color:var(--v30-red);background:var(--v30-red-soft)}
+#kk-heute-v27 .kkv30-now-empty{color:var(--v30-muted);font-size:12.5px;font-weight:650}
 #kk-heute-v27 .kkv30-main-grid{display:grid;grid-template-columns:minmax(0,1.72fr) minmax(250px,.72fr) minmax(290px,.82fr);gap:12px;align-items:stretch}
 #kk-heute-v27 .kkv30-secondary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
 #kk-heute-v27 .kkv30-bottom-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(340px,.65fr);gap:12px;align-items:start}
@@ -3011,18 +3021,21 @@ function layout(){
  var task=q('#kkhTaskList').closest('article'),follow=q('#kkhFollowupList').closest('article'),calls=q('#kkhCallsToday').closest('article'),appointments=q('#kkhAppointmentList').closest('article'),notes=q('#kkhNoteList').closest('article');
  var dash=document.createElement('div');dash.className='kkv30-dashboard';
  var welcome=document.createElement('div');welcome.className='kkv30-welcome';var copy=document.createElement('div');copy.className='kkv30-welcome-copy';copy.appendChild(heroMain);focus.classList.add('kkv30-focus-inline');welcome.append(copy,focus);dash.appendChild(welcome);
+ /* V31 Phase 14.3 (PRD Teil 2 §6 Reihenfolge-Tabelle): Telefonie-Command-
+    Center und "Jetzt erledigen" muessen VOR den Kernkennzahlen stehen
+    ("die ersten 15 Sekunden... beginnt mit Tagesstatus und Telefonie,
+    nicht mit... nachrangigen Diagrammen"). Bisher stand die Anruf-Karte
+    NACH den KPI-Kacheln (Position 3 statt 2) und "Jetzt erledigen" fehlte
+    komplett. Reine Umsortierung + eine neue Karte, keine bestehende
+    Karte/Instanz/Handler entfernt. */
+ calls.classList.add('kkv30-call-hero');normalizeFooter(calls);
+ var callRow=document.createElement('div');callRow.className='kkv30-call-hero-row';callRow.appendChild(calls);dash.appendChild(callRow);
+ var nowRow=document.createElement('div');nowRow.className='kkv30-now-row-wrap';nowRow.innerHTML=nowSectionHtml();dash.appendChild(nowRow);
  summary.classList.add('kkv30-kpis');
  var active=makeCard('kkv30KpiObjects','Aktive Objekte / Chancen','violet'),leads=makeCard('kkv30KpiLeads','Offene Leads','orange');
  var taskK=q('#kkhSummaryTasks'),fuK=q('#kkhSummaryFollowups'),appK=q('#kkhSummaryAppointments'),callK=q('#kkhSummaryCalls');
  taskK.dataset.tone='red';fuK.dataset.tone='orange';appK.dataset.tone='green';
  summary.innerHTML='';summary.append(active,appK,leads,taskK,fuK,callK);dash.appendChild(summary);
- /* V31 Phase C: Anruf-Karte wird zur Hero-Zeile direkt unter den Kennzahlen —
-    "Telefonieren ist der wichtigste Hebel" soll sofort sichtbar sein, nicht
-    dritte Reihe neben Follow-ups/Terminen. Reine Umsortierung, keine neue
-    Instanz, kein Verlust bestehender Handler (dieselbe <article>, nur an
-    anderer Stelle im Baum). */
- calls.classList.add('kkv30-call-hero');normalizeFooter(calls);
- var callRow=document.createElement('div');callRow.className='kkv30-call-hero-row';callRow.appendChild(calls);dash.appendChild(callRow);
  var main=document.createElement('div');main.className='kkv30-main-grid';main.innerHTML=mapCardHtml()+areaCardHtml();task.classList.add('kkv30-task-card');normalizeFooter(task);main.appendChild(task);dash.appendChild(main);
  var second=document.createElement('div');second.className='kkv30-secondary-grid';second.innerHTML=pipelineCardHtml();normalizeFooter(follow);normalizeFooter(appointments);second.append(follow,appointments);dash.appendChild(second);
  var bottom=document.createElement('div');bottom.className='kkv30-bottom-grid';normalizeFooter(quick);bottom.appendChild(quick);var side=document.createElement('div');side.className='kkv30-side-stack';notes.classList.add('kkv30-note-card');side.append(notes,metrics,week);bottom.appendChild(side);dash.appendChild(bottom);
@@ -3037,6 +3050,36 @@ function mapCardHtml(){
 }
 function areaCardHtml(){return '<article class="kkv30-card kkv30-area-card"><div class="kkv30-card-head"><h2>Gebietsdetails</h2><span class="kkv30-pill">Live</span></div><div class="kkv30-area-body"><div class="kkv30-area-title"><h3 id="kkv30AreaName">Bruchköbel</h3><span class="kkv30-status" id="kkv30AreaStatus">Keine Daten</span></div><div class="kkv30-area-metrics" id="kkv30AreaMetrics"></div><div class="kkv30-area-signals" id="kkv30AreaSignals"></div><div class="kkv30-area-actions"><button type="button" id="kkv30AreaOpen">Marktmonitor öffnen</button><button class="light" type="button" id="kkv30AreaCrm">CRM nach Ort</button></div></div></article>'}
 function pipelineCardHtml(){return '<article class="kkv30-card" id="kkv30PipelineCard"><div class="kkv30-card-head"><h2>Offene Pipeline</h2><span class="kkv30-pill" id="kkv30PipelineCount">0 Chancen</span></div><div class="kkh-card-body"><div class="kkv30-pipeline-stages"><i id="kkv30PipelineProgress" style="width:0%"></i></div><div class="kkv30-pipeline-list" id="kkv30PipelineList"></div><div class="kkv30-pipeline-footer"><span id="kkv30PipelineFoot">Keine offenen Chancen</span><a href="#verkaufsauftrags-pipeline">Zur Pipeline →</a></div></div></article>'}
+/* V31 Phase 14.3 (PRD Teil 2 §6 "Daily Command Center", Reihenfolge-Tabelle
+   Position 3 "Jetzt erledigen"): buendelt ueberfaellige/heute faellige
+   Aufgaben und Follow-ups modulübergreifend in EINER kompakten Zeile,
+   direkt unter dem Telefonie-Command-Center und vor den Kernkennzahlen -
+   bisher gab es nur getrennte Karten weiter unten im Layout. Liest
+   dieselben Storage-Keys wie die bestehenden Module direkt (arr()/
+   openStatus() sind in diesem Modul bereits vorhanden), statt Funktionen
+   aus der anderen "kk-heute-v27-js"-IIFE plattformübergreifend
+   aufzurufen - beide Module lesen bereits unabhaengig voneinander
+   dieselben kk_*-Keys (siehe renderKpis()). */
+function nowDoItems(){
+  var t=window.KK_UTIL.todayISO();
+  var tasks=arr('kk12_tasks').filter(function(x){return openStatus(x.status)&&(String(x.status||'')==='Heute'||(x.due&&x.due<=t));}).map(function(x){return{type:'task',icon:'✓',label:x.title||'Aufgabe',due:x.due||'',overdue:!!(x.due&&x.due<t),sortKey:x.due||t};});
+  var fus=arr('kk_followups').filter(function(x){return openStatus(x.status)&&(x.dueDate||x.date)&&(x.dueDate||x.date)<=t;}).map(function(x){return{type:'followup',icon:'☎',label:x.name||x.contactName||x.contact||'Follow-up',due:x.dueDate||x.date||'',overdue:!!((x.dueDate||x.date)<t),sortKey:x.dueDate||x.date||t};});
+  return tasks.concat(fus).sort(function(a,b){return String(a.sortKey).localeCompare(String(b.sortKey));}).slice(0,6);
+}
+function renderNowDo(){
+  var host=q('#kkv30NowList'),empty=q('#kkv30NowEmpty'),section=q('#kkv30NowSection');
+  if(!host||!section)return;
+  var items=nowDoItems();
+  section.hidden=false;
+  if(!items.length){host.innerHTML='';if(empty)empty.hidden=false;return;}
+  if(empty)empty.hidden=true;
+  host.innerHTML=items.map(function(x){return '<button type="button" class="kkv30-now-item'+(x.overdue?' is-overdue':'')+'" data-now-type="'+x.type+'"><span class="kkv30-now-icon" aria-hidden="true">'+x.icon+'</span><span class="kkv30-now-label">'+esc(x.label)+'</span><span class="kkv30-now-due">'+(x.overdue?'überfällig':'heute')+'</span></button>';}).join('');
+  qa('[data-now-type]',host).forEach(function(b){b.addEventListener('click',function(){
+    if(b.dataset.nowType==='task'){var details=document.getElementById('kk-heute-operative-module');if(details)details.open=true;setTimeout(function(){var el=document.getElementById('kk12-next-os');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(function(){var t=document.querySelector('[data-kk12-tab="tasks"]');if(t)t.click();},180);},80);}
+    else{openTab('followups','#followup');}
+  });});
+}
+function nowSectionHtml(){return '<article class="kkv30-card kkv30-now-card" id="kkv30NowSection"><div class="kkv30-card-head"><h2>Jetzt erledigen</h2></div><div class="kkv30-now-row" id="kkv30NowList"></div><div class="kkv30-now-empty" id="kkv30NowEmpty" hidden>Nichts Überfälliges oder heute Fälliges aus Aufgaben und Follow-ups.</div></article>';}
 function data(){return window.KK_MKK_MAP&&typeof KK_MKK_MAP.getData==='function'?KK_MKK_MAP.getData():{}}
 function metricValue(d,m){if(!d)return 0;return num(d[m])}
 function colorFor(d,m,max){if(!d||!d.hasOperationalData)return COLORS.gray;var v=metricValue(d,m),ratio=max>0?v/max:0;if(m==='potential'){if(v>=80)return COLORS.blue;if(v>=60)return COLORS.green;if(v>=40)return COLORS.yellow;if(v>=20)return COLORS.orange;return COLORS.red}if(ratio>=.8)return COLORS.blue;if(ratio>=.55)return COLORS.green;if(ratio>=.3)return COLORS.yellow;if(ratio>0)return COLORS.orange;return COLORS.red}
@@ -3044,7 +3087,7 @@ function renderMap(){var D=data(),metric=(q('#kkv30MapMetric')||{}).value||'pote
 function renderArea(){var d=data()[selectedTown]||{},name=NAMES[selectedTown]||selectedTown;var nameEl=q('#kkv30AreaName'),status=q('#kkv30AreaStatus');if(nameEl)nameEl.textContent=name;if(status){status.textContent=d.status||'Keine Daten';status.style.background=d.hasOperationalData?'var(--v30-green-soft)':'#eef1f5';status.style.color=d.hasOperationalData?'var(--v30-green)':'#667085'}var rows=[['Eigentümer',d.owners],['Suchkunden',d.searchCustomers],['Aktive Objekte',d.activeObjects],['Verkäufe YTD',d.sales],['Ø Verkaufspreis',d.avgPrice?Number(d.avgPrice).toLocaleString('de-DE')+' €/m²':'–'],['Vermarktungsdauer',d.avgMarketingDays?d.avgMarketingDays+' Tage':'–']];q('#kkv30AreaMetrics').innerHTML=rows.map(function(r){return '<div class="kkv30-area-row"><span>'+esc(r[0])+'</span><b>'+esc(r[1]==null?'–':r[1])+'</b></div>'}).join('');var sig=[['Follow-ups',d.openFollowups||0],['Bewertungen',d.valuationAppointments||0],['Besichtigungen',d.viewings||0],['Neue Eigentümer',d.newOwnerInquiries||0]];q('#kkv30AreaSignals').innerHTML=sig.map(function(r){return '<div class="kkv30-area-signal"><b>'+esc(r[1])+'</b><span>'+esc(r[0])+'</span></div>'}).join('')}
 function renderKpis(){var objects=uniq(arr('kk_crm_objects').concat(arr('kk12_objects')),'obj').filter(function(x){return openStatus(x.status)});var deals=uniq(arr('kk_sales_pipeline').concat(arr('kk_crm_owner_pipeline')),'deal').filter(function(x){return openStatus(x.status||x.stage||x.phase)&&!stageClosed(x)});var contacts=arr('kk_crm_contacts').filter(function(c){var t=[c.category,c.contactType,c.role,c.status].join(' ');return openStatus(c.status)&&/(lead|eigentümer|eigentuemer|käufer|kaeufer|suchkunde|interessent|chance)/i.test(t)});q('#kkv30KpiObjectsValue').textContent=String(objects.length+deals.length);q('#kkv30KpiObjectsSub').textContent=objects.length+' Objekte · '+deals.length+' Chancen';q('#kkv30KpiLeadsValue').textContent=String(contacts.length);q('#kkv30KpiLeadsSub').textContent='offene CRM-Kontakte'}
 function renderPipeline(){var all=uniq(arr('kk_sales_pipeline').concat(arr('kk_crm_owner_pipeline')),'deal').filter(function(x){return openStatus(x.status||x.stage||x.phase)&&!stageClosed(x)});all.sort(function(a,b){var da=String(a.deadline||a.followUpDate||'9999-12-31'),db=String(b.deadline||b.followUpDate||'9999-12-31');return da.localeCompare(db)||String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))});q('#kkv30PipelineCount').textContent=all.length+' Chancen';var list=q('#kkv30PipelineList');if(!all.length){list.innerHTML='<div class="kkv30-pipeline-empty">Keine offenen Pipeline-Chancen.</div>';q('#kkv30PipelineProgress').style.width='0%';q('#kkv30PipelineFoot').textContent='Keine offenen Chancen';return}list.innerHTML=all.slice(0,5).map(function(x){var name=x.name||x.contactName||x.owner||x.objectLabel||'Verkaufschance',stage=x.stage||x.status||x.phase||'Offen',area=x.area||x.town||x.city||'ohne Gebiet',prob=Math.max(0,Math.min(100,num(x.probability)));return '<div class="kkv30-pipeline-item"><div><strong>'+esc(name)+'</strong><span>'+esc(stage+' · '+area)+'</span></div><b>'+prob+' %</b></div>'}).join('');var avg=Math.round(all.reduce(function(s,x){return s+num(x.probability)},0)/all.length);q('#kkv30PipelineProgress').style.width=Math.max(3,avg)+'%';q('#kkv30PipelineFoot').textContent='Ø Wahrscheinlichkeit '+avg+' %'}
-function renderNew(){if(!root||root.dataset.v303Layout!=='1')return;renderKpis();renderPipeline();renderMap()}
+function renderNew(){if(!root||root.dataset.v303Layout!=='1')return;renderKpis();renderPipeline();renderMap();renderNowDo()}
 function openTab(tab,hash){try{if(window.KK_APP_SHELL&&typeof KK_APP_SHELL.openTab==='function')KK_APP_SHELL.openTab(tab);else if(window.KK_APP_SHELL&&typeof KK_APP_SHELL.setActiveTab==='function')KK_APP_SHELL.setActiveTab(tab)}catch(e){}if(hash)location.hash=hash}
 function bindNew(){q('#kkv30MapMetric').addEventListener('change',renderMap);qa('[data-v30-town]').forEach(function(g){function choose(){selectedTown=g.dataset.v30Town;renderMap()}g.addEventListener('click',choose);g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();choose()}})});q('#kkv30AreaOpen').addEventListener('click',function(){try{if(window.KK_MKK_MAP)KK_MKK_MAP.selectTown(selectedTown)}catch(e){}openTab('marktmonitor','#mkk-market-map')});q('#kkv30AreaCrm').addEventListener('click',function(){openTab('crm','#crm-pro-os');setTimeout(function(){var D=data(),n=(D[selectedTown]&&D[selectedTown].name)||NAMES[selectedTown];['#kkcrmproContactAreaFilter','#kkcrmproContactSearch','#kkcrmproFilterArea','#crmFilterArea','#kkcrmproSearch'].some(function(s){var el=document.querySelector(s);if(el){el.value=n;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true}return false})},180)});window.addEventListener('kk:storage-changed',function(){setTimeout(renderNew,40)});window.addEventListener('storage',function(){setTimeout(renderNew,40)});window.addEventListener('kk:storage-imported',function(){setTimeout(renderNew,100)});document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='heute')setTimeout(renderNew,50)});bindDrillThrough()}
 /* V31 Phase C: KPI-Karten werden klickbar — "ein Klick, direkt arbeiten" statt
