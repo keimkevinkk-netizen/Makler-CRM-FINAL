@@ -3023,7 +3023,7 @@ function bindDrillThrough(){
     ['kkhSummaryAppointments',function(){openTaskTool('calendar');setTimeout(function(){if(window.KK12OS&&typeof window.KK12OS.showTodayEvents==='function')window.KK12OS.showTodayEvents()},280)}],
     ['kkv30KpiLeads',function(){openTab('crm','#crm-pro-os');setTimeout(function(){if(window.KK_CRM_PRO&&typeof window.KK_CRM_PRO.showOpenLeads==='function')window.KK_CRM_PRO.showOpenLeads()},180)}],
     ['kkhSummaryTasks',function(){openTaskTool('tasks');setTimeout(function(){if(window.KK12OS&&typeof window.KK12OS.highlightTasksToday==='function')window.KK12OS.highlightTasksToday()},280)}],
-    ['kkhSummaryFollowups',function(){openTab('followups','#followup');setTimeout(function(){var btn=document.querySelector('.kk-fu-tab[data-tab="today"]');if(btn)btn.click()},220)}]
+    ['kkhSummaryFollowups',function(){openTab('followups','#followup');setTimeout(function(){var t=window.KK_UTIL.todayISO();var raw=window.KK_STORE.readJSON('kk_followups',[]);var hasOverdue=Array.isArray(raw)&&raw.some(function(f){return String(f.status||'offen')==='offen'&&f.dueDate&&f.dueDate<t});var btn=document.querySelector('.kk-fu-tab[data-tab="'+(hasOverdue?'overdue':'today')+'"]');if(btn)btn.click()},220)}]
   ];
   links.forEach(function(pair){
     var el=document.getElementById(pair[0]);if(!el)return;
@@ -5438,7 +5438,9 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
     newFollowup:function(area){newFollowupForm(String(area||''));},
     showTab:function(name){showTab(String(name||'cockpit'));},
     render:function(){renderAll();},
-    showOpenLeads:function(){quickLeadFilter=true;showTab('cockpit');renderAll();setTimeout(function(){var t=$('#kkcrmproContactRows');if(t)t.closest('.kkcp-table-wrap').scrollIntoView({behavior:'smooth',block:'start'})},120);}
+    showOpenLeads:function(){quickLeadFilter=true;showTab('cockpit');renderAll();setTimeout(function(){var t=$('#kkcrmproContactRows');if(t)t.closest('.kkcp-table-wrap').scrollIntoView({behavior:'smooth',block:'start'})},120);},
+    openContactByName:function(name){var c=arr(KEYS.contacts).find(function(x){return norm(x.name)===norm(name)}); if(!c){toast('Kein passender CRM-Kontakt gefunden'); return false} showTab('cockpit'); renderAll(); openContactDetail(c.id); return true;},
+    findContactIdByName:function(name){var c=arr(KEYS.contacts).find(function(x){return norm(x.name)===norm(name)}); return c?c.id:''}
   });
   window.KK_BOOT.register('crm-pro',init,{priority:22});
 })();
@@ -5700,6 +5702,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
     #followup .kk-fu-item.is-skipped{opacity:.72;background:#fafafa;border-left-color:var(--muted);}
     #followup .kk-fu-item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
     #followup .kk-fu-item h4{font-size:17px;line-height:1.2;margin:0 0 7px;}
+    #followup .kk-fu-role{font-weight:700;color:var(--muted);font-size:12px;}
     #followup .kk-fu-meta{display:flex;flex-wrap:wrap;gap:6px;}
     #followup .kk-fu-pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:900;background:var(--box);color:var(--primary);border:1px solid var(--line);}
     #followup .kk-fu-pill-red{background:rgba(192,57,43,.1);color:var(--accent);border-color:rgba(192,57,43,.24);}
@@ -5764,8 +5767,9 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <article class="kk-fu-card">
 <div class="kk-fu-card-head"><h3>Follow-ups</h3><span class="kk-fu-muted" id="kkFuResultCount">0 Wiedervorlagen</span></div>
 <div class="kk-fu-tabs">
-<button class="kk-fu-tab is-active" data-tab="today" type="button">Heute fällig</button>
-<button class="kk-fu-tab" data-tab="week" type="button">Diese Woche</button>
+<button class="kk-fu-tab" data-tab="overdue" type="button">Überfällig</button>
+<button class="kk-fu-tab is-active" data-tab="today" type="button">Heute</button>
+<button class="kk-fu-tab" data-tab="week7" type="button">Nächste 7 Tage</button>
 <button class="kk-fu-tab" data-tab="open" type="button">Alle offen</button>
 <button class="kk-fu-tab" data-tab="done" type="button">Erledigt</button>
 </div>
@@ -5853,11 +5857,53 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
     if(!item.name||!item.dueDate||!item.goal){showToast('Bitte Name, Datum und Ziel eintragen');return;}
     var items=loadFollowups();items.unshift(item);saveFollowups(items);clearForm();render();showToast('Wiedervorlage hinzugefügt');
   }
-  function setStatus(id,status){
+  /* V31 Phase 9 (PRD Teil 2 §11 "Follow-up-Regel"): "Erledigt" darf nicht nur
+     den Datensatz aus der Liste entfernen, sondern muss als Aktivitaet
+     nachvollziehbar bleiben. Vorher wurde beim Erledigen weder ein Ergebnis
+     erfasst noch ein Aktivitaetseintrag angelegt — die Kontakt-Detailansicht
+     (Phase 8) zeigte fuer erledigte Follow-ups also keinerlei Spur. */
+  function logActivity(item,result){
+    var acts=loadJSON('kk_crm_activities',[]); if(!Array.isArray(acts))acts=[];
+    acts.unshift({id:window.KK_UTIL.uid('act'),date:todayISO(),contactId:item.crmId||'',contact:item.name||'',type:item.stageLabel&&item.stageLabel!=='manuell'?'Follow-up ('+item.stageLabel+')':'Follow-up',channel:item.channel||'',result:result||'erledigt',nextStep:'',followUpDate:'',note:item.goal||'',createdAt:new Date().toISOString()});
+    saveJSON('kk_crm_activities',acts);
+  }
+  function setStatus(id,status,result){
     var items=loadFollowups();var changed=null;
-    items=items.map(function(x){if(x.id!==id)return x;changed=Object.assign({},x,{status:normStatus(status),updatedAt:new Date().toISOString(),completedAt:status==='erledigt'?new Date().toISOString():x.completedAt||''});return changed;});
+    items=items.map(function(x){if(x.id!==id)return x;changed=Object.assign({},x,{status:normStatus(status),result:status==='erledigt'?(result||''):x.result||'',updatedAt:new Date().toISOString(),completedAt:status==='erledigt'?new Date().toISOString():x.completedAt||''});return changed;});
     saveFollowups(items);render();
-    if(changed&&status==='erledigt')suggestNext(changed);else showToast('Status aktualisiert');
+    if(changed&&status==='erledigt'){logActivity(changed,result);suggestNext(changed);}
+    else showToast('Status aktualisiert');
+  }
+  function completeWithResult(id){
+    var items=loadFollowups();var item=items.find(function(x){return x.id===id;}); if(!item)return;
+    var result=prompt('Ergebnis dieses Follow-ups? (wird als Aktivitaet beim Kontakt gespeichert)','');
+    if(result===null)return;
+    setStatus(id,'erledigt',result.trim()||'erledigt, ohne Notiz');
+  }
+  function rescheduleFollowup(id){
+    var items=loadFollowups();var item=items.find(function(x){return x.id===id;}); if(!item)return;
+    var suggestion=addDaysISO(item.dueDate&&item.dueDate>todayISO()?item.dueDate:todayISO(),3);
+    var input=prompt('Neues Faelligkeitsdatum (JJJJ-MM-TT)?',suggestion);
+    if(!input)return;
+    var d=parseISO(input.trim());
+    if(!d){showToast('Ungueltiges Datum — Format JJJJ-MM-TT');return;}
+    items=items.map(function(x){return x.id===id?Object.assign({},x,{dueDate:toISO(d),updatedAt:new Date().toISOString()}):x;});
+    saveFollowups(items);render();showToast('Wiedervorlage verschoben auf '+formatDate(toISO(d)));
+  }
+  function openRelatedContact(name){
+    if(window.KK_CRM_PRO&&typeof window.KK_CRM_PRO.openContactByName==='function'){
+      window.KK_APP_SHELL.openTab('crm','#crm-pro-os');
+      setTimeout(function(){window.KK_CRM_PRO.openContactByName(name);},180);
+    }
+  }
+  function lookupRole(name){
+    var contacts=loadContacts();var hit=contacts.find(function(c){return String(c.name||'').trim().toLowerCase()===String(name||'').trim().toLowerCase();});
+    return hit?(hit.category||hit.role||''):'';
+  }
+  function lookupLastActivity(name){
+    var acts=loadJSON('kk_crm_activities',[]); if(!Array.isArray(acts))return null;
+    var hits=acts.filter(function(a){return String(a.contact||'').trim().toLowerCase()===String(name||'').trim().toLowerCase();}).sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
+    return hits[0]||null;
   }
   function deleteFollowup(id){
     var items=loadFollowups();var item=items.find(function(x){return x.id===id;});
@@ -5882,16 +5928,34 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
     els.suggestionActions.innerHTML='<button type="button" class="kk-fu-btn kk-fu-btn-green" data-create-suggestion="1">Vorschlag übernehmen</button><button type="button" class="kk-fu-btn kk-fu-btn-light" data-suggestion-close="1">Schließen</button>';
     els.suggestion.classList.add('is-visible');showToast('Erledigt — Vorschlag vorbereitet');
   }
-  function getWeekBounds(){var d=new Date();var day=d.getDay()||7;var mon=new Date(d);mon.setDate(d.getDate()-day+1);var sun=new Date(mon);sun.setDate(mon.getDate()+6);return{start:toISO(mon),end:toISO(sun)};}
   function relClass(x){if(x.status==='erledigt')return'is-done';if(x.status==='übersprungen')return'is-skipped';if(x.dueDate<todayISO())return'is-overdue';if(x.dueDate===todayISO())return'is-today';return'';}
-  function relLabel(x){if(x.status==='erledigt')return{text:'erledigt',cls:'kk-fu-pill-green'};if(x.status==='übersprungen')return{text:'übersprungen',cls:''};if(x.dueDate<todayISO())return{text:'überfällig',cls:'kk-fu-pill-red'};if(x.dueDate===todayISO())return{text:'heute',cls:'kk-fu-pill-orange'};return{text:'zukünftig',cls:'kk-fu-pill-green'};}
+  function relDays(x){var d=parseISO(x.dueDate);if(!d)return null;var t=parseISO(todayISO());return Math.round((d-t)/86400000);}
+  function relLabel(x){
+    if(x.status==='erledigt')return{text:'erledigt',cls:'kk-fu-pill-green'};
+    if(x.status==='übersprungen')return{text:'übersprungen',cls:''};
+    var n=relDays(x);
+    if(n===null)return{text:'ohne Datum',cls:''};
+    if(n<0)return{text:'überfällig seit '+Math.abs(n)+' Tag'+(Math.abs(n)===1?'':'en'),cls:'kk-fu-pill-red'};
+    if(n===0)return{text:'heute fällig',cls:'kk-fu-pill-orange'};
+    if(n===1)return{text:'morgen fällig',cls:'kk-fu-pill-green'};
+    return{text:'in '+n+' Tagen',cls:'kk-fu-pill-green'};
+  }
+  /* V31 Phase 9 (Follow-up-Arbeitsbereich, PRD Teil 2 §11): fuenf eigenstaendige
+     Ansichten statt bisher vier — "Heute" zeigte bisher faelschlich auch
+     Ueberfaellige mit an (dueDate<=today), wodurch "Ueberfaellig" und "Heute"
+     nicht unterscheidbar waren. "Diese Woche" nutzte ausserdem die
+     Kalenderwoche (Montag-Sonntag) statt der vom PRD geforderten rollierenden
+     naechsten 7 Tage ab heute. */
   function getFiltered(){
-    var items=loadFollowups();var today=todayISO();var week=getWeekBounds();
+    var items=loadFollowups();var today=todayISO();var in7=addDaysISO(today,7);
     items=items.map(function(x){x.status=normStatus(x.status);return x;});
-    if(activeTab==='today')items=items.filter(function(x){return x.status==='offen'&&x.dueDate<=today;});
-    if(activeTab==='week')items=items.filter(function(x){return x.status==='offen'&&x.dueDate>=week.start&&x.dueDate<=week.end;});
+    if(activeTab==='overdue')items=items.filter(function(x){return x.status==='offen'&&x.dueDate<today;});
+    if(activeTab==='today')items=items.filter(function(x){return x.status==='offen'&&x.dueDate===today;});
+    if(activeTab==='week7')items=items.filter(function(x){return x.status==='offen'&&x.dueDate>today&&x.dueDate<=in7;});
     if(activeTab==='open')items=items.filter(function(x){return x.status==='offen';});
     if(activeTab==='done')items=items.filter(function(x){return x.status==='erledigt'||x.status==='übersprungen';});
+    if(activeTab==='done')return items.sort(function(a,b){return String(b.completedAt||b.updatedAt||'').localeCompare(String(a.completedAt||a.updatedAt||''));});
+    if(activeTab==='overdue'||activeTab==='week7')return items.sort(function(a,b){return String(a.dueDate).localeCompare(String(b.dueDate))||String(a.name).localeCompare(String(b.name),'de');});
     return items.sort(function(a,b){if(a.status!==b.status){if(a.status==='offen')return-1;if(b.status==='offen')return 1;}if(a.dueDate!==b.dueDate)return String(a.dueDate).localeCompare(String(b.dueDate));return String(a.name).localeCompare(String(b.name));});
   }
   function renderStats(){
@@ -5909,12 +5973,16 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
       var rel=relLabel(x);
       var ph=x.phone?'<a href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a>':'—';
       var em=x.email?'<a href="mailto:'+esc(x.email)+'">'+esc(x.email)+'</a>':'—';
+      var role=lookupRole(x.name);
+      var lastAct=lookupLastActivity(x.name);
+      var context=lastAct?(esc(lastAct.type||'Aktivität')+' · '+formatDate(lastAct.date)+(lastAct.result?' — '+esc(lastAct.result):'')):'Keine Aktivität hinterlegt';
       var actions=x.status==='offen'
-        ?'<button type="button" class="kk-fu-btn kk-fu-btn-green" data-action="done" data-id="'+esc(x.id)+'">Erledigt</button><button type="button" class="kk-fu-btn kk-fu-btn-orange" data-action="skip" data-id="'+esc(x.id)+'">Überspringen</button>'
+        ?'<button type="button" class="kk-fu-btn kk-fu-btn-green" data-action="done" data-id="'+esc(x.id)+'">Erledigt</button><button type="button" class="kk-fu-btn kk-fu-btn-light" data-action="reschedule" data-id="'+esc(x.id)+'">Verschieben</button><button type="button" class="kk-fu-btn kk-fu-btn-orange" data-action="skip" data-id="'+esc(x.id)+'">Überspringen</button>'
         :'<button type="button" class="kk-fu-btn kk-fu-btn-light" data-action="open" data-id="'+esc(x.id)+'">Wieder öffnen</button>';
+      actions+='<button type="button" class="kk-fu-btn kk-fu-btn-light" data-action="contact" data-name="'+esc(x.name)+'">Kontakt öffnen</button>';
       actions+='<button type="button" class="kk-fu-btn kk-fu-btn-danger" data-action="delete" data-id="'+esc(x.id)+'">Löschen</button>';
       return'<article class="kk-fu-item '+relClass(x)+'">'
-        +'<div class="kk-fu-item-top"><div><h4>'+esc(x.name||'Ohne Namen')+'</h4>'
+        +'<div class="kk-fu-item-top"><div><h4>'+esc(x.name||'Ohne Namen')+(role?' <small class="kk-fu-role">('+esc(role)+')</small>':'')+'</h4>'
         +'<div class="kk-fu-meta"><span class="kk-fu-pill '+rel.cls+'">'+esc(rel.text)+'</span>'
         +'<span class="kk-fu-pill">'+esc(x.stageLabel||'manuell')+'</span>'
         +'<span class="kk-fu-pill">'+esc(x.channel||'—')+'</span>'
@@ -5927,6 +5995,8 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
         +'<div class="kk-fu-info"><b>Gebiet</b><span>'+esc(x.area||'—')+'</span></div>'
         +'<div class="kk-fu-info"><b>Status</b><span>'+esc(normStatus(x.status))+'</span></div>'
         +'<div class="kk-fu-info kk-fu-info-wide"><b>Gesprächsziel</b><span>'+esc(x.goal||'—')+'</span></div>'
+        +'<div class="kk-fu-info kk-fu-info-wide"><b>Letzte Aktivität</b><span>'+context+'</span></div>'
+        +(x.status==='erledigt'&&x.result?'<div class="kk-fu-info kk-fu-info-wide"><b>Ergebnis</b><span>'+esc(x.result)+'</span></div>':'')
         +'</div><div class="kk-fu-actions">'+actions+'</div></article>';
     }).join('');
   }
@@ -5938,7 +6008,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
       els.syncBtn.addEventListener('click',function(){syncOwnersFromCRM(false);});
       els.exportBtn.addEventListener('click',exportJSON);
       els.tabs.forEach(function(tab){tab.addEventListener('click',function(){els.tabs.forEach(function(t){t.classList.remove('is-active');});tab.classList.add('is-active');activeTab=tab.getAttribute('data-tab')||'today';render();});});
-      els.list.addEventListener('click',function(e){var btn=e.target.closest('button[data-action]');if(!btn)return;var id=btn.getAttribute('data-id');var action=btn.getAttribute('data-action');if(action==='done')setStatus(id,'erledigt');if(action==='skip')setStatus(id,'übersprungen');if(action==='open')setStatus(id,'offen');if(action==='delete')deleteFollowup(id);});
+      els.list.addEventListener('click',function(e){var btn=e.target.closest('button[data-action]');if(!btn)return;var id=btn.getAttribute('data-id');var action=btn.getAttribute('data-action');if(action==='done')completeWithResult(id);if(action==='skip')setStatus(id,'übersprungen');if(action==='open')setStatus(id,'offen');if(action==='delete')deleteFollowup(id);if(action==='reschedule')rescheduleFollowup(id);if(action==='contact')openRelatedContact(btn.getAttribute('data-name'));});
       els.suggestion.addEventListener('click',function(e){if(e.target.closest('[data-create-suggestion]'))createPendingSuggestion();if(e.target.closest('[data-suggestion-close]'))closeSuggestion();});
       function createPendingSuggestion(){if(!pendingSuggestion)return;var items=loadFollowups();items.unshift(pendingSuggestion);saveFollowups(items);pendingSuggestion=null;els.suggestion.classList.remove('is-visible');render();showToast('Vorschlag übernommen');}
       function closeSuggestion(){pendingSuggestion=null;els.suggestion.classList.remove('is-visible');}
