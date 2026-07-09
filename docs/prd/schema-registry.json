@@ -1,0 +1,720 @@
+{
+  "registryVersion": 1,
+  "generatedAt": "2026-07-09",
+  "source": "docs/prd/00-ist-zustand-inventar.md + statische Analyse der index.html (Phase 2)",
+  "backupDetectionRegex": "^(kk_|kkbib|kk11|kk12|kkref|kk[A-Z]|kkcrm|kkops|kkdom|kkprod|__kk)",
+  "idPrefixes": {
+    "contact_": "Kontakt (uid-Praefix, entspricht sinngemaess PRD ct_)",
+    "fu_": "Follow-up (entspricht PRD fu_)",
+    "act_": "Aktivitaet (entspricht PRD ac_)",
+    "obj_": "Objekt (entspricht PRD ob_)",
+    "ref_": "Tippgeber/Referral (entspricht PRD rp_)",
+    "crm_": "CRM-generischer Datensatz",
+    "kk12_": "V12-Modul-generierte IDs (Pipeline/Notary/Tasks)",
+    "kkcrm_": "CRM-Pro-Modul-generierte IDs",
+    "kkfu_": "Follow-up-Modul-generierte IDs",
+    "kkref20_": "Tippgeber-Empfehlungsmaschine-V20-IDs"
+  },
+  "keys": [
+    {
+      "key": "kk_ai_prompt_assistant_v1",
+      "owner": "ki-prompts",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "versionierter Legacy-/Modul-Key, Zweck aus Namen ableitbar, formale Zuordnung in spaeterer Phase"
+    },
+    {
+      "key": "kk_angebot_monitor_entries_v1",
+      "owner": "marktmonitor",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "versionierter Legacy-/Modul-Key, Zweck aus Namen ableitbar, formale Zuordnung in spaeterer Phase"
+    },
+    {
+      "key": "kk_app_active_tab",
+      "owner": "heute",
+      "entity": "string",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Navigation Preference"
+    },
+    {
+      "key": "kk_area_",
+      "owner": "marktmonitor",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Praefix fuer dynamisch generierte Gebiets-Keys (kk_area_<id>) - kein Einzelkey"
+    },
+    {
+      "key": "kk_call_queue",
+      "owner": "heute",
+      "entity": "CallItem[]",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "kanonisch, operative Queue"
+    },
+    {
+      "key": "kk_calls_log_v27",
+      "owner": "heute",
+      "entity": "CallItem[] (Legacy)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Call/Activity Legacy-Adapter"
+    },
+    {
+      "key": "kk_check_",
+      "owner": "backup",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Settings-/Qualitaetspruef-Praefix, von KK_STORE.settings-Klassifizierung erkannt (Zeile ~1707)"
+    },
+    {
+      "key": "kk_conversion_metrics",
+      "owner": "kpis",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_crm_activities",
+      "owner": "crm",
+      "entity": "Activity[]",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "kanonisch"
+    },
+    {
+      "key": "kk_crm_contacts",
+      "owner": "crm",
+      "entity": "Contact[]",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "kanonisch"
+    },
+    {
+      "key": "kk_crm_duplicates",
+      "owner": "crm",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_crm_followups",
+      "owner": "crm",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_crm_objects",
+      "owner": "crm",
+      "entity": "RealEstateObject[]",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "kanonisch"
+    },
+    {
+      "key": "kk_crm_owner_pipeline",
+      "owner": "crm",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_crm_referrals",
+      "owner": "tippgeber",
+      "entity": "Referral[]",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "ReferralRepository"
+    },
+    {
+      "key": "kk_crm_source_roi",
+      "owner": "crm",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_crmpro_leads",
+      "owner": "crm",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_daily_call_queue_",
+      "owner": "heute",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Praefix fuer dynamisch generierte Keys (z. B. kk_area_<id> je Gebiet) - kein Einzelkey"
+    },
+    {
+      "key": "kk_data_cache_",
+      "owner": "marktmonitor",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "excluded (Cache/Diagnose, aus Rohdaten neu erzeugbar)",
+      "retention": "user-controlled",
+      "notes": "KK_DATA_CORE Cache-Praefix (V31 Phase A Provider-Fundament)"
+    },
+    {
+      "key": "kk_data_lastrun_",
+      "owner": "marktmonitor",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "excluded (Cache/Diagnose, aus Rohdaten neu erzeugbar)",
+      "retention": "user-controlled",
+      "notes": "KK_DATA_CORE LastUpdateManager-Praefix (V31 Phase A Provider-Fundament)"
+    },
+    {
+      "key": "kk_data_quality_queue",
+      "owner": "backup",
+      "entity": "DataQualityIssue[]",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "DataQualityRepository"
+    },
+    {
+      "key": "kk_eigentuemer",
+      "owner": "crm",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Eigentuemer-Datensaetze (Legacy-Bezeichnung, vor CRM-Pro-Konsolidierung)"
+    },
+    {
+      "key": "kk_final_qa_v28_4_last_smoke",
+      "owner": "backup",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "excluded (Cache/Diagnose, aus Rohdaten neu erzeugbar)",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_followups",
+      "owner": "followups",
+      "entity": "FollowUp[]",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "kanonisch"
+    },
+    {
+      "key": "kk_followups_deleted_auto_keys",
+      "owner": "followups",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_fu_items",
+      "owner": "followups",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_heute_focus_v29",
+      "owner": "heute",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "versionierter Legacy-/Modul-Key, Zweck aus Namen ableitbar, formale Zuordnung in spaeterer Phase"
+    },
+    {
+      "key": "kk_heute_notes",
+      "owner": "heute",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_heute_ziele_v27",
+      "owner": "heute",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "versionierter Legacy-/Modul-Key, Zweck aus Namen ableitbar, formale Zuordnung in spaeterer Phase"
+    },
+    {
+      "key": "kk_kpi_targets",
+      "owner": "kpis",
+      "entity": "KpiTarget",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Settings/KPI Target"
+    },
+    {
+      "key": "kk_last_technical_smoke_test",
+      "owner": "backup",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "excluded (Cache/Diagnose, aus Rohdaten neu erzeugbar)",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_makler_os_v1",
+      "owner": "backup",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "CENTRAL_STORE_KEY-Vorlaeufer, gelesen von der zentralen Backup-Konsolidierung (Zeile ~1966/1998/2127)"
+    },
+    {
+      "key": "kk_makler_os_v2",
+      "owner": "backup",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Aktueller CENTRAL_STORE_KEY (Zeile ~1669), zentrale Backup-Konsolidierung"
+    },
+    {
+      "key": "kk_market_analysis_v1",
+      "owner": "marktmonitor",
+      "entity": "MarketNote[]",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "manuelle Analysen"
+    },
+    {
+      "key": "kk_market_monitor_entries_v1",
+      "owner": "marktmonitor",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "versionierter Legacy-/Modul-Key, Zweck aus Namen ableitbar, formale Zuordnung in spaeterer Phase"
+    },
+    {
+      "key": "kk_master_index",
+      "owner": "backup",
+      "entity": "Index",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Schema-Registry/Index, zu pruefen"
+    },
+    {
+      "key": "kk_master_schema",
+      "owner": "backup",
+      "entity": "Schema",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Schema-Registry/Index, zu pruefen"
+    },
+    {
+      "key": "kk_mkk_area_plans_v29_10",
+      "owner": "marktmonitor",
+      "entity": "AreaPlan[]",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "AreaPlanRepository"
+    },
+    {
+      "key": "kk_mkk_map_state_v29_7",
+      "owner": "marktmonitor",
+      "entity": "MapState",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Nutzerpraeferenz, kein Fachdatenstore"
+    },
+    {
+      "key": "kk_mkk_market_reference_v29_4",
+      "owner": "marktmonitor",
+      "entity": "MarketReference[]",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "manuell/Referenz"
+    },
+    {
+      "key": "kk_monthly_decisions_",
+      "owner": "kpis",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Praefix fuer dynamisch generierte Keys (z. B. kk_area_<id> je Gebiet) - kein Einzelkey"
+    },
+    {
+      "key": "kk_monthly_reviews",
+      "owner": "kpis",
+      "entity": "Review[]",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "ReviewRepository"
+    },
+    {
+      "key": "kk_offer_monitor_entries_v1",
+      "owner": "marktmonitor",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "versionierter Legacy-/Modul-Key, Zweck aus Namen ableitbar, formale Zuordnung in spaeterer Phase"
+    },
+    {
+      "key": "kk_owner_opportunities",
+      "owner": "pipeline",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Eigentuemer-bezogene Chancen (Legacy-Bezeichnung)"
+    },
+    {
+      "key": "kk_pipeline_deals",
+      "owner": "pipeline",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_pipeline_module",
+      "owner": "pipeline",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_pipeline_production_stages_v1",
+      "owner": "pipeline",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "versionierter Legacy-/Modul-Key, Zweck aus Namen ableitbar, formale Zuordnung in spaeterer Phase"
+    },
+    {
+      "key": "kk_production_day_",
+      "owner": "heute",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Praefix fuer dynamisch generierte Keys (z. B. kk_area_<id> je Gebiet) - kein Einzelkey"
+    },
+    {
+      "key": "kk_public_signals_",
+      "owner": "marktmonitor",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Praefix fuer dynamisch generierte Keys (z. B. kk_area_<id> je Gebiet) - kein Einzelkey"
+    },
+    {
+      "key": "kk_referral_activity_os",
+      "owner": "tippgeber",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_referral_network_v1",
+      "owner": "tippgeber",
+      "entity": "ReferralPartner[]",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "ReferralPartnerRepository"
+    },
+    {
+      "key": "kk_referral_partners_os",
+      "owner": "tippgeber",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_referral_pipeline",
+      "owner": "tippgeber",
+      "entity": "Deal[] type=referral",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "kanonisch"
+    },
+    {
+      "key": "kk_referral_settings_os",
+      "owner": "tippgeber",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_referrals",
+      "owner": "tippgeber",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_region_market_cockpit_v10",
+      "owner": "marktmonitor",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "versionierter Legacy-/Modul-Key, Zweck aus Namen ableitbar, formale Zuordnung in spaeterer Phase"
+    },
+    {
+      "key": "kk_saas_daymode",
+      "owner": "heute",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_sales_pipeline",
+      "owner": "pipeline",
+      "entity": "Deal[] type=sales",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Hauptquelle, zu pruefen"
+    },
+    {
+      "key": "kk_sales_pipeline_v15",
+      "owner": "pipeline",
+      "entity": "Deal[] (Legacy)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Pipeline-Legacy-Adapter"
+    },
+    {
+      "key": "kk_scripts_module",
+      "owner": "skripte",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Iframe-Modul-ID des Skripte-Archivs (Zeile ~8343/8348)"
+    },
+    {
+      "key": "kk_time_budget",
+      "owner": "kpis",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_tippgeber",
+      "owner": "tippgeber",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_today_done_fallback_v1",
+      "owner": "heute",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "versionierter Legacy-/Modul-Key, Zweck aus Namen ableitbar, formale Zuordnung in spaeterer Phase"
+    },
+    {
+      "key": "kk_today_manual_actions_",
+      "owner": "heute",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Praefix fuer dynamisch generierte Keys (z. B. kk_area_<id> je Gebiet) - kein Einzelkey"
+    },
+    {
+      "key": "kk_today_reminders_",
+      "owner": "heute",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Praefix fuer dynamisch generierte Keys (z. B. kk_area_<id> je Gebiet) - kein Einzelkey"
+    },
+    {
+      "key": "kk_today_reminders_v1",
+      "owner": "heute",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "versionierter Legacy-/Modul-Key, Zweck aus Namen ableitbar, formale Zuordnung in spaeterer Phase"
+    },
+    {
+      "key": "kk_today_writeback_log_",
+      "owner": "heute",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Praefix fuer dynamisch generierte Keys (z. B. kk_area_<id> je Gebiet) - kein Einzelkey"
+    },
+    {
+      "key": "kk_valuation_pipeline",
+      "owner": "pipeline",
+      "entity": "Deal[] type=valuation",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "kanonisch"
+    },
+    {
+      "key": "kk_weekly_production_",
+      "owner": "kpis",
+      "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Praefix fuer dynamisch generierte Keys (z. B. kk_area_<id> je Gebiet) - kein Einzelkey"
+    },
+    {
+      "key": "kk_weekly_reviews",
+      "owner": "kpis",
+      "entity": "Review[]",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "ReviewRepository"
+    }
+  ]
+}
