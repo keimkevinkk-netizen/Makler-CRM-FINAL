@@ -2472,6 +2472,29 @@ REVOPS-UPDATE 2026-06-11 · Kevin Keim Makler-Betriebssystem
 #kk-heute-v27 .kkh-call-hero-next a{font-size:11px;font-weight:800;color:var(--accent);text-decoration:none;margin-top:4px;display:inline-block}
 #kk-heute-v27 .kkh-call-hero-focus{font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
 #kk-heute-v27 .kkh-call-hero-focus b{color:var(--primary)}
+#kk-heute-v27 .kkh-call-hero-next-name{font-size:14px!important;font-weight:850!important}
+#kk-heute-v27 .kkh-call-hero-next-goal{font-size:12.5px!important;font-weight:650!important;color:var(--muted)!important;margin-top:2px!important}
+#kk-heute-v27 .kkh-call-hero-next-activity{font-size:11px!important;font-weight:600!important;color:var(--muted)!important;margin-top:2px!important}
+#kk-heute-v27 .kkh-call-hero-next-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+#kk-heute-v27 .kkh-call-hero-next-actions .kkh-btn{min-height:36px;font-size:11.5px;padding:0 12px}
+#kk-heute-v27 .kkh-call-hero-nophone{font-size:11px!important;color:var(--muted)!important;font-weight:650!important}
+#kk-heute-v27 .kkh-call-result-dialog{border:0;border-radius:18px;padding:0;width:min(460px,92vw);max-height:88vh;box-shadow:var(--shadow-overlay,0 20px 48px rgba(16,20,24,.16))}
+#kk-heute-v27 .kkh-call-result-dialog::backdrop{background:rgba(20,28,40,.45)}
+#kk-heute-v27 .kkh-call-result-head{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--line)}
+#kk-heute-v27 .kkh-call-result-head h3{margin:0 0 3px;font-size:16px}
+#kk-heute-v27 .kkh-call-result-head span{font-size:12px;color:var(--muted);font-weight:650}
+#kk-heute-v27 .kkh-call-result-close{border:0;background:transparent;font-size:15px;cursor:pointer;color:var(--muted);min-width:32px;min-height:32px;border-radius:8px}
+#kk-heute-v27 .kkh-call-result-close:hover{background:var(--box)}
+#kk-heute-v27 .kkh-call-result-outcomes{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 18px}
+#kk-heute-v27 .kkh-call-result-outcomes .kkh-btn{min-height:44px;font-size:12.5px;padding:0 8px;white-space:normal;text-align:center;border-radius:10px}
+#kk-heute-v27 #kkhCallResultForm{padding:0 18px 18px}
+#kk-heute-v27 .kkh-call-result-fields{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+#kk-heute-v27 .kkh-call-result-fields label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+#kk-heute-v27 .kkh-call-result-fields input{min-height:38px;border:1px solid var(--line);border-radius:9px;padding:0 9px;font:inherit;font-size:13px}
+#kk-heute-v27 .kkh-call-result-note-label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:12px}
+#kk-heute-v27 .kkh-call-result-note-label textarea{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:9px;padding:8px;resize:vertical;text-transform:none}
+#kk-heute-v27 .kkh-call-result-actions{display:flex;gap:8px;justify-content:flex-end}
+@media(max-width:620px){#kk-heute-v27 .kkh-call-result-outcomes{grid-template-columns:1fr}}
 @media (max-width:900px){#kk-heute-v27 .kkh-call-hero-grid{grid-template-columns:1fr}#kk-heute-v27 .kkh-call-hero-left{flex-direction:row;justify-content:space-between}}
 #kk-heute-v27 .kkh-call-gauge{position:relative;width:190px;height:190px;margin:4px auto 6px}
 #kk-heute-v27 .kkh-call-gauge-svg{width:100%;height:100%;transform:rotate(-90deg)}
@@ -2811,7 +2834,7 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
       </div>
 
       <div class="kkh-stack">
-        <article class="kkh-card" id="kkhCallHeroCard">
+        <article class="kkh-card" id="kkhCallHeroCard" tabindex="-1">
           <div class="kkh-card-head"><div><h2>Anrufe · dein wichtigster Hebel heute</h2><p>Manueller Zähler plus Anruftracker und fällige Telefon-Follow-ups an einem Ort.</p></div><span class="kkh-badge" id="kkhCallPace">0 %</span></div>
           <div class="kkh-calls kkh-call-hero-grid">
             <div class="kkh-call-hero-left">
@@ -2838,6 +2861,26 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
             <details class="kkh-settings"><summary>Ziele einstellen</summary><div class="kkh-settings-grid"><label>Tagesziel<input type="number" min="0" id="kkhTargetDaily"></label><label>Wochenziel<input type="number" min="0" id="kkhTargetWeekly"></label><label>Monatsziel<input type="number" min="0" id="kkhTargetMonthly"></label><label>Jahresziel<input type="number" min="0" id="kkhTargetYearly"></label></div><button class="kkh-btn" id="kkhCallSettingsSave" type="button" style="margin-top:9px">Ziele speichern</button></details>
           </div>
         </article>
+        <dialog class="kkh-call-result-dialog" id="kkhCallResultDialog" aria-labelledby="kkhCallResultName">
+          <div class="kkh-call-result-head">
+            <div><h3 id="kkhCallResultName"></h3><span id="kkhCallResultMeta"></span></div>
+            <button type="button" class="kkh-call-result-close" id="kkhCallResultClose" aria-label="Schließen">✕</button>
+          </div>
+          <div class="kkh-call-result-outcomes" id="kkhCallResultOutcomes" role="group" aria-label="Anrufergebnis">
+            <button type="button" class="kkh-btn light" data-outcome="erreicht">Erreicht – Gespräch geführt</button>
+            <button type="button" class="kkh-btn light" data-outcome="nicht_erreicht">Nicht erreicht</button>
+            <button type="button" class="kkh-btn light" data-outcome="nachricht">Nachricht hinterlassen</button>
+            <button type="button" class="kkh-btn light" data-outcome="termin">Termin vereinbart</button>
+            <button type="button" class="kkh-btn light" data-outcome="kein_interesse">Kein Interesse</button>
+            <button type="button" class="kkh-btn light" data-outcome="falsche_nummer">Falsche Nummer</button>
+          </div>
+          <form id="kkhCallResultForm" hidden>
+            <div class="kkh-call-result-fields" id="kkhCallResultFollowupFields" hidden><label>Nächster Kontakt am<input type="date" id="kkhCallResultFollowupDate"></label></div>
+            <div class="kkh-call-result-fields" id="kkhCallResultApptFields" hidden><label>Termindatum<input type="date" id="kkhCallResultApptDate"></label><label>Uhrzeit<input type="time" id="kkhCallResultApptTime"></label></div>
+            <label class="kkh-call-result-note-label">Notiz (optional)<textarea id="kkhCallResultNote" rows="2"></textarea></label>
+            <div class="kkh-call-result-actions"><button type="submit" class="kkh-btn" id="kkhCallResultSave">Ergebnis speichern</button><button type="button" class="kkh-btn light" id="kkhCallResultCancel">Abbrechen</button></div>
+          </form>
+        </dialog>
         <article class="kkh-card">
           <div class="kkh-card-head"><div><h2>Termine heute</h2><p>Gespeicherte Kalendertermine des heutigen Tages.</p></div><span class="kkh-badge" id="kkhAppointmentBadge">0 Termine</span></div>
           <div class="kkh-card-body"><div class="kkh-list" id="kkhAppointmentList"></div><div style="margin-top:11px"><a class="kkh-btn light kkh-open-tool" href="#kk12-next-os" data-open-tool="kk12-next-os">Kalender öffnen</a></div></div>
@@ -2946,7 +2989,80 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
      keine neuen Storage-Keys, nur zusätzliche Auswertung vorhandener Daten. */
   function phoneFollowups(){return dueFollowups().filter(function(x){return String(x.channel||x.kanal||'Telefon').toLowerCase()==='telefon'})}
   function overduePhoneCount(){var t=today();return phoneFollowups().filter(function(x){var d=parseKey(x.dueDate||x.date||x.wiedervorlage||x.faelligkeit);return d&&d<t}).length}
+  function oldestOverduePhoneDate(){var t=today();var ds=phoneFollowups().map(function(x){return parseKey(x.dueDate||x.date||x.wiedervorlage||x.faelligkeit)}).filter(function(d){return d&&d<t}).sort();return ds[0]||''}
   function nextPhoneContact(){return phoneFollowups()[0]||null}
+  /* V31 Phase 14.4 (PRD Teil 2 §7 Telefonie-Command-Center + §7.1
+     Ergebnisaufnahme): "Nächster Kontakt" zeigte bisher nur Name+Ziel, kein
+     Telefonanruf-Link, keine Rolle/Ort/letzte Aktivität, und vor allem
+     keine Ergebniserfassung — nur der manuelle +/- Zaehler weiter oben.
+     PRD-Regel: "Ein Anruf gilt nicht als abgeschlossen, wenn lediglich ein
+     Zaehler erhoeht wurde." Diese Lookups lesen dieselben kk_crm_contacts/
+     kk_crm_activities-Keys wie das CRM-Pro-Modul, unabhaengig davon
+     (gleiches, bereits etabliertes Muster wie renderKpis()). */
+  function lookupContactByName(name){var list=arr('kk_crm_contacts');return list.find(function(c){return String(c.name||'').trim().toLowerCase()===String(name||'').trim().toLowerCase()})||null}
+  function lookupLastActivityByName(name){var list=arr('kk_crm_activities');var hits=list.filter(function(a){return String(a.contact||'').trim().toLowerCase()===String(name||'').trim().toLowerCase()}).sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))});return hits[0]||null}
+  function logCallActivity(name,type,channel,result,note){var acts=arr('kk_crm_activities');acts.unshift({id:uid('act'),date:today(),contactId:'',contact:name||'',type:type||'Anruf',channel:channel||'Telefon',result:result||'',nextStep:'',followUpDate:'',note:note||'',createdAt:new Date().toISOString()});write('kk_crm_activities',acts)}
+  function markFollowupDone(id,result){var list=followups();var found=null;var next=list.map(function(x){if(x.id!==id)return x;found=x;return Object.assign({},x,{status:'erledigt',result:result||'erledigt',completedAt:new Date().toISOString()})});write(FOLLOWUPS,next);return found}
+  function createFollowFromCall(name,area,channel,dueDate,goal){var list=followups();list.unshift({id:uid('kkfu'),name:name,area:area||'',channel:channel||'Telefon',date:dueDate,dueDate:dueDate,status:'offen',goal:goal||'',type:'Nachfassgespräch',source:'manual',createdAt:new Date().toISOString()});write(FOLLOWUPS,list)}
+  function createEventFromCall(name,date,time,title){var list=events();list.push({id:uid('kk12'),title:title||('Termin: '+name),date:date,time:time||'',type:'Termin',contact:name||'',goal:'',createdAt:new Date().toISOString()});write(EVENTS,list)}
+  var callResultCurrent=null;
+  var CALL_OUTCOMES=[
+    ['erreicht','Erreicht – Gespräch geführt'],
+    ['nicht_erreicht','Nicht erreicht'],
+    ['nachricht','Nachricht hinterlassen'],
+    ['termin','Termin vereinbart'],
+    ['kein_interesse','Kein Interesse'],
+    ['falsche_nummer','Falsche Nummer']
+  ];
+  function openCallResult(fu){
+    callResultCurrent=fu;
+    var dlg=document.getElementById('kkhCallResultDialog');if(!dlg)return;
+    document.getElementById('kkhCallResultName').textContent=fu.name||fu.contactName||fu.contact||'Kontakt';
+    document.getElementById('kkhCallResultMeta').textContent=[fu.area,fu.goal].filter(Boolean).join(' · ')||'Kein Ziel hinterlegt';
+    var form=document.getElementById('kkhCallResultForm');form.hidden=true;form.reset();
+    document.getElementById('kkhCallResultFollowupFields').hidden=true;
+    document.getElementById('kkhCallResultApptFields').hidden=true;
+    document.querySelectorAll('#kkhCallResultOutcomes [data-outcome]').forEach(function(b){b.classList.add('light')});
+    form.dataset.outcome='';
+    if(typeof dlg.showModal==='function')dlg.showModal();
+  }
+  function selectCallOutcome(outcome){
+    var form=document.getElementById('kkhCallResultForm');
+    form.hidden=false;form.dataset.outcome=outcome;
+    document.querySelectorAll('#kkhCallResultOutcomes [data-outcome]').forEach(function(b){b.classList.toggle('light',b.dataset.outcome!==outcome)});
+    var fuFields=document.getElementById('kkhCallResultFollowupFields'),apptFields=document.getElementById('kkhCallResultApptFields');
+    fuFields.hidden=true;apptFields.hidden=true;
+    if(outcome==='nicht_erreicht'||outcome==='nachricht'){
+      fuFields.hidden=false;
+      var p=today().split('-');var next=new Date(Number(p[0]),Number(p[1])-1,Number(p[2]));next.setDate(next.getDate()+(outcome==='nicht_erreicht'?1:3));
+      document.getElementById('kkhCallResultFollowupDate').value=next.getFullYear()+'-'+pad(next.getMonth()+1)+'-'+pad(next.getDate());
+    }else if(outcome==='termin'){
+      apptFields.hidden=false;
+      document.getElementById('kkhCallResultApptDate').value=today();
+    }
+  }
+  function submitCallResult(e){
+    e.preventDefault();
+    var fu=callResultCurrent;if(!fu)return;
+    var outcome=document.getElementById('kkhCallResultForm').dataset.outcome;if(!outcome){toast('Bitte ein Ergebnis auswählen');return}
+    var note=document.getElementById('kkhCallResultNote').value.trim();
+    var name=fu.name||fu.contactName||fu.contact||'Kontakt';
+    var outcomeLabel=(CALL_OUTCOMES.find(function(o){return o[0]===outcome})||[,''])[1];
+    markFollowupDone(fu.id,outcomeLabel+(note?' — '+note:''));
+    logCallActivity(name,'Anruf','Telefon',outcomeLabel,note);
+    if(outcome==='nicht_erreicht'||outcome==='nachricht'){
+      var fuDate=document.getElementById('kkhCallResultFollowupDate').value||today();
+      createFollowFromCall(name,fu.area,'Telefon',fuDate,outcome==='nicht_erreicht'?'Erneut versuchen':'Nachfassen nach Nachricht');
+    }else if(outcome==='termin'){
+      var apDate=document.getElementById('kkhCallResultApptDate').value||today(),apTime=document.getElementById('kkhCallResultApptTime').value||'';
+      createEventFromCall(name,apDate,apTime,'Termin: '+name);
+    }
+    var dlg=document.getElementById('kkhCallResultDialog');if(dlg)dlg.close();
+    callResultCurrent=null;
+    bumpCalls(1);
+    toast('Anrufergebnis gespeichert');
+    renderAll();
+  }
   function openCallQueueCount(){return arr('kk_call_queue').filter(function(x){return String(x.status||'offen').toLowerCase()==='offen'}).length}
   function todayCallRate(){
     var t=today(),today_items=arr('kk_call_queue').filter(function(x){return String(x.updatedAt||'').slice(0,10)===t});
@@ -2957,22 +3073,40 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
   function renderCallHero(){
     var metricsBox=q('#kkhCallHeroMetrics');
     if(metricsBox){
-      var openQ=openCallQueueCount(),overdue=overduePhoneCount(),rate=todayCallRate();
+      var openQ=openCallQueueCount(),overdue=overduePhoneCount(),rate=todayCallRate(),oldest=oldestOverduePhoneDate();
+      var overdueLabel='Überfällig: '+overdue+(oldest?' — ältester Fälligkeitspunkt '+oldest:'')+' — Anrufliste öffnen';
       var cells=[
-        ['Offen',openQ,openQ>0],
-        ['Überfällig',overdue,overdue>0],
-        ['Quote',rate==null?'–':rate+'%',false]
+        ['Offen',openQ,openQ>0,'Offen: '+openQ+' — Anrufliste öffnen'],
+        ['Überfällig',overdue,overdue>0,overdueLabel],
+        ['Quote',rate==null?'–':rate+'%',false,'Quote — Anrufliste öffnen']
       ];
-      metricsBox.innerHTML=cells.map(function(c){return '<button type="button" class="kkh-call-hero-stat" data-open-tool="anruftracker" aria-label="'+esc(c[0])+': '+esc(c[1])+' — Anrufliste öffnen"><b class="'+(c[2]?'is-alert':'')+'">'+esc(c[1])+'</b><span>'+esc(c[0])+'</span></button>'}).join('');
+      metricsBox.innerHTML=cells.map(function(c){return '<button type="button" class="kkh-call-hero-stat" data-open-tool="anruftracker" aria-label="'+esc(c[3])+'"><b class="'+(c[2]?'is-alert':'')+'">'+esc(c[1])+'</b><span>'+esc(c[0])+'</span></button>'}).join('');
     }
     var nextBox=q('#kkhCallHeroNext');
     if(nextBox){
       var next=nextPhoneContact();
       if(next){
         var name=next.name||next.contactName||next.contact||'Kontakt';
-        nextBox.innerHTML='<b>Nächster sinnvoller Kontakt</b><span>'+esc(name)+(next.goal?' – '+esc(next.goal):'')+'</span><a href="#followups" data-open-tool="followup">Follow-up öffnen →</a>';
+        var contact=lookupContactByName(name);
+        var role=contact&&(contact.category||contact.role)||'';
+        var area=next.area||(contact&&contact.area)||'';
+        var phone=next.phone||(contact&&contact.phone)||'';
+        var lastAct=lookupLastActivityByName(name);
+        var metaParts=[role,area].filter(Boolean);
+        var lastActText=lastAct?('Letzter Kontakt: '+esc(lastAct.date||'')+' · '+esc(lastAct.type||'Aktivität')):'Letzter Kontakt: keine Aktivität hinterlegt';
+        nextBox.innerHTML='<b>Nächster Anruf</b>'
+          +'<span class="kkh-call-hero-next-name">'+esc(name)+(metaParts.length?' · '+esc(metaParts.join(' · ')):'')+'</span>'
+          +(next.goal?'<span class="kkh-call-hero-next-goal">'+esc(next.goal)+'</span>':'')
+          +'<span class="kkh-call-hero-next-activity">'+lastActText+'</span>'
+          +'<div class="kkh-call-hero-next-actions">'
+          +(phone?'<a class="kkh-btn kkh-call-hero-callbtn" href="tel:'+esc(phone)+'">Jetzt anrufen</a>':'<span class="kkh-call-hero-nophone">Keine Telefonnummer hinterlegt</span>')
+          +'<button type="button" class="kkh-btn light" id="kkhCallHeroOpenContact" data-contact-name="'+esc(name)+'">Kontakt öffnen</button>'
+          +'<button type="button" class="kkh-btn light" id="kkhCallHeroResultBtn">Ergebnis erfassen</button>'
+          +'</div>';
+        var resultBtn=document.getElementById('kkhCallHeroResultBtn');if(resultBtn)resultBtn.onclick=function(){openCallResult(next)};
+        var openBtn=document.getElementById('kkhCallHeroOpenContact');if(openBtn)openBtn.onclick=function(){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('crm','#crm-pro-os');setTimeout(function(){if(window.KK_CRM_PRO&&typeof window.KK_CRM_PRO.openContactByName==='function')window.KK_CRM_PRO.openContactByName(name)},180)};
       }else{
-        nextBox.innerHTML='<b>Nächster sinnvoller Kontakt</b><span>Keine fälligen Telefon-Follow-ups.</span>';
+        nextBox.innerHTML='<b>Nächster Anruf</b><span>Keine fälligen Telefon-Follow-ups.</span>';
       }
     }
     var focusBox=q('#kkhCallHeroFocus');
@@ -2992,7 +3126,16 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
   function initQuick(){qa('[data-quick]').forEach(function(b){b.onclick=function(){var type=b.dataset.quick,target=q('[data-quick-form="'+type+'"]'),open=target&&!target.classList.contains('is-open');qa('[data-quick-form]').forEach(function(f){f.classList.remove('is-open')});qa('[data-quick]').forEach(function(x){x.classList.remove('is-active')});if(open){target.classList.add('is-open');b.classList.add('is-active');var first=target.querySelector('input,textarea');if(first)first.focus()}}});qa('[data-quick-form]').forEach(function(form){var dateFields=form.querySelectorAll('input[type="date"]');dateFields.forEach(function(el){if(!el.value)el.value=today()});form.onsubmit=function(e){e.preventDefault();var type=form.dataset.quickForm,get=function(n){var el=form.querySelector('[data-f="'+n+'"]');return el?String(el.value||'').trim():''};if(type==='aufgabe'){var a=tasks(),title=get('title');if(!title)return;a.push({id:uid('kk12'),title:title,type:'Aufgabe',status:get('status')||'Heute',due:get('due')||today(),createdAt:new Date().toISOString()});write(TASKS,a)}else if(type==='followup'){var f=followups(),name=get('name');if(!name)return;var d=get('due')||today();f.push({id:uid('kkfu'),name:name,channel:get('channel')||'Telefon',date:d,dueDate:d,status:'offen',goal:'',type:'Nachfassgespräch',source:'manual',createdAt:new Date().toISOString()});write(FOLLOWUPS,f)}else if(type==='termin'){var ev=events(),title2=get('title');if(!title2)return;ev.push({id:uid('kk12'),title:title2,date:get('date')||today(),time:get('time'),type:'Termin',contact:'',goal:'',createdAt:new Date().toISOString()});write(EVENTS,ev)}else if(type==='notiz'){var n=notes(),text=get('text');if(!text)return;n.push({id:uid('note'),text:text,createdAt:new Date().toISOString()});write(NOTES,n)}form.reset();form.classList.remove('is-open');qa('[data-quick]').forEach(function(x){x.classList.remove('is-active')});form.querySelectorAll('input[type="date"]').forEach(function(el){el.value=today()});toast('Eintrag gespeichert');renderAll()}})}
   function openTool(id){var details=document.getElementById('kk-heute-operative-module');if(details)details.open=true;setTimeout(function(){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},80)}
   function renderAll(){renderHeader();renderFocus();renderTasks();renderFollowups();renderAppointments();renderNotes();renderSummary();renderCalls();renderCallHero();renderDaily();renderWeekly()}
-  function init(){q('#kkhFocusSave').onclick=saveFocus;q('#kkhCallPlus').onclick=function(){bumpCalls(1)};q('#kkhCallMinus').onclick=function(){bumpCalls(-1)};q('#kkhCallReset').onclick=function(){if(confirm('Den heutigen Anrufzähler wirklich auf 0 zurücksetzen?')){var c=getCalls();c.byDate[today()]=0;write(CALLS,c);renderAll();toast('Anrufzähler zurückgesetzt')}};q('#kkhCallSettingsSave').onclick=function(){var c=getCalls();['daily','weekly','monthly','yearly'].forEach(function(k){var el=q('#kkhTarget'+k.charAt(0).toUpperCase()+k.slice(1)),v=Number(el.value);if(isFinite(v)&&v>=0)c.targets[k]=v});write(CALLS,c);renderAll();toast('Anrufziele gespeichert')};q('#kkhDailyGoals').onclick=function(e){var b=e.target.closest('[data-step]');if(b)bumpGoal(b.dataset.metric,Number(b.dataset.step))};root.addEventListener('click',function(e){var b=e.target.closest('[data-done-id]');if(b){markDone(b.dataset.doneType,b.dataset.doneId);return}var tool=e.target.closest('[data-open-tool]');if(tool){e.preventDefault();openTool(tool.dataset.openTool)}});initQuick();renderAll();window.addEventListener('storage',renderAll);window.addEventListener('kk:storage-changed',renderAll)}
+  function initCallResultDialog(){
+    var dlg=document.getElementById('kkhCallResultDialog');if(!dlg)return;
+    document.getElementById('kkhCallResultOutcomes').addEventListener('click',function(e){var b=e.target.closest('[data-outcome]');if(b)selectCallOutcome(b.dataset.outcome)});
+    document.getElementById('kkhCallResultForm').addEventListener('submit',submitCallResult);
+    document.getElementById('kkhCallResultClose').addEventListener('click',function(){dlg.close()});
+    document.getElementById('kkhCallResultCancel').addEventListener('click',function(){dlg.close()});
+    dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
+    dlg.addEventListener('close',function(){callResultCurrent=null;setTimeout(function(){var again=document.getElementById('kkhCallHeroResultBtn');var fallback=document.getElementById('kkhCallHeroCard');var target=again||fallback;if(target&&typeof target.focus==='function')target.focus()},0)});
+  }
+  function init(){q('#kkhFocusSave').onclick=saveFocus;q('#kkhCallPlus').onclick=function(){bumpCalls(1)};q('#kkhCallMinus').onclick=function(){bumpCalls(-1)};q('#kkhCallReset').onclick=function(){if(confirm('Den heutigen Anrufzähler wirklich auf 0 zurücksetzen?')){var c=getCalls();c.byDate[today()]=0;write(CALLS,c);renderAll();toast('Anrufzähler zurückgesetzt')}};q('#kkhCallSettingsSave').onclick=function(){var c=getCalls();['daily','weekly','monthly','yearly'].forEach(function(k){var el=q('#kkhTarget'+k.charAt(0).toUpperCase()+k.slice(1)),v=Number(el.value);if(isFinite(v)&&v>=0)c.targets[k]=v});write(CALLS,c);renderAll();toast('Anrufziele gespeichert')};q('#kkhDailyGoals').onclick=function(e){var b=e.target.closest('[data-step]');if(b)bumpGoal(b.dataset.metric,Number(b.dataset.step))};root.addEventListener('click',function(e){var b=e.target.closest('[data-done-id]');if(b){markDone(b.dataset.doneType,b.dataset.doneId);return}var tool=e.target.closest('[data-open-tool]');if(tool){e.preventDefault();openTool(tool.dataset.openTool)}});initQuick();initCallResultDialog();renderAll();window.addEventListener('storage',renderAll);window.addEventListener('kk:storage-changed',renderAll)}
   window.KK_BOOT.register('heute-dashboard-v29',init,{priority:20});
 })();
 </script>
@@ -3029,7 +3172,13 @@ function layout(){
     komplett. Reine Umsortierung + eine neue Karte, keine bestehende
     Karte/Instanz/Handler entfernt. */
  calls.classList.add('kkv30-call-hero');normalizeFooter(calls);
- var callRow=document.createElement('div');callRow.className='kkv30-call-hero-row';callRow.appendChild(calls);dash.appendChild(callRow);
+ /* V31 Phase 14.4: das Ergebnis-Dialog-<dialog> (kkhCallResultDialog) liegt
+    im Quellmarkup als Geschwister der Anruf-Karte innerhalb von .kkh-stack
+    (.kkh-workgrid). .kkh-workgrid wird unten komplett entfernt — ohne
+    Rettung wuerde der Dialog mitgeloescht, obwohl nur die Anruf-<article>
+    selbst umgezogen wird. */
+ var callResultDlg=document.getElementById('kkhCallResultDialog');
+ var callRow=document.createElement('div');callRow.className='kkv30-call-hero-row';callRow.appendChild(calls);if(callResultDlg)callRow.appendChild(callResultDlg);dash.appendChild(callRow);
  var nowRow=document.createElement('div');nowRow.className='kkv30-now-row-wrap';nowRow.innerHTML=nowSectionHtml();dash.appendChild(nowRow);
  summary.classList.add('kkv30-kpis');
  var active=makeCard('kkv30KpiObjects','Aktive Objekte / Chancen','violet'),leads=makeCard('kkv30KpiLeads','Offene Leads','orange');
