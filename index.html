@@ -3778,6 +3778,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
         </select></label>
         <label class="kkmkk-compare-jump-wrap" for="kkmkk-compare-town"><span>Vergleich</span><select id="kkmkk-compare-town" aria-label="Zweites Gebiet für den Vergleich auswählen"></select></label>
         <button class="kkmkk-head-btn" id="kkmkk-focus-btn" type="button" aria-pressed="false" title="Karte in einer großen Fokusansicht öffnen">Fokusansicht</button>
+        <button class="kkmkk-head-btn" id="kkmkk-presentation-btn" type="button" aria-pressed="false" title="Kontakt-, Follow-up- und Pipeline-Aktionen für Kundengespräche ausblenden">Präsentationsmodus</button>
         <button class="kkmkk-head-btn" id="kkmkk-refresh-btn" type="button" title="Kartendaten neu einlesen">Aktualisieren</button>
         <button class="kkmkk-head-btn" id="kkmkk-export-btn" type="button" title="Gebietsübersicht als CSV exportieren">CSV exportieren</button>
       </div>
@@ -12649,7 +12650,15 @@ function openFollowups(){try{if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab(
    verlinkt, Pipeline fehlte. Wiederverwendet dieselbe openCrmWorkspace()-Bruecke
    und denselben Gebietsfilter-Match wie openCrm(). */
 function openPipelineForTown(){var d=DATA[selected];openCrmWorkspace('pipeline',function(){var area=document.getElementById('kkcrmproPipeAreaFilter');if(!area)return;var found=Array.prototype.some.call(area.options||[],function(o){return canon(o.value||o.textContent)===canon(d.name)});if(found){area.value=d.name;area.dispatchEvent(new Event('change',{bubbles:true}))}})}
-function chooseTown(key){if(!DATA[key])return;selected=key;if(compared===selected)compared=TOWN_KEYS.filter(function(k){return k!==selected})[0];saveViewState();renderMap();renderDetail();renderRanking();var card=root.querySelector('#kkmkk-detail-card');card.classList.add('is-open');var toggle=root.querySelector('#kkmkk-mobile-toggle');toggle.textContent='Details einklappen';toggle.setAttribute('aria-expanded','true')}
+function chooseTown(key){if(!DATA[key])return;selected=key;if(compared===selected)compared=TOWN_KEYS.filter(function(k){return k!==selected})[0];saveViewState();renderMap();renderDetail();renderRanking();var card=root.querySelector('#kkmkk-detail-card');card.classList.add('is-open');var toggle=root.querySelector('#kkmkk-mobile-toggle');toggle.textContent='Details einklappen';toggle.setAttribute('aria-expanded','true');
+  /* V31 Phase 15.5b (echter Folgefund): chooseTown() wird auch von der
+     primaeren Leaflet-Karte (kk-realmap-v31, markerClick -> KK_MKK_MAP.selectTown)
+     ausgeloest, aber das Gebietsdetailpanel liegt seit Phase 11 innerhalb des
+     eingeklappten <details id="kkmkk-legacy-wrap">. Ohne dieses Auto-Oeffnen
+     aktualisiert ein Klick auf einen Kartenmarker zwar die Daten, das Panel mit
+     den operativen Aktionen (Kontakte/Follow-ups/Pipeline) blieb aber unsichtbar. */
+  var legacyWrap=document.getElementById('kkmkk-legacy-wrap');if(legacyWrap&&!legacyWrap.open)legacyWrap.open=true;
+}
 function rankingValue(d){var v=d&&d[metric];return isNumber(v)?v:0}
 function renderSummary(){var contacts=0,followups=0,objects=0;TOWN_KEYS.forEach(function(k){contacts+=DATA[k].crmContacts.length;followups+=DATA[k].openFollowups;objects+=DATA[k].activeObjects});var set=function(id,val){var el=root.querySelector('#'+id);if(el)el.textContent=String(val)};set('kkmkk-summary-contacts',contacts);set('kkmkk-summary-followups',followups);set('kkmkk-summary-objects',objects);set('kkmkk-summary-unassigned',QUALITY.unassigned.length);var q=root.querySelector('.kkmkk-summary-card.quality');if(q)q.classList.toggle('is-clean',QUALITY.unassigned.length===0);var u=root.querySelector('#kkmkk-summary-updated');if(u)u.textContent=QUALITY.updatedAt?QUALITY.updatedAt.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'–'}
 function compareTownOptions(){return TOWN_KEYS.filter(function(k){return k!==selected}).map(function(k){return '<option value="'+esc(k)+'">'+esc(TOWNS[k].name)+'</option>'}).join('')}
