@@ -1,0 +1,1 @@
+Absichtlich noch leer. `docs/prd/05-claude-code-development-manual.md` §7/§47 sieht Skills (`/keim-ui-change`, `/keim-bugfix`, `/keim-storage-migration`, `/keim-market-provider`, `/keim-release`, `/keim-audit`) als D4-Schritt vor — erst einführen, wenn ein realer Workflow sie mehrfach gebraucht hat, nicht vorab pauschal generieren (Teil 5 §47 Schlussregel).

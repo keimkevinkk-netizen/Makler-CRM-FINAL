@@ -1,0 +1,1 @@
+Absichtlich noch leer. `docs/prd/05-claude-code-development-manual.md` §9/§47 sieht Read-only-Review-Agenten (codebase-investigator, ux-reviewer, security-reviewer, storage-reviewer, market-data-reviewer, release-verifier) als D5-Schritt vor — nach den ersten inhaltlichen Phasen einführen, nicht vorab.
