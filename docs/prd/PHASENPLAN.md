@@ -60,7 +60,7 @@ Systematische Gap-Analyse (Read-only-Agent, alle 5 PRD-Teile gegen `index.html` 
 1. ✅ **15.1 — Import-Vorschau/Zusammenfassung** (Commit `1f81f26`, Teil 3 §29): natives Vorschau-`<dialog>` statt `window.confirm()`.
 2. ✅ **15.2 — CRM-Filter-Chips + benannte Standardansichten** (Commit `8a65ccc`, Teil 2 §9.1/§19): sechs benannte, einzeln klickbare Ansichten.
 3. ⏳ **15.3 — Tippgeber-Modul-Konsolidierung** auf das neue Card-/Detail-Muster (Teil 2 §14) — noch offen.
-4. ✅ **15.4a — Marktmonitor-Präsentationsmodus** (Commit `5adf9b2`, Teil 4 §42). ⏳ **15.4b — barrierefreie Tabellenalternative zur Karte** (Teil 4 §46) — noch offen.
+4. ✅ **15.4a — Marktmonitor-Präsentationsmodus** (Commit `5adf9b2`, Teil 4 §42). ✅ **15.4b — barrierefreie Tabellenalternative zur Karte** (Commit `31e8fce`, Teil 4 §46).
 5. ✅ **15.5 — Pipeline-Deep-Link** aus dem Gebietsdetailpanel der Karte (Commit `7ea325d`). ✅ **15.5b — echter Folgefund**: Gebietsdetailpanel öffnete sich nicht mehr bei Kartenmarker-Klick auf der primären Karte, seit Phase 11 es in ein `<details>`-Element eingeklappt hatte (Commit `d953237`).
 6. ⏳ **15.6 — Monitor-/TV-Modus** (Teil 2 §31.2, niedrige Priorität) — noch offen.
 

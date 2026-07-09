@@ -18,6 +18,9 @@ Während der Verifikation von Phase 15.5 aufgefallen: Seit Phase 11 liegt das ko
 ## Phase 15.4a — Marktmonitor-Präsentationsmodus für Kundengespräche (Commit `5adf9b2`, PRD Teil 4 §42)
 Neuer Umschalter blendet Kontakt-/Follow-up-/Pipeline-Aktionen und die Schnellanlage-Zeile aus, schließt eine bereits offene Kontakt-/Follow-up-Liste sofort, zeigt einen sichtbaren Statusbanner, Zustand persistiert über `kk_market_presentation_mode`. Marktwerte, Metriken und aggregierte (namenlose) Gebietssignale bleiben sichtbar.
 
+## Phase 15.4b — Barrierefreie Tabellenalternative zur Karte (Commit `31e8fce`, PRD Teil 4 §46)
+Die primäre Leaflet-Karte (`kk-realmap-v31`) bot bisher keine non-visuelle Entsprechung — nur ein `role="img"` auf dem Kartencontainer. Neue Tabelle (`#kkgeo-table`) direkt unterhalb der Karte, immer im DOM vorhanden (kein Toggle, kein `<details>`, kein `[hidden]`), listet alle 12 Gebiete mit Name, aktuell gewählter Kennzahl (synchron zu den bestehenden Kennzahl-Filtern) und Status. Ortsname ist ein Button, der dieselbe `selectTown()`-Brücke wie ein Kartenmarker-Klick nutzt — inklusive des Phase-15.5b-Fixes. Rendert unabhängig vom Ladezustand der Kartenkacheln (funktioniert auch offline).
+
 ## Finale Testabdeckung
 Jede Teilphase: dedizierter Playwright-Test mit realen synthetischen Daten plus volle Regressionssuite (10 Haupttabs × Desktop 1440/Mobile 390, XSS-Regression, Console/Pageerror, horizontaler Overflow) — durchgehend grün.
 
@@ -25,9 +28,8 @@ Jede Teilphase: dedizierter Playwright-Test mit realen synthetischen Daten plus 
 Keine bestehenden `kk_*`-Keys umbenannt, gelöscht oder umgedeutet. Neuer Key `kk_market_presentation_mode` (folgt der Backup-Konvention). Kein neuer `uid()`-Präfix nötig (keine neuen Entitäten).
 
 ## Verbleibend aus der Phase-15-Gap-Analyse
-- **15.3 — Tippgeber-Modul-Konsolidierung** (Teil 2 §14): größere strukturelle Überarbeitung, noch offen.
-- **15.4b — Barrierefreie Tabellenalternative zur Karte** (Teil 4 §46): noch offen.
-- **15.6 — Monitor-/TV-Modus** (Teil 2 §31.2): niedrige Priorität, noch offen.
+- **15.3 — Tippgeber-Modul-Konsolidierung** (Teil 2 §14): größere strukturelle Überarbeitung vergleichbar im Umfang mit den eigenständigen Phasen 8–11, noch offen.
+- **15.6 — Monitor-/TV-Modus** (Teil 2 §31.2): niedrige Priorität (Ein-Nutzer-Produkt), noch offen.
 
 ## Ergebnis Status
-PASS für die fünf umgesetzten Punkte. Arbeit an den verbleibenden drei Punkten wird fortgesetzt.
+PASS für sechs von acht identifizierten Punkten (15.1, 15.2, 15.4a, 15.4b, 15.5, 15.5b). Zwei Punkte bewusst zurückgestellt: 15.3 als eigene, größere Teilphase (nicht im gleichen Umfang wie die übrigen, eher risikoreichen Punkte "nebenbei" umsetzbar), 15.6 als niedrig priorisierte Kür. Arbeit wird fortgesetzt.
