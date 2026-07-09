@@ -27,9 +27,15 @@ Jede Teilphase: dedizierter Playwright-Test mit realen synthetischen Daten plus 
 ## Daten und Migrationen
 Keine bestehenden `kk_*`-Keys umbenannt, gelöscht oder umgedeutet. Neuer Key `kk_market_presentation_mode` (folgt der Backup-Konvention). Kein neuer `uid()`-Präfix nötig (keine neuen Entitäten).
 
+## Phase 15.3 — Tippgeber-Modul-Konsolidierung (Commit `3d630a1`, PRD Teil 2 §14)
+Echter Befund (vorab per Read-only-Agent recherchiert): Der Tippgeber-Tab zeigte vier separate, gleichzeitig sichtbare Module übereinander — eine Ops-Pipeline-Zusammenfassung, die "Empfehlungsmaschine V20", ein ~2000 Zeilen langes statisches Branchen-Skript-Kapitel und ein bereits im eigenen Quellcode-Kommentar als "legacy" bezeichnetes altes Tippgeber-Betriebssystem, mit drei separaten Formularen und Listen. Direkter Verstoß gegen PRD §14 ("darf nicht wie ein zweites CRM wirken", Skripte "nicht dauerhaft dominant").
+
+Die "Empfehlungsmaschine V20" (bereits ohne Personen-Scoring, bereits ein Migrations-Layer über alle anderen Speicher) zur primären Ansicht ausgebaut: fünf PRD-benannte Standardansichten (Pflege fällig, Neue Partner, Aktive Empfehlungen, Letzte Kontakte, Netzwerk nach Ort/Branche) plus die bestehende "Vernachlässigte Kontakte" als Zusatzansicht; neuer Partner-Detaildialog (natives `<dialog>`, Phase-8-Muster) mit Partnerstatus/letztem/nächstem Kontakt/nächstem Pflegeschritt/Empfehlungshistorie/Notizen. Die drei redundanten Module in zwei `<details class="kk-tippgeber-legacy-wrap">` eingeklappt (Phase-D/11-Muster) — nichts entfernt, Legacy-Daten fließen weiterhin über die bestehende Migration ein.
+
+Echter Bug gefunden und behoben: "Heute kontaktiert" im Detaildialog löst einen Neu-Render der Liste aus, der das ursprüngliche Fokus-Rückgabe-Ziel aus dem DOM entfernt — Fallback-Kette ergänzt (analog Phase 14.4).
+
 ## Verbleibend aus der Phase-15-Gap-Analyse
-- **15.3 — Tippgeber-Modul-Konsolidierung** (Teil 2 §14): größere strukturelle Überarbeitung vergleichbar im Umfang mit den eigenständigen Phasen 8–11, noch offen.
 - **15.6 — Monitor-/TV-Modus** (Teil 2 §31.2): niedrige Priorität (Ein-Nutzer-Produkt), noch offen.
 
 ## Ergebnis Status
-PASS für sechs von acht identifizierten Punkten (15.1, 15.2, 15.4a, 15.4b, 15.5, 15.5b). Zwei Punkte bewusst zurückgestellt: 15.3 als eigene, größere Teilphase (nicht im gleichen Umfang wie die übrigen, eher risikoreichen Punkte "nebenbei" umsetzbar), 15.6 als niedrig priorisierte Kür. Arbeit wird fortgesetzt.
+PASS für sieben von acht identifizierten Punkten (15.1, 15.2, 15.3, 15.4a, 15.4b, 15.5, 15.5b). Ein Punkt verbleibt: 15.6, niedrig priorisiert. Arbeit wird fortgesetzt.
