@@ -34,8 +34,8 @@ Die "Empfehlungsmaschine V20" (bereits ohne Personen-Scoring, bereits ein Migrat
 
 Echter Bug gefunden und behoben: "Heute kontaktiert" im Detaildialog löst einen Neu-Render der Liste aus, der das ursprüngliche Fokus-Rückgabe-Ziel aus dem DOM entfernt — Fallback-Kette ergänzt (analog Phase 14.4).
 
-## Verbleibend aus der Phase-15-Gap-Analyse
-- **15.6 — Monitor-/TV-Modus** (Teil 2 §31.2): niedrige Priorität (Ein-Nutzer-Produkt), noch offen.
+## Phase 15.6 — Monitor-/TV-Modus (Commit `6e35053`, PRD Teil 2 §31.2)
+Der bestehende "Fokusmodus" (`kk11-focus-mode`) war bereits als reines Seiten-Ausblend-Feature identifiziert, kein echter Kiosk-Monitor. Neuer "Monitor-Modus"-Button im Heute-Dashboard öffnet ein natives, vollflächiges `<dialog>` mit fünf großformatigen Kacheln (Anrufe heute + Tagesziel, Follow-ups fällig, überfällige Anrufe, offene Aufgaben, Termine heute + nur Uhrzeit des nächsten Termins). Alle Werte reine Zählwerte aus bereits vorhandenen Aggregationsfunktionen — bewusst keine Namen/Telefonnummern/Objektadressen, auch nicht für den nächsten Termin. Aktualisiert alle 45 Sekunden per stillem Text-Update.
 
 ## Ergebnis Status
-PASS für sieben von acht identifizierten Punkten (15.1, 15.2, 15.3, 15.4a, 15.4b, 15.5, 15.5b). Ein Punkt verbleibt: 15.6, niedrig priorisiert. Arbeit wird fortgesetzt.
+PASS für alle acht in der Phase-15-Gap-Analyse identifizierten, nicht blockierten Punkte (15.1, 15.2, 15.3, 15.4a, 15.4b, 15.5, 15.5b, 15.6). Jede Teilphase einzeln getestet (dedizierter Playwright-Test mit realen synthetischen Daten) und gegen die volle Regressionssuite plus 6-Viewport-Matrix verifiziert. Die drei dokumentierten externen Blocker (Zugriffsschutz, amtliche Gemeindegeometrie, echter Marktdatenprovider) bleiben unverändert offen und erfordern eine Entscheidung bzw. einen Zugang außerhalb dieser Sitzung.

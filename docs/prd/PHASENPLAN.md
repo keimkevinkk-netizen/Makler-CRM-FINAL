@@ -62,7 +62,9 @@ Systematische Gap-Analyse (Read-only-Agent, alle 5 PRD-Teile gegen `index.html` 
 3. ✅ **15.3 — Tippgeber-Modul-Konsolidierung** auf das neue Card-/Detail-Muster (Commit `3d630a1`, Teil 2 §14): 5 PRD-Standardansichten, Detaildialog, drei redundante Legacy-Module eingeklappt.
 4. ✅ **15.4a — Marktmonitor-Präsentationsmodus** (Commit `5adf9b2`, Teil 4 §42). ✅ **15.4b — barrierefreie Tabellenalternative zur Karte** (Commit `31e8fce`, Teil 4 §46).
 5. ✅ **15.5 — Pipeline-Deep-Link** aus dem Gebietsdetailpanel der Karte (Commit `7ea325d`). ✅ **15.5b — echter Folgefund**: Gebietsdetailpanel öffnete sich nicht mehr bei Kartenmarker-Klick auf der primären Karte, seit Phase 11 es in ein `<details>`-Element eingeklappt hatte (Commit `d953237`).
-6. ⏳ **15.6 — Monitor-/TV-Modus** (Teil 2 §31.2, niedrige Priorität) — noch offen.
+6. ✅ **15.6 — Monitor-/TV-Modus** (Commit `6e35053`, Teil 2 §31.2, niedrige Priorität): natives Vollbild-`<dialog>`, 5 Kacheln, keine PII.
+
+**Phase 15 vollständig abgeschlossen** — alle acht identifizierten, nicht blockierten Punkte umgesetzt und getestet.
 
 ## Spätere Phasen mit externen Abhängigkeiten (nicht autonom auslösbar)
 - **M2 — Amtliche Gemeindegeometrie (BKG VG250):** benötigt echten Internetzugang zum Download + Lizenzprüfung; im aktuellen Sandbox-Dev-Environment nicht durchführbar (siehe frühere Session-Historie: kein allgemeiner Internetzugriff). Bleibt dokumentierte Lücke, Näherungskoordinaten bleiben als solche gekennzeichnet.
