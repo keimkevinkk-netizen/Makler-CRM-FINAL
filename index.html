@@ -3982,6 +3982,15 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 .kkgeo-legend .blue{background:#24425F}.kkgeo-legend .green{background:#3F7A52}.kkgeo-legend .yellow{background:#A98F2E}.kkgeo-legend .orange{background:#BE6A2E}.kkgeo-legend .red{background:#B23A2C}.kkgeo-legend .gray{background:#D7DADE}
 .kkgeo-source-note{max-width:520px;margin:0;font-size:11px;color:#8b93a0;line-height:1.5}
 @media (max-width:760px){.kkgeo-shell{padding:6px 14px 32px}.kkgeo-map{height:340px}.kkgeo-head{flex-direction:column}.kkgeo-actions{width:100%;justify-content:space-between}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.kkgeo-table-wrap{margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0}
+.kkgeo-table-title{margin:0 0 10px;font-size:13px;font-weight:850;color:#182C46}
+.kkgeo-table-scroll{overflow-x:auto}
+.kkgeo-table{width:100%;min-width:420px;border-collapse:collapse;font-size:12.5px}
+.kkgeo-table th{text-align:left;padding:7px 10px;color:#5b6472;font-size:10px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #dfe7f1}
+.kkgeo-table td{padding:7px 10px;border-bottom:1px solid #eef1f5;color:#182C46}
+.kkgeo-table-town-btn{border:0;background:none;padding:0;font:inherit;font-weight:800;color:#182C46;text-decoration:underline;cursor:pointer}
+.kkgeo-table-town-btn:hover,.kkgeo-table-town-btn:focus-visible{color:#0f5fd6}
 </style>
 
 <!-- V31 PHASE A: additive echte Geo-Karte auf Leaflet-Basis, hinter KK_MAP/MapAdapter.
@@ -4018,6 +4027,20 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
         <span><i class="blue"></i>sehr hoch</span><span><i class="green"></i>hoch</span><span><i class="yellow"></i>mittel</span><span><i class="orange"></i>beobachten</span><span><i class="red"></i>Handlungsbedarf</span><span><i class="gray"></i>keine Daten</span>
       </div>
       <p class="kkgeo-source-note">Ortskoordinaten: plausible Näherungswerte aus allgemeiner Ortskenntnis, keine amtlich vermessenen Daten. Gemeindegrenzen folgen, sobald eine geprüfte GeoJSON-Quelle vorliegt (Architektur ist vorbereitet, siehe Backup → Datenqualität). Kontaktdichte-Ansicht zeigt keine echten Adressen und keine Namen — nur eine unscharfe Streuung um den Ortskern zur Mengenveranschaulichung.</p>
+    </div>
+    <!-- V31 Phase 15.4b (PRD Teil 4 §46, Teil 2 §32): nicht-optionale, immer im DOM
+         vorhandene Tabellenalternative zur Karte - für Screenreader-Nutzung und alle,
+         die die visuelle Kartenansicht nicht auswerten können. Kein Toggle nötig, um
+         sie zu erreichen; sie bleibt zusätzlich zur Karte bestehen, nicht statt ihr. -->
+    <div class="kkgeo-table-wrap">
+      <h3 class="kkgeo-table-title">Alle Gebiete als Tabelle (Alternative zur Karte)</h3>
+      <div class="kkgeo-table-scroll">
+        <table class="kkgeo-table" id="kkgeo-table">
+          <caption class="sr-only">Barrierefreie Alternative zur Kartenansicht: alle Gebiete des Main-Kinzig-Kreises mit der aktuell gewählten Kennzahl und Status.</caption>
+          <thead><tr><th scope="col">Ort</th><th scope="col" id="kkgeo-table-metric-header">Kennzahl</th><th scope="col">Status</th></tr></thead>
+          <tbody id="kkgeo-table-rows"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </section>
@@ -13183,7 +13206,25 @@ function scheduleRender(){
   renderDebounce=setTimeout(function(){renderDebounce=null;renderNow()},250);
 }
 
+/* V31 Phase 15.4b (PRD Teil 4 §46): baut die immer sichtbare Tabellenalternative
+   zur Karte aus denselben Daten wie die Marker (window.KK_MKK_MAP), unabhängig
+   vom Ladezustand der Kartenkacheln - funktioniert auch offline. */
+function renderAccessibleTable(){
+  var api=mkkMap();if(!api)return;
+  var data=api.getData()||{},keys=api.getTownKeys?api.getTownKeys():Object.keys(TOWN_COORDS);
+  var metrics=(api.getMetrics&&api.getMetrics())||{},cfg=metrics[selectedMetric];
+  var header=document.getElementById('kkgeo-table-metric-header');
+  if(header)header.textContent=cfg?cfg.label:'Kennzahl';
+  var rowsHost=document.getElementById('kkgeo-table-rows');
+  if(!rowsHost)return;
+  var items=keys.map(function(k){return data[k]}).filter(Boolean).sort(function(a,b){return String(a.name||'').localeCompare(String(b.name||''),'de')});
+  rowsHost.innerHTML=items.map(function(d){
+    var val=cfg&&typeof cfg.format==='function'?cfg.format(d[selectedMetric],d):String(d[selectedMetric]==null?'—':d[selectedMetric]);
+    return '<tr><th scope="row"><button type="button" class="kkgeo-table-town-btn" data-kkgeo-table-town="'+esc(d.key)+'">'+esc(d.name)+'</button></th><td>'+esc(val)+'</td><td>'+esc(d.status||'—')+'</td></tr>';
+  }).join('')||'<tr><td colspan="3">Keine Gebietsdaten verfügbar.</td></tr>';
+}
 function renderNow(){
+  renderAccessibleTable();
   if(!adapter||!adapter.isReady())return;
   if(heatOn){
     var api=mkkMap(),data=(api&&api.getData())||{};
@@ -13239,6 +13280,11 @@ function init(){
 function bind(){
   updateStatusLine();
   renderMetricFilters();
+  var tableRows=document.getElementById('kkgeo-table-rows');
+  if(tableRows)tableRows.addEventListener('click',function(e){
+    var b=e.target.closest('[data-kkgeo-table-town]');if(!b)return;
+    var api=mkkMap();if(api&&api.selectTown)api.selectTown(b.getAttribute('data-kkgeo-table-town'));
+  });
   var btn=document.getElementById('kkgeo-refresh-btn');
   if(btn)btn.addEventListener('click',function(){
     if(window.KK_MARKET)window.KK_MARKET.MarketProvider.refreshAll().then(function(){updateStatusLine();renderNow()});
