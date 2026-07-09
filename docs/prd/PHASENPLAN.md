@@ -31,6 +31,19 @@ Zwei reale Befunde behoben: (1) Aktualisierungsdatum fehlte in der normalen Deta
 ## Phase 5 — Zugriffsschutz-Entscheidung für öffentliche Netlify-URL — 🛑 BLOCKIERT, wartet auf Kevin
 Teil 1 §16 verlangt eine bewusste Entscheidung, bevor produktive personenbezogene Daten öffentlich ungeschützt bleiben. **Das ist eine Entscheidung, die Kevin treffen muss** (Netlify-Passwortschutz ist z. B. ein kostenpflichtiges Pro-Feature, Netlify Identity ein Architekturschritt) — als Entscheidungsvorlage dokumentiert, nicht autonom umgesetzt. Siehe Abschlussbericht für die konkrete Fragestellung.
 
+## Korrektur: Fortsetzung der nicht blockierten Anforderungen (Phasen 6–12) ✅ ABGESCHLOSSEN
+Nach Rückmeldung, dass die Phasen 0–4 zwar sinnvolle Grundlagen, aber noch keine vollständige Umsetzung des Master-PRDs darstellen, wurden alle sichtbaren/funktionalen Produktanforderungen abgearbeitet, die nicht an einen der drei dokumentierten Blocker gebunden sind:
+
+- **Phase 6 — Design-System-Konsolidierung** (Commit `f66ce3e`): zwei tote `:root{}`-Token-Blöcke entfernt, eine einzige Quelle für Basis-/App-Shell-Tokens. App-Shell-Audit gegen PRD Teil 2 §4 bestand ohne Codeänderung.
+- **Phase 7 — Vollständiger Deep-Link-/Filter-Vertrag** (Commits `065650f`, `4699a27`): alle 5 Dashboard-KPIs führen jetzt in eine tatsächlich gefilterte Zielansicht statt nur grob in die richtige Richtung; Call-Hero-Kennzahlen anklickbar; echter Follow-ups-Filter-Bug gefunden und behoben.
+- **Phase 8 — CRM-Kontakt-Detailansicht** (Commit `02aed67`): natives `<dialog>` statt neuem Dialogsystem, Übersicht/Aktivitäten/Follow-ups/Notizen an einem Ort.
+- **Phase 9 — Follow-up-Modul-Überarbeitung** (Commit `fc9d4c0`): fünf statt vier eigenständige Ansichten (Überfällig war bisher fälschlich mit Heute vermischt), Rolle/Kontext/relative Fälligkeit ergänzt, "Kontakt öffnen"/"Verschieben" ergänzt, "Erledigt" erfasst jetzt Ergebnis + Aktivitätsspur (vorher stiller Statuswechsel ohne Nachvollziehbarkeit).
+- **Phase 10 — Pipeline als Sales Command Board** (Commit `d36c5b5`): Risiko-Badge war praktisch eingefroren (Formular überschrieb die Live-Berechnung fast immer) — jetzt automatisch live berechnet, manuelles Risiko als bewusste Ausnahme markiert, Phasenwechsel-Historie ergänzt.
+- **Phase 11 — Marktmonitor-Konsolidierung** (Commit `fd3554f`): zwei Kartenengines liefen gleichzeitig sichtbar (Regelverstoß gegen `.claude/rules/market.md`) — ältere SVG-Karte eingeklappt, echte Leaflet-Basiskarte ist jetzt primär sichtbar. Layer-Steuerung, Quellenstatus und Offline-Banner bereits vorhanden und verifiziert funktionsfähig.
+- **Phase 12 — Accessibility- und Performance-Pass** (Commit `3d2d14e`): Toast-Live-Regionen und Dialog-Fokus-Rückgabe ergänzt; dabei einen echten Navigations-Bug gefunden (Offene-Leads-Deep-Link und Kontakt-öffnen zeigten das falsche, kontaktlose Panel) und behoben.
+
+**Gate erfüllt:** Nach jeder Phase vollständige Regressionssuite (10 Tabs × Desktop 1440/Mobile 390, XSS, Console, Overflow) grün; zusätzlich phasenspezifische Playwright-Tests. Siehe `docs/releases/phase6-*` bis `phase12-*` für Details.
+
 ## Spätere Phasen mit externen Abhängigkeiten (nicht autonom auslösbar)
 - **M2 — Amtliche Gemeindegeometrie (BKG VG250):** benötigt echten Internetzugang zum Download + Lizenzprüfung; im aktuellen Sandbox-Dev-Environment nicht durchführbar (siehe frühere Session-Historie: kein allgemeiner Internetzugriff). Bleibt dokumentierte Lücke, Näherungskoordinaten bleiben als solche gekennzeichnet.
 - **M7 — Erster echter Marktdaten-Provider:** benötigt eine Provider-/Kosten-/Lizenzentscheidung (Teil 4 §12/§51) — echter Blocker im Sinne der Auftragsvorgabe ("notwendige kostenpflichtige Datenquelle").
