@@ -2560,6 +2560,22 @@ REVOPS-UPDATE 2026-06-11 · Kevin Keim Makler-Betriebssystem
 #kk-heute-v27 .kkh-call-hero-next-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
 #kk-heute-v27 .kkh-call-hero-next-actions .kkh-btn{min-height:36px;font-size:11.5px;padding:0 12px}
 #kk-heute-v27 .kkh-call-hero-nophone{font-size:11px!important;color:var(--muted)!important;font-weight:650!important}
+/* V31 Phase 15.6: Monitor-/TV-Modus - großformatige, reduzierte Anzeige für einen
+   zweiten Bildschirm, kein zweites Dialogsystem. */
+#kk-heute-v27 .kkh-monitor-dialog{border:0;padding:0;width:100vw;height:100vh;max-width:100vw;max-height:100vh;margin:0;background:#0f1620;color:#fff}
+#kk-heute-v27 .kkh-monitor-dialog::backdrop{background:#0f1620}
+#kk-heute-v27 .kkh-monitor-dialog[open]{display:flex;flex-direction:column}
+#kk-heute-v27 .kkh-monitor-head{display:flex;justify-content:space-between;align-items:center;padding:20px 28px;flex:0 0 auto}
+#kk-heute-v27 .kkh-monitor-kicker{font-size:14px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9fb0c3}
+#kk-heute-v27 .kkh-monitor-grid{flex:1 1 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:0 28px 28px;align-content:center}
+#kk-heute-v27 .kkh-monitor-tile{background:#182432;border-radius:24px;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:220px}
+#kk-heute-v27 .kkh-monitor-tile.is-alert{background:#3a1f1f}
+#kk-heute-v27 .kkh-monitor-tile b{font-size:clamp(48px,7vw,88px);font-weight:900;line-height:1;margin-bottom:10px}
+#kk-heute-v27 .kkh-monitor-tile span{font-size:18px;font-weight:700;color:#c7d2de}
+#kk-heute-v27 .kkh-monitor-tile small{font-size:13px;color:#8fa0b3;margin-top:8px}
+#kk-heute-v27 .kkh-monitor-note{flex:0 0 auto;text-align:center;padding:0 28px 24px;font-size:12px;color:#7f92a6}
+@media(max-width:900px){#kk-heute-v27 .kkh-monitor-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){#kk-heute-v27 .kkh-monitor-grid{grid-template-columns:1fr}}
 #kk-heute-v27 .kkh-call-result-dialog{border:0;border-radius:18px;padding:0;width:min(460px,92vw);max-height:88vh;box-shadow:var(--shadow-overlay,0 20px 48px rgba(16,20,24,.16))}
 #kk-heute-v27 .kkh-call-result-dialog::backdrop{background:rgba(20,28,40,.45)}
 #kk-heute-v27 .kkh-call-result-head{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--line)}
@@ -2841,6 +2857,7 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
         <h1 class="kkh-title" id="kkhGreeting">Guten Tag, Kevin.</h1>
         <span class="kkh-date" id="kkhDateFull">–</span>
         <p class="kkh-greeting">Nur echte Aufgaben, fällige Follow-ups, Termine und deine manuell erfasste Leistung.</p>
+        <button class="kkh-btn light" id="kkhMonitorModeBtn" type="button" title="Große, reduzierte Anzeige ohne Personendaten für einen zweiten Bildschirm">Monitor-Modus</button>
       </header>
       <section class="kkh-focus" aria-label="Tagesfokus">
         <div>
@@ -2995,6 +3012,24 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
     </div>
     <div class="kkh-toast" id="kkhToast" role="status" aria-live="polite">Gespeichert</div>
   </div>
+  <!-- V31 Phase 15.6 (PRD Teil 2 §31.2 "Großer Monitor / TV-Modus"): reduzierte,
+       großformatige Anzeige für einen zweiten Bildschirm - keine vollständige
+       App-Navigation, keine Namen/Telefonnummern/Objektadressen, nur Zahlen und
+       (für Termine) die Uhrzeit. Natives <dialog>, kein zweites Dialogsystem. -->
+  <dialog class="kkh-monitor-dialog" id="kkhMonitorDialog" aria-label="Monitor-Modus">
+    <div class="kkh-monitor-head">
+      <span class="kkh-monitor-kicker">Monitor-Modus · <span id="kkhMonitorClock">–</span></span>
+      <button type="button" class="kkh-btn light" id="kkhMonitorCloseBtn">Beenden</button>
+    </div>
+    <div class="kkh-monitor-grid">
+      <div class="kkh-monitor-tile"><b id="kkhMonitorCalls">0</b><span>Anrufe heute</span><small id="kkhMonitorCallsGoal"></small></div>
+      <div class="kkh-monitor-tile"><b id="kkhMonitorFollowups">0</b><span>Follow-ups fällig</span></div>
+      <div class="kkh-monitor-tile is-alert"><b id="kkhMonitorOverdue">0</b><span>Überfällige Anrufe</span></div>
+      <div class="kkh-monitor-tile"><b id="kkhMonitorTasks">0</b><span>Aufgaben offen</span></div>
+      <div class="kkh-monitor-tile"><b id="kkhMonitorAppointments">0</b><span>Termine heute</span><small id="kkhMonitorNextAppointment"></small></div>
+    </div>
+    <p class="kkh-monitor-note">Keine Namen, Telefonnummern oder Adressen — nur Kennzahlen. Aktualisiert automatisch.</p>
+  </dialog>
 </section>
 
 <script id="kk-heute-v27-js">
@@ -3208,6 +3243,32 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
   function initQuick(){qa('[data-quick]').forEach(function(b){b.onclick=function(){var type=b.dataset.quick,target=q('[data-quick-form="'+type+'"]'),open=target&&!target.classList.contains('is-open');qa('[data-quick-form]').forEach(function(f){f.classList.remove('is-open')});qa('[data-quick]').forEach(function(x){x.classList.remove('is-active')});if(open){target.classList.add('is-open');b.classList.add('is-active');var first=target.querySelector('input,textarea');if(first)first.focus()}}});qa('[data-quick-form]').forEach(function(form){var dateFields=form.querySelectorAll('input[type="date"]');dateFields.forEach(function(el){if(!el.value)el.value=today()});form.onsubmit=function(e){e.preventDefault();var type=form.dataset.quickForm,get=function(n){var el=form.querySelector('[data-f="'+n+'"]');return el?String(el.value||'').trim():''};if(type==='aufgabe'){var a=tasks(),title=get('title');if(!title)return;a.push({id:uid('kk12'),title:title,type:'Aufgabe',status:get('status')||'Heute',due:get('due')||today(),createdAt:new Date().toISOString()});write(TASKS,a)}else if(type==='followup'){var f=followups(),name=get('name');if(!name)return;var d=get('due')||today();f.push({id:uid('kkfu'),name:name,channel:get('channel')||'Telefon',date:d,dueDate:d,status:'offen',goal:'',type:'Nachfassgespräch',source:'manual',createdAt:new Date().toISOString()});write(FOLLOWUPS,f)}else if(type==='termin'){var ev=events(),title2=get('title');if(!title2)return;ev.push({id:uid('kk12'),title:title2,date:get('date')||today(),time:get('time'),type:'Termin',contact:'',goal:'',createdAt:new Date().toISOString()});write(EVENTS,ev)}else if(type==='notiz'){var n=notes(),text=get('text');if(!text)return;n.push({id:uid('note'),text:text,createdAt:new Date().toISOString()});write(NOTES,n)}form.reset();form.classList.remove('is-open');qa('[data-quick]').forEach(function(x){x.classList.remove('is-active')});form.querySelectorAll('input[type="date"]').forEach(function(el){el.value=today()});toast('Eintrag gespeichert');renderAll()}})}
   function openTool(id){var details=document.getElementById('kk-heute-operative-module');if(details)details.open=true;setTimeout(function(){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},80)}
   function renderAll(){renderHeader();renderFocus();renderTasks();renderFollowups();renderAppointments();renderNotes();renderSummary();renderCalls();renderCallHero();renderDaily();renderWeekly()}
+  /* V31 Phase 15.6 (PRD Teil 2 §31.2): reduzierte Großanzeige - "keine vollständige
+     App-Navigation", "keine personenbezogenen Details", "automatische Aktualisierung
+     ohne hektische Animation". Liest ausschließlich Zählwerte, nie Namen/Telefon/
+     Adressen; aktualisiert per stillem Text-Update statt Neu-Rendern (kein Flackern). */
+  var monitorTimer=null;
+  function renderMonitorTick(){
+    var clock=q('#kkhMonitorClock');if(clock)clock.textContent=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    var calls=getCalls(),callsToday=calls.byDate[today()]||0,callGoal=calls.targets.daily;
+    var callsEl=q('#kkhMonitorCalls');if(callsEl)callsEl.textContent=String(callsToday);
+    var callsGoalEl=q('#kkhMonitorCallsGoal');if(callsGoalEl)callsGoalEl.textContent=callGoal?('Ziel: '+callGoal):'';
+    var fu=followups().filter(function(x){return openStatus(x.status)&&(x.dueDate||x.date)&&(x.dueDate||x.date)<=today()}).length;
+    var fuEl=q('#kkhMonitorFollowups');if(fuEl)fuEl.textContent=String(fu);
+    var overdueEl=q('#kkhMonitorOverdue');if(overdueEl)overdueEl.textContent=String(overduePhoneCount());
+    var openTasks=tasks().filter(function(x){return openStatus(x.status)}).length;
+    var tasksEl=q('#kkhMonitorTasks');if(tasksEl)tasksEl.textContent=String(openTasks);
+    var todays=todayEvents();
+    var apptEl=q('#kkhMonitorAppointments');if(apptEl)apptEl.textContent=String(todays.length);
+    var nextEl=q('#kkhMonitorNextAppointment');if(nextEl)nextEl.textContent=todays.length?('Nächster: '+(todays[0].time||'—')+' Uhr'):'Keine Termine heute';
+  }
+  function openMonitorMode(){var dlg=q('#kkhMonitorDialog');if(!dlg||typeof dlg.showModal!=='function')return;renderMonitorTick();dlg.showModal();clearInterval(monitorTimer);monitorTimer=setInterval(renderMonitorTick,45000)}
+  function initMonitorMode(){
+    var btn=q('#kkhMonitorModeBtn');if(btn)btn.addEventListener('click',openMonitorMode);
+    var dlg=q('#kkhMonitorDialog');if(!dlg)return;
+    var closeBtn=q('#kkhMonitorCloseBtn');if(closeBtn)closeBtn.addEventListener('click',function(){dlg.close()});
+    dlg.addEventListener('close',function(){clearInterval(monitorTimer);monitorTimer=null;setTimeout(function(){if(btn&&typeof btn.focus==='function')btn.focus()},0)});
+  }
   function initCallResultDialog(){
     var dlg=document.getElementById('kkhCallResultDialog');if(!dlg)return;
     document.getElementById('kkhCallResultOutcomes').addEventListener('click',function(e){var b=e.target.closest('[data-outcome]');if(b)selectCallOutcome(b.dataset.outcome)});
@@ -3217,7 +3278,7 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
     dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
     dlg.addEventListener('close',function(){callResultCurrent=null;setTimeout(function(){var again=document.getElementById('kkhCallHeroResultBtn');var fallback=document.getElementById('kkhCallHeroCard');var target=again||fallback;if(target&&typeof target.focus==='function')target.focus()},0)});
   }
-  function init(){q('#kkhFocusSave').onclick=saveFocus;q('#kkhCallPlus').onclick=function(){bumpCalls(1)};q('#kkhCallMinus').onclick=function(){bumpCalls(-1)};q('#kkhCallReset').onclick=function(){if(confirm('Den heutigen Anrufzähler wirklich auf 0 zurücksetzen?')){var c=getCalls();c.byDate[today()]=0;write(CALLS,c);renderAll();toast('Anrufzähler zurückgesetzt')}};q('#kkhCallSettingsSave').onclick=function(){var c=getCalls();['daily','weekly','monthly','yearly'].forEach(function(k){var el=q('#kkhTarget'+k.charAt(0).toUpperCase()+k.slice(1)),v=Number(el.value);if(isFinite(v)&&v>=0)c.targets[k]=v});write(CALLS,c);renderAll();toast('Anrufziele gespeichert')};q('#kkhDailyGoals').onclick=function(e){var b=e.target.closest('[data-step]');if(b)bumpGoal(b.dataset.metric,Number(b.dataset.step))};root.addEventListener('click',function(e){var b=e.target.closest('[data-done-id]');if(b){markDone(b.dataset.doneType,b.dataset.doneId);return}var tool=e.target.closest('[data-open-tool]');if(tool){e.preventDefault();openTool(tool.dataset.openTool)}});initQuick();initCallResultDialog();renderAll();window.addEventListener('storage',renderAll);window.addEventListener('kk:storage-changed',renderAll)}
+  function init(){q('#kkhFocusSave').onclick=saveFocus;q('#kkhCallPlus').onclick=function(){bumpCalls(1)};q('#kkhCallMinus').onclick=function(){bumpCalls(-1)};q('#kkhCallReset').onclick=function(){if(confirm('Den heutigen Anrufzähler wirklich auf 0 zurücksetzen?')){var c=getCalls();c.byDate[today()]=0;write(CALLS,c);renderAll();toast('Anrufzähler zurückgesetzt')}};q('#kkhCallSettingsSave').onclick=function(){var c=getCalls();['daily','weekly','monthly','yearly'].forEach(function(k){var el=q('#kkhTarget'+k.charAt(0).toUpperCase()+k.slice(1)),v=Number(el.value);if(isFinite(v)&&v>=0)c.targets[k]=v});write(CALLS,c);renderAll();toast('Anrufziele gespeichert')};q('#kkhDailyGoals').onclick=function(e){var b=e.target.closest('[data-step]');if(b)bumpGoal(b.dataset.metric,Number(b.dataset.step))};root.addEventListener('click',function(e){var b=e.target.closest('[data-done-id]');if(b){markDone(b.dataset.doneType,b.dataset.doneId);return}var tool=e.target.closest('[data-open-tool]');if(tool){e.preventDefault();openTool(tool.dataset.openTool)}});initQuick();initCallResultDialog();initMonitorMode();renderAll();window.addEventListener('storage',renderAll);window.addEventListener('kk:storage-changed',renderAll)}
   window.KK_BOOT.register('heute-dashboard-v29',init,{priority:20});
 })();
 </script>
