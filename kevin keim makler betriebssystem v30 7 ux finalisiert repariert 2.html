@@ -1545,19 +1545,19 @@ body.kk-v30-shell-ready #kk-app-shell :is(.kkmkk-filter,.kkcp-tab,.kkref20-tab,.
 
 /* -------- Phase D: einheitliche Optik für "Archiv/Alternative einklappen"-Bausteine
    (kk-heute-legacy-wrap, kk-crm-legacy-wrap) statt nackter Browser-Standard-Disclosure -------- */
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap){
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap){
   margin:18px 0;border:1px solid var(--v30-border,#e3e5e8);border-radius:var(--v30-radius-lg,16px);background:#fff;overflow:hidden;
 }
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)>summary{
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary{
   list-style:none;cursor:pointer;padding:14px 18px;font-size:13px;font-weight:700;color:var(--v30-muted,#5b6472);
   display:flex;align-items:center;gap:8px;background:var(--v30-surface-2,#f1f2f4);
 }
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)>summary::-webkit-details-marker{display:none}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)>summary:before{content:"▸";font-size:11px;color:var(--v30-muted,#5b6472);transition:transform .15s ease}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)[open]>summary:before{transform:rotate(90deg)}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)[open]>summary{border-bottom:1px solid var(--v30-border,#e3e5e8)}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)>summary:hover{color:var(--v30-ink,#141a21)}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap)>summary:focus-visible{outline:2px solid var(--v30-blue,#182c46);outline-offset:-2px}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary::-webkit-details-marker{display:none}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary:before{content:"▸";font-size:11px;color:var(--v30-muted,#5b6472);transition:transform .15s ease}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)[open]>summary:before{transform:rotate(90deg)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)[open]>summary{border-bottom:1px solid var(--v30-border,#e3e5e8)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary:hover{color:var(--v30-ink,#141a21)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary:focus-visible{outline:2px solid var(--v30-blue,#182c46);outline-offset:-2px}
 
 /* -------- Phase D: ein konsistenter Empty-State-Baustein statt Mischung aus grauem
    Kasten, farbigem Alert-Balken und unterschiedlichen Formulierungstönen -------- */
@@ -3465,6 +3465,16 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
   </div>
 </section>
 
+<!-- V31 Phase 11 (PRD Teil 4 / .claude/rules/market.md: "Kein zweiter Kartenstack
+     parallel sichtbar"): diese aeltere Schema-Kartenansicht (SVG-Formen statt
+     echter Geografie) lief bisher gleichzeitig mit der echten Leaflet-Basiskarte
+     (KK_MAP/KK_REALMAP, Abschnitt "kk-realmap-v31" direkt darunter) - beide waren
+     beim Oeffnen des Marktmonitor-Tabs voll sichtbar. Konsolidiert nach demselben
+     Muster wie die Legacy-Kontaktliste in Phase D: eingeklappt, nicht geloescht,
+     weiterhin per Klick erreichbar. Die echte Basiskarte ist ab jetzt die primaer
+     sichtbare Kartenengine. -->
+<details class="kk-mkk-legacy-wrap" id="kkmkk-legacy-wrap">
+<summary>Alte Schema-Kartenansicht (Formgrafik, zur Referenz einklappbar)</summary>
 <section class="kkmkk-section" id="mkk-market-map" aria-labelledby="kkmkk-title">
   <div class="kkmkk-shell">
     <div class="kkmkk-head">
@@ -3641,6 +3651,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
     </div>
   </div>
 </section>
+</details>
 
 <style id="kk-realmap-v31-css">
 .kkgeo-section{background:var(--v30-canvas,#f6f6f5);border-bottom:1px solid var(--v30-border,#e3e5e8)}
@@ -11326,7 +11337,7 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
     if(!opts.silentHash&&!opts.preserveHash){try{if(clean(location.hash)!==next)history.replaceState(null,'','#'+next);}catch(e){}}
     afterTabChange(next,previous,opts.forceEvent);return next;
   }
-  function scrollToAnchor(anchor){var id=clean(anchor),target=document.getElementById(id);if(!target)return;setTimeout(function(){try{target.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){try{target.scrollIntoView();}catch(_){}}},60)}
+  function scrollToAnchor(anchor){var id=clean(anchor),target=document.getElementById(id);if(!target)return;var d=target.closest('details:not([open])');if(d)d.open=true;setTimeout(function(){try{target.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){try{target.scrollIntoView();}catch(_){}}},60)}
   function openAnchor(anchor,opts){opts=opts||{};var id=clean(anchor),tab=getTabForAnchor(id);if(!tab)return null;setActiveTab(tab,{preserveHash:true,forceEvent:opts.forceEvent});try{history.replaceState(null,'','#'+id);}catch(e){}if(id!==tab)scrollToAnchor(id);return tab}
   function initialTab(){var hash=clean(location.hash),fromHash=getTabForAnchor(hash),stored=safeStorageGet();return fromHash||(isValidTab(stored)?stored:'heute')}
   function bind(){
