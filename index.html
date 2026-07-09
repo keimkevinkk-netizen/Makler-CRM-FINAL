@@ -657,6 +657,26 @@ body.kk-v11-sales-machine details:not([open]){background:#fff}
 
 
 .kkref20-kpi-insert{margin:14px 0;border-left:6px solid var(--accent)}
+/* V31 Phase 15.3: Detaildialog + Netzwerk-Ort/Branche-Umschalter */
+.kkref20-network-toggle{display:flex;gap:6px;margin-bottom:10px}
+.kkref20-name-btn{border:0;background:none;padding:0;font:inherit;font-weight:900;color:var(--p);text-decoration:underline;cursor:pointer;text-align:left}
+.kkref20-detail-dialog{border:0;border-radius:18px;box-shadow:0 20px 48px rgba(16,20,24,.16);padding:0;width:min(560px,92vw);max-height:85vh;color:var(--p);background:#fff}
+.kkref20-detail-dialog::backdrop{background:rgba(20,26,32,.5)}
+.kkref20-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+.kkref20-detail-head h3{margin:0 0 4px;font-family:Inter,system-ui,sans-serif;font-size:18px;color:var(--p)}
+.kkref20-detail-meta{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted);font-weight:750}
+.kkref20-detail-close{border:1px solid var(--line);background:#fff;border-radius:10px;width:34px;height:34px;cursor:pointer;font-size:14px;color:var(--muted);flex:0 0 auto}
+.kkref20-detail-close:hover{background:var(--box)}
+.kkref20-detail-body{padding:14px 20px;overflow:auto}
+.kkref20-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kkref20-detail-grid div{background:var(--box);border-radius:10px;padding:8px 10px}
+.kkref20-detail-grid b{display:block;font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em;margin-bottom:2px}
+.kkref20-detail-block{margin-bottom:12px}
+.kkref20-detail-block h4{margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.kkref20-detail-block p{margin:0;font-size:13px;color:var(--p)}
+.kkref20-detail-notes{white-space:pre-wrap;background:var(--box);border-radius:10px;padding:10px 12px}
+.kkref20-detail-actions{display:flex;gap:8px;flex-wrap:wrap;padding:14px 20px 18px;border-top:1px solid var(--line)}
+@media(max-width:620px){.kkref20-detail-grid{grid-template-columns:1fr}}
 @media (max-width:980px){.kkref20-head{display:block}.kkref20-actions{justify-content:flex-start;margin-top:12px}.kkref20-two,.kkref20-three,.kkref20-five,.kkref20-row,.kkref20-row.two,.kkref20-row.three,.kkref20-row.five,.kkref20-groupgrid{grid-template-columns:1fr 1fr}}
 @media (max-width:640px){.kkref20-shell{padding:28px 14px}.kkref20-two,.kkref20-three,.kkref20-five,.kkref20-row,.kkref20-row.two,.kkref20-row.three,.kkref20-row.five,.kkref20-groupgrid{grid-template-columns:1fr}.kkref20-actions .kkref20-btn,.kkref20-btn{width:100%}}
 @media print{#kk-referral-machine-v20 .kkref20-actions,#kk-referral-machine-v20 .kkref20-btn,#kk-referral-machine-v20 .kkref20-tabs,#kk-referral-machine-v20 .kkref20-item-actions,.kkref20-toast{display:none!important}.kkref20-card{box-shadow:none;break-inside:avoid}.kkref20-table th{position:static}}
@@ -851,6 +871,15 @@ body.kk-v11-sales-machine details:not([open]){background:#fff}
 .kkmkk-section.is-focus{position:fixed;inset:8px;z-index:2147483000;overflow:auto;border:1px solid #cbd5e1;border-radius:22px;box-shadow:0 30px 90px rgba(20,28,40,.30)}
 .kkmkk-section.is-focus .kkmkk-shell{max-width:none;padding:24px}.kkmkk-section.is-focus .kkmkk-map-wrap,.kkmkk-section.is-focus .kkmkk-svg{min-height:620px}.kkmkk-section.is-focus .kkmkk-layout{grid-template-columns:minmax(0,1.65fr) minmax(350px,.65fr)}
 body.kkmkk-focus-open{overflow:hidden}
+/* V31 Phase 15.4 (PRD Teil 4 §42): Präsentationsmodus blendet personenbezogene
+   Aktionen aus, Marktwerte/Metriken bleiben sichtbar. */
+#kkmkk-presentation-btn[aria-pressed="true"]{background:var(--v30-orange,#f39c12)!important;color:#fff!important;border-color:transparent!important}
+body.kk-market-presentation #mkk-market-map #kkmkk-contacts-btn,
+body.kk-market-presentation #mkk-market-map #kkmkk-followups-btn,
+body.kk-market-presentation #mkk-market-map #kkmkk-pipeline-btn,
+body.kk-market-presentation #mkk-market-map .kkmkk-create-actions{display:none!important}
+#kkmkk-presentation-banner{display:none;margin:-6px 0 14px;padding:8px 12px;border-radius:10px;background:#fff4ed;border:1px solid #f4a460;color:#8a4b00;font-size:11.5px;font-weight:750}
+body.kk-market-presentation #mkk-market-map #kkmkk-presentation-banner{display:block}
 @media(max-width:800px){.kkmkk-quality-bulk{grid-template-columns:1fr 1fr}.kkmkk-quality-bulk>span{grid-column:1/-1}.kkmkk-section.is-focus{inset:0;border-radius:0}.kkmkk-section.is-focus .kkmkk-shell{padding:14px}.kkmkk-section.is-focus .kkmkk-layout{grid-template-columns:1fr}.kkmkk-town-jump-wrap{width:100%;justify-content:space-between}.kkmkk-town-jump-wrap select{flex:1}}
 @media(max-width:480px){.kkmkk-quality-bulk{grid-template-columns:1fr}.kkmkk-quality-bulk>span{grid-column:auto}.kkmkk-source-item{grid-template-columns:1fr}.kkmkk-source-open{width:100%}}
 
@@ -1587,21 +1616,22 @@ body.kk-v30-shell-ready #kk-app-shell :is(.kkmkk-filter,.kkcp-tab,.kkref20-tab,.
   background:var(--v30-blue,#182c46)!important;color:#fff!important;border-color:transparent!important;
 }
 
-/* -------- Phase D: einheitliche Optik für "Archiv/Alternative einklappen"-Bausteine
-   (kk-heute-legacy-wrap, kk-crm-legacy-wrap) statt nackter Browser-Standard-Disclosure -------- */
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap){
+/* -------- Phase D/15.3: einheitliche Optik für "Archiv/Alternative einklappen"-Bausteine
+   (kk-heute-legacy-wrap, kk-crm-legacy-wrap, kk-mkk-legacy-wrap, kk-tippgeber-legacy-wrap)
+   statt nackter Browser-Standard-Disclosure -------- */
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap){
   margin:18px 0;border:1px solid var(--v30-border,#e3e5e8);border-radius:var(--v30-radius-lg,16px);background:#fff;overflow:hidden;
 }
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary{
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)>summary{
   list-style:none;cursor:pointer;padding:14px 18px;font-size:13px;font-weight:700;color:var(--v30-muted,#5b6472);
   display:flex;align-items:center;gap:8px;background:var(--v30-surface-2,#f1f2f4);
 }
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary::-webkit-details-marker{display:none}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary:before{content:"▸";font-size:11px;color:var(--v30-muted,#5b6472);transition:transform .15s ease}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)[open]>summary:before{transform:rotate(90deg)}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)[open]>summary{border-bottom:1px solid var(--v30-border,#e3e5e8)}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary:hover{color:var(--v30-ink,#141a21)}
-body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap)>summary:focus-visible{outline:2px solid var(--v30-blue,#182c46);outline-offset:-2px}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)>summary::-webkit-details-marker{display:none}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)>summary:before{content:"▸";font-size:11px;color:var(--v30-muted,#5b6472);transition:transform .15s ease}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)[open]>summary:before{transform:rotate(90deg)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)[open]>summary{border-bottom:1px solid var(--v30-border,#e3e5e8)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)>summary:hover{color:var(--v30-ink,#141a21)}
+body.kk-v30-shell-ready #kk-app-shell :is(.kk-heute-legacy-wrap,.kk-crm-legacy-wrap,.kk-mkk-legacy-wrap,.kk-tippgeber-legacy-wrap)>summary:focus-visible{outline:2px solid var(--v30-blue,#182c46);outline-offset:-2px}
 
 /* -------- Phase D: ein konsistenter Empty-State-Baustein statt Mischung aus grauem
    Kasten, farbigem Alert-Balken und unterschiedlichen Formulierungstönen -------- */
@@ -1985,6 +2015,57 @@ function importBackupPayloadCentral(payload,options){
     return {ok:false,error:String(err&&err.message||err),imported:0,skipped:validation.skipped||[],rolledBack:true};
   }
 }
+/* V31 Phase 15.1: Import-Vorschau (PRD Teil 3 §29 / Teil 2 §17) — ersetzt den
+   bisherigen bloßen window.confirm() durch eine Aufschlüsselung nach
+   Datenbereich + Datensatzanzahl, sichtbaren Modus (Zusammenführen/Ersetzen)
+   und Hinweis auf ignorierte Bereiche, bevor der Import tatsächlich schreibt. */
+var IMPORT_KEY_LABELS={
+  kk_crm_contacts:'CRM-Kontakte',kkcrmpro_contacts:'CRM-Kontakte',kkcrmpro_leads:'Leads',kk_crmpro_leads:'Leads',kk_eigentuemer:'Eigentümer',
+  kk_followups:'Follow-ups',kk_crm_followups:'Follow-ups',kk_fu_items:'Follow-ups',kk12_followups:'Follow-ups',kkcrmpro_followups:'Follow-ups',
+  kk_crm_activities:'Aktivitäten',kk_referral_activity_os:'Tippgeber-Aktivitäten',
+  kk_pipeline_deals:'Pipeline-Deals',kk_sales_pipeline:'Pipeline / Verkaufschancen',kk_valuation_pipeline:'Bewertungspipeline',kk_crm_owner_pipeline:'Eigentümerpipeline',kk_referral_pipeline:'Tippgeber-Pipeline',kk_owner_opportunities:'Eigentümerchancen',
+  kk_crm_objects:'Objekte',kk12_objects:'Objekte',
+  kk_referrals:'Tippgeber',kk_crm_referrals:'Tippgeber',kk_tippgeber:'Tippgeber',kk_referral_partners_os:'Tippgeber-Partner',kk_referral_network_v1:'Tippgeber-Netzwerk',
+  kk12_tasks:'Aufgaben',kk_call_queue:'Anruf-Warteschlange',
+  kk_market_monitor_entries_v1:'Marktmonitor',kk_offer_monitor_entries_v1:'Angebotsmonitor',kk_angebot_monitor_entries_v1:'Angebotsmonitor',kk_region_market_cockpit_v10:'Markt-Cockpit',kk_mkk_market_reference_v29_4:'Marktreferenz (Karte)',kk_mkk_area_plans_v29_10:'Gebietspläne (Karte)',
+  kk_kpi_targets:'KPI-Ziele',kk_conversion_metrics:'Kennzahlen',kk_data_quality_queue:'Datenqualitäts-Warteschlange',kk_ai_prompt_assistant_v1:'KI-Prompts'
+};
+function prettifyImportKey(key){var s=String(key||'').replace(/^kk_?/,'').replace(/_v\d+$/,'').replace(/_/g,' ').trim();return s?s.replace(/\b\w/g,function(c){return c.toUpperCase();}):String(key||'');}
+function importDomainLabel(key){return IMPORT_KEY_LABELS[key]||prettifyImportKey(key);}
+function countImportRecords(raw){try{var v=JSON.parse(raw);if(Array.isArray(v))return v.length;if(v&&typeof v==='object')return Object.keys(v).length;return v==null?0:1;}catch(e){return 1;}}
+var importPreviewState=null,importPreviewLastFocus=null;
+function initImportPreviewDialogOnce(){
+  if(window.__kkImportPreviewInit)return;var dlg=document.getElementById('kkImportPreviewDialog');if(!dlg)return;window.__kkImportPreviewInit=true;
+  var confirmBtn=document.getElementById('kkImportPreviewConfirmBtn'),cancelBtn=document.getElementById('kkImportPreviewCancelBtn'),closeBtn=document.getElementById('kkImportPreviewCloseBtn');
+  if(confirmBtn)confirmBtn.addEventListener('click',function(){dlg.returnValue='confirm';dlg.close();});
+  if(cancelBtn)cancelBtn.addEventListener('click',function(){dlg.returnValue='cancel';dlg.close();});
+  if(closeBtn)closeBtn.addEventListener('click',function(){dlg.returnValue='cancel';dlg.close();});
+  dlg.addEventListener('click',function(e){if(e.target===dlg){dlg.returnValue='cancel';dlg.close();}});
+  dlg.addEventListener('close',function(){
+    var state=importPreviewState;importPreviewState=null;
+    var trigger=importPreviewLastFocus;importPreviewLastFocus=null;
+    setTimeout(function(){if(trigger&&typeof trigger.focus==='function')trigger.focus();},0);
+    if(!state)return;
+    if(dlg.returnValue==='confirm')state.onConfirm&&state.onConfirm();else state.onCancel&&state.onCancel();
+  });
+}
+function showImportPreviewDialog(validation,options,onConfirm,onCancel){
+  var replace=options.mode==='replace',keys=Object.keys(validation.data),dlg=document.getElementById('kkImportPreviewDialog');
+  if(!dlg||typeof dlg.showModal!=='function'){
+    var q=replace?'Bestehende App-Daten werden ersetzt. Vorher wird intern ein Wiederherstellungspunkt angelegt. Fortfahren?':keys.length+' App-Datenpunkte werden zusammengeführt. Fortfahren?';
+    if(window.confirm(q))onConfirm();else onCancel();return;
+  }
+  initImportPreviewDialogOnce();
+  var total=0,rows=keys.map(function(key){var n=countImportRecords(validation.data[key]);total+=n;return {label:importDomainLabel(key),count:n};}).sort(function(a,b){return b.count-a.count||a.label.localeCompare(b.label);});
+  var title=document.getElementById('kkImportPreviewTitle'),sub=document.getElementById('kkImportPreviewSubtitle'),warn=document.getElementById('kkImportPreviewWarn'),rowsHost=document.getElementById('kkImportPreviewRows'),skippedEl=document.getElementById('kkImportPreviewSkipped'),confirmBtn=document.getElementById('kkImportPreviewConfirmBtn');
+  if(title)title.textContent=replace?'Import prüfen: Daten werden ersetzt':'Import prüfen: Daten werden zusammengeführt';
+  if(sub)sub.textContent=keys.length+' Datenbereich'+(keys.length===1?'':'e')+', '+total+' Datensätze insgesamt.';
+  if(warn){if(replace){warn.hidden=false;warn.textContent='Bestehende App-Daten werden vollständig ersetzt. Ein Wiederherstellungspunkt wird automatisch vor dem Import angelegt und kann bei Bedarf wiederhergestellt werden.';}else{warn.hidden=true;}}
+  if(rowsHost)rowsHost.innerHTML=rows.map(function(r){return '<tr><td>'+window.KK_UTIL.esc(r.label)+'</td><td>'+r.count+'</td></tr>';}).join('')||'<tr><td colspan="2">Keine erkennbaren Datensätze.</td></tr>';
+  if(skippedEl){if(validation.skipped&&validation.skipped.length){skippedEl.hidden=false;skippedEl.textContent=validation.skipped.length+' unbekannte oder nicht erlaubte Bereich(e) wurden ignoriert: '+validation.skipped.map(function(s){return window.KK_UTIL.esc(s);}).join(', ');}else{skippedEl.hidden=true;}}
+  if(confirmBtn)confirmBtn.textContent=replace?'Ersetzen':'Übernehmen';
+  importPreviewState={onConfirm:onConfirm,onCancel:onCancel};importPreviewLastFocus=document.activeElement;dlg.returnValue='';dlg.showModal();
+}
 function importBackupFileCentral(file,options,callback){
   options=options||{};
   if(!file){var noFile={ok:false,error:'Bitte zuerst eine JSON-Datei auswählen.'};if(callback)callback(noFile);return;}
@@ -1993,8 +2074,9 @@ function importBackupFileCentral(file,options,callback){
   reader.onload=function(){
     var payload;try{payload=JSON.parse(reader.result);}catch(e){var bad={ok:false,error:'Import abgebrochen: ungültiges JSON.'};if(callback)callback(bad);return;}
     var map=extractImportStorageMap(payload),validation=validateImportStorageMap(map);if(!validation.ok){if(callback)callback(validation);return;}
-    if(options.confirm!==false){var replace=options.mode==='replace',q=replace?'Bestehende App-Daten werden ersetzt. Vorher wird intern ein Wiederherstellungspunkt angelegt. Fortfahren?':Object.keys(validation.data).length+' App-Datenpunkte werden zusammengeführt. Fortfahren?';if(!window.confirm(q)){if(callback)callback({ok:false,cancelled:true,error:'Import abgebrochen.'});return;}}
-    var result=importBackupPayloadCentral(payload,options);if(callback)callback(result);
+    function doImport(){var result=importBackupPayloadCentral(payload,options);if(callback)callback(result);}
+    if(options.confirm!==false){showImportPreviewDialog(validation,options,doImport,function(){if(callback)callback({ok:false,cancelled:true,error:'Import abgebrochen.'});});}
+    else doImport();
   };
   reader.onerror=function(){if(callback)callback({ok:false,error:'Datei konnte nicht gelesen werden.'});};reader.readAsText(file);
 }
@@ -2478,6 +2560,22 @@ REVOPS-UPDATE 2026-06-11 · Kevin Keim Makler-Betriebssystem
 #kk-heute-v27 .kkh-call-hero-next-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
 #kk-heute-v27 .kkh-call-hero-next-actions .kkh-btn{min-height:36px;font-size:11.5px;padding:0 12px}
 #kk-heute-v27 .kkh-call-hero-nophone{font-size:11px!important;color:var(--muted)!important;font-weight:650!important}
+/* V31 Phase 15.6: Monitor-/TV-Modus - großformatige, reduzierte Anzeige für einen
+   zweiten Bildschirm, kein zweites Dialogsystem. */
+#kk-heute-v27 .kkh-monitor-dialog{border:0;padding:0;width:100vw;height:100vh;max-width:100vw;max-height:100vh;margin:0;background:#0f1620;color:#fff}
+#kk-heute-v27 .kkh-monitor-dialog::backdrop{background:#0f1620}
+#kk-heute-v27 .kkh-monitor-dialog[open]{display:flex;flex-direction:column}
+#kk-heute-v27 .kkh-monitor-head{display:flex;justify-content:space-between;align-items:center;padding:20px 28px;flex:0 0 auto}
+#kk-heute-v27 .kkh-monitor-kicker{font-size:14px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9fb0c3}
+#kk-heute-v27 .kkh-monitor-grid{flex:1 1 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:0 28px 28px;align-content:center}
+#kk-heute-v27 .kkh-monitor-tile{background:#182432;border-radius:24px;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:220px}
+#kk-heute-v27 .kkh-monitor-tile.is-alert{background:#3a1f1f}
+#kk-heute-v27 .kkh-monitor-tile b{font-size:clamp(48px,7vw,88px);font-weight:900;line-height:1;margin-bottom:10px}
+#kk-heute-v27 .kkh-monitor-tile span{font-size:18px;font-weight:700;color:#c7d2de}
+#kk-heute-v27 .kkh-monitor-tile small{font-size:13px;color:#8fa0b3;margin-top:8px}
+#kk-heute-v27 .kkh-monitor-note{flex:0 0 auto;text-align:center;padding:0 28px 24px;font-size:12px;color:#7f92a6}
+@media(max-width:900px){#kk-heute-v27 .kkh-monitor-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){#kk-heute-v27 .kkh-monitor-grid{grid-template-columns:1fr}}
 #kk-heute-v27 .kkh-call-result-dialog{border:0;border-radius:18px;padding:0;width:min(460px,92vw);max-height:88vh;box-shadow:var(--shadow-overlay,0 20px 48px rgba(16,20,24,.16))}
 #kk-heute-v27 .kkh-call-result-dialog::backdrop{background:rgba(20,28,40,.45)}
 #kk-heute-v27 .kkh-call-result-head{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--line)}
@@ -2759,6 +2857,7 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
         <h1 class="kkh-title" id="kkhGreeting">Guten Tag, Kevin.</h1>
         <span class="kkh-date" id="kkhDateFull">–</span>
         <p class="kkh-greeting">Nur echte Aufgaben, fällige Follow-ups, Termine und deine manuell erfasste Leistung.</p>
+        <button class="kkh-btn light" id="kkhMonitorModeBtn" type="button" title="Große, reduzierte Anzeige ohne Personendaten für einen zweiten Bildschirm">Monitor-Modus</button>
       </header>
       <section class="kkh-focus" aria-label="Tagesfokus">
         <div>
@@ -2913,6 +3012,24 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
     </div>
     <div class="kkh-toast" id="kkhToast" role="status" aria-live="polite">Gespeichert</div>
   </div>
+  <!-- V31 Phase 15.6 (PRD Teil 2 §31.2 "Großer Monitor / TV-Modus"): reduzierte,
+       großformatige Anzeige für einen zweiten Bildschirm - keine vollständige
+       App-Navigation, keine Namen/Telefonnummern/Objektadressen, nur Zahlen und
+       (für Termine) die Uhrzeit. Natives <dialog>, kein zweites Dialogsystem. -->
+  <dialog class="kkh-monitor-dialog" id="kkhMonitorDialog" aria-label="Monitor-Modus">
+    <div class="kkh-monitor-head">
+      <span class="kkh-monitor-kicker">Monitor-Modus · <span id="kkhMonitorClock">–</span></span>
+      <button type="button" class="kkh-btn light" id="kkhMonitorCloseBtn">Beenden</button>
+    </div>
+    <div class="kkh-monitor-grid">
+      <div class="kkh-monitor-tile"><b id="kkhMonitorCalls">0</b><span>Anrufe heute</span><small id="kkhMonitorCallsGoal"></small></div>
+      <div class="kkh-monitor-tile"><b id="kkhMonitorFollowups">0</b><span>Follow-ups fällig</span></div>
+      <div class="kkh-monitor-tile is-alert"><b id="kkhMonitorOverdue">0</b><span>Überfällige Anrufe</span></div>
+      <div class="kkh-monitor-tile"><b id="kkhMonitorTasks">0</b><span>Aufgaben offen</span></div>
+      <div class="kkh-monitor-tile"><b id="kkhMonitorAppointments">0</b><span>Termine heute</span><small id="kkhMonitorNextAppointment"></small></div>
+    </div>
+    <p class="kkh-monitor-note">Keine Namen, Telefonnummern oder Adressen — nur Kennzahlen. Aktualisiert automatisch.</p>
+  </dialog>
 </section>
 
 <script id="kk-heute-v27-js">
@@ -3126,6 +3243,32 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
   function initQuick(){qa('[data-quick]').forEach(function(b){b.onclick=function(){var type=b.dataset.quick,target=q('[data-quick-form="'+type+'"]'),open=target&&!target.classList.contains('is-open');qa('[data-quick-form]').forEach(function(f){f.classList.remove('is-open')});qa('[data-quick]').forEach(function(x){x.classList.remove('is-active')});if(open){target.classList.add('is-open');b.classList.add('is-active');var first=target.querySelector('input,textarea');if(first)first.focus()}}});qa('[data-quick-form]').forEach(function(form){var dateFields=form.querySelectorAll('input[type="date"]');dateFields.forEach(function(el){if(!el.value)el.value=today()});form.onsubmit=function(e){e.preventDefault();var type=form.dataset.quickForm,get=function(n){var el=form.querySelector('[data-f="'+n+'"]');return el?String(el.value||'').trim():''};if(type==='aufgabe'){var a=tasks(),title=get('title');if(!title)return;a.push({id:uid('kk12'),title:title,type:'Aufgabe',status:get('status')||'Heute',due:get('due')||today(),createdAt:new Date().toISOString()});write(TASKS,a)}else if(type==='followup'){var f=followups(),name=get('name');if(!name)return;var d=get('due')||today();f.push({id:uid('kkfu'),name:name,channel:get('channel')||'Telefon',date:d,dueDate:d,status:'offen',goal:'',type:'Nachfassgespräch',source:'manual',createdAt:new Date().toISOString()});write(FOLLOWUPS,f)}else if(type==='termin'){var ev=events(),title2=get('title');if(!title2)return;ev.push({id:uid('kk12'),title:title2,date:get('date')||today(),time:get('time'),type:'Termin',contact:'',goal:'',createdAt:new Date().toISOString()});write(EVENTS,ev)}else if(type==='notiz'){var n=notes(),text=get('text');if(!text)return;n.push({id:uid('note'),text:text,createdAt:new Date().toISOString()});write(NOTES,n)}form.reset();form.classList.remove('is-open');qa('[data-quick]').forEach(function(x){x.classList.remove('is-active')});form.querySelectorAll('input[type="date"]').forEach(function(el){el.value=today()});toast('Eintrag gespeichert');renderAll()}})}
   function openTool(id){var details=document.getElementById('kk-heute-operative-module');if(details)details.open=true;setTimeout(function(){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},80)}
   function renderAll(){renderHeader();renderFocus();renderTasks();renderFollowups();renderAppointments();renderNotes();renderSummary();renderCalls();renderCallHero();renderDaily();renderWeekly()}
+  /* V31 Phase 15.6 (PRD Teil 2 §31.2): reduzierte Großanzeige - "keine vollständige
+     App-Navigation", "keine personenbezogenen Details", "automatische Aktualisierung
+     ohne hektische Animation". Liest ausschließlich Zählwerte, nie Namen/Telefon/
+     Adressen; aktualisiert per stillem Text-Update statt Neu-Rendern (kein Flackern). */
+  var monitorTimer=null;
+  function renderMonitorTick(){
+    var clock=q('#kkhMonitorClock');if(clock)clock.textContent=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    var calls=getCalls(),callsToday=calls.byDate[today()]||0,callGoal=calls.targets.daily;
+    var callsEl=q('#kkhMonitorCalls');if(callsEl)callsEl.textContent=String(callsToday);
+    var callsGoalEl=q('#kkhMonitorCallsGoal');if(callsGoalEl)callsGoalEl.textContent=callGoal?('Ziel: '+callGoal):'';
+    var fu=followups().filter(function(x){return openStatus(x.status)&&(x.dueDate||x.date)&&(x.dueDate||x.date)<=today()}).length;
+    var fuEl=q('#kkhMonitorFollowups');if(fuEl)fuEl.textContent=String(fu);
+    var overdueEl=q('#kkhMonitorOverdue');if(overdueEl)overdueEl.textContent=String(overduePhoneCount());
+    var openTasks=tasks().filter(function(x){return openStatus(x.status)}).length;
+    var tasksEl=q('#kkhMonitorTasks');if(tasksEl)tasksEl.textContent=String(openTasks);
+    var todays=todayEvents();
+    var apptEl=q('#kkhMonitorAppointments');if(apptEl)apptEl.textContent=String(todays.length);
+    var nextEl=q('#kkhMonitorNextAppointment');if(nextEl)nextEl.textContent=todays.length?('Nächster: '+(todays[0].time||'—')+' Uhr'):'Keine Termine heute';
+  }
+  function openMonitorMode(){var dlg=q('#kkhMonitorDialog');if(!dlg||typeof dlg.showModal!=='function')return;renderMonitorTick();dlg.showModal();clearInterval(monitorTimer);monitorTimer=setInterval(renderMonitorTick,45000)}
+  function initMonitorMode(){
+    var btn=q('#kkhMonitorModeBtn');if(btn)btn.addEventListener('click',openMonitorMode);
+    var dlg=q('#kkhMonitorDialog');if(!dlg)return;
+    var closeBtn=q('#kkhMonitorCloseBtn');if(closeBtn)closeBtn.addEventListener('click',function(){dlg.close()});
+    dlg.addEventListener('close',function(){clearInterval(monitorTimer);monitorTimer=null;setTimeout(function(){if(btn&&typeof btn.focus==='function')btn.focus()},0)});
+  }
   function initCallResultDialog(){
     var dlg=document.getElementById('kkhCallResultDialog');if(!dlg)return;
     document.getElementById('kkhCallResultOutcomes').addEventListener('click',function(e){var b=e.target.closest('[data-outcome]');if(b)selectCallOutcome(b.dataset.outcome)});
@@ -3135,7 +3278,7 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
     dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
     dlg.addEventListener('close',function(){callResultCurrent=null;setTimeout(function(){var again=document.getElementById('kkhCallHeroResultBtn');var fallback=document.getElementById('kkhCallHeroCard');var target=again||fallback;if(target&&typeof target.focus==='function')target.focus()},0)});
   }
-  function init(){q('#kkhFocusSave').onclick=saveFocus;q('#kkhCallPlus').onclick=function(){bumpCalls(1)};q('#kkhCallMinus').onclick=function(){bumpCalls(-1)};q('#kkhCallReset').onclick=function(){if(confirm('Den heutigen Anrufzähler wirklich auf 0 zurücksetzen?')){var c=getCalls();c.byDate[today()]=0;write(CALLS,c);renderAll();toast('Anrufzähler zurückgesetzt')}};q('#kkhCallSettingsSave').onclick=function(){var c=getCalls();['daily','weekly','monthly','yearly'].forEach(function(k){var el=q('#kkhTarget'+k.charAt(0).toUpperCase()+k.slice(1)),v=Number(el.value);if(isFinite(v)&&v>=0)c.targets[k]=v});write(CALLS,c);renderAll();toast('Anrufziele gespeichert')};q('#kkhDailyGoals').onclick=function(e){var b=e.target.closest('[data-step]');if(b)bumpGoal(b.dataset.metric,Number(b.dataset.step))};root.addEventListener('click',function(e){var b=e.target.closest('[data-done-id]');if(b){markDone(b.dataset.doneType,b.dataset.doneId);return}var tool=e.target.closest('[data-open-tool]');if(tool){e.preventDefault();openTool(tool.dataset.openTool)}});initQuick();initCallResultDialog();renderAll();window.addEventListener('storage',renderAll);window.addEventListener('kk:storage-changed',renderAll)}
+  function init(){q('#kkhFocusSave').onclick=saveFocus;q('#kkhCallPlus').onclick=function(){bumpCalls(1)};q('#kkhCallMinus').onclick=function(){bumpCalls(-1)};q('#kkhCallReset').onclick=function(){if(confirm('Den heutigen Anrufzähler wirklich auf 0 zurücksetzen?')){var c=getCalls();c.byDate[today()]=0;write(CALLS,c);renderAll();toast('Anrufzähler zurückgesetzt')}};q('#kkhCallSettingsSave').onclick=function(){var c=getCalls();['daily','weekly','monthly','yearly'].forEach(function(k){var el=q('#kkhTarget'+k.charAt(0).toUpperCase()+k.slice(1)),v=Number(el.value);if(isFinite(v)&&v>=0)c.targets[k]=v});write(CALLS,c);renderAll();toast('Anrufziele gespeichert')};q('#kkhDailyGoals').onclick=function(e){var b=e.target.closest('[data-step]');if(b)bumpGoal(b.dataset.metric,Number(b.dataset.step))};root.addEventListener('click',function(e){var b=e.target.closest('[data-done-id]');if(b){markDone(b.dataset.doneType,b.dataset.doneId);return}var tool=e.target.closest('[data-open-tool]');if(tool){e.preventDefault();openTool(tool.dataset.openTool)}});initQuick();initCallResultDialog();initMonitorMode();renderAll();window.addEventListener('storage',renderAll);window.addEventListener('kk:storage-changed',renderAll)}
   window.KK_BOOT.register('heute-dashboard-v29',init,{priority:20});
 })();
 </script>
@@ -3726,10 +3869,12 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
         </select></label>
         <label class="kkmkk-compare-jump-wrap" for="kkmkk-compare-town"><span>Vergleich</span><select id="kkmkk-compare-town" aria-label="Zweites Gebiet für den Vergleich auswählen"></select></label>
         <button class="kkmkk-head-btn" id="kkmkk-focus-btn" type="button" aria-pressed="false" title="Karte in einer großen Fokusansicht öffnen">Fokusansicht</button>
+        <button class="kkmkk-head-btn" id="kkmkk-presentation-btn" type="button" aria-pressed="false" title="Kontakt-, Follow-up- und Pipeline-Aktionen für Kundengespräche ausblenden">Präsentationsmodus</button>
         <button class="kkmkk-head-btn" id="kkmkk-refresh-btn" type="button" title="Kartendaten neu einlesen">Aktualisieren</button>
         <button class="kkmkk-head-btn" id="kkmkk-export-btn" type="button" title="Gebietsübersicht als CSV exportieren">CSV exportieren</button>
       </div>
     </div>
+    <div id="kkmkk-presentation-banner" role="status">Präsentationsmodus aktiv · Kontakt-, Follow-up- und Pipeline-Aktionen ausgeblendet</div>
 
     <div class="kkmkk-toolbar" id="kkmkk-filters" role="toolbar" aria-label="Kartenkennzahl auswählen">
       <button class="kkmkk-filter is-active" type="button" data-metric="potential" aria-pressed="true">Potenzial</button>
@@ -3831,6 +3976,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
             <button class="kkmkk-btn analysis" id="kkmkk-analyse-btn" type="button">Gebiet analysieren</button>
             <button class="kkmkk-btn secondary" id="kkmkk-contacts-btn" type="button">Kontakte anzeigen</button>
             <button class="kkmkk-btn secondary" id="kkmkk-followups-btn" type="button">Follow-ups öffnen</button>
+            <button class="kkmkk-btn secondary" id="kkmkk-pipeline-btn" type="button">Pipeline im Gebiet öffnen</button>
             <button class="kkmkk-btn market" id="kkmkk-market-btn" type="button">Marktdaten bearbeiten</button>
             <button class="kkmkk-btn plan" id="kkmkk-plan-btn" type="button">Gebietsplan &amp; Ziele</button>
           </div>
@@ -3918,6 +4064,15 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 .kkgeo-legend .blue{background:#24425F}.kkgeo-legend .green{background:#3F7A52}.kkgeo-legend .yellow{background:#A98F2E}.kkgeo-legend .orange{background:#BE6A2E}.kkgeo-legend .red{background:#B23A2C}.kkgeo-legend .gray{background:#D7DADE}
 .kkgeo-source-note{max-width:520px;margin:0;font-size:11px;color:#8b93a0;line-height:1.5}
 @media (max-width:760px){.kkgeo-shell{padding:6px 14px 32px}.kkgeo-map{height:340px}.kkgeo-head{flex-direction:column}.kkgeo-actions{width:100%;justify-content:space-between}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.kkgeo-table-wrap{margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0}
+.kkgeo-table-title{margin:0 0 10px;font-size:13px;font-weight:850;color:#182C46}
+.kkgeo-table-scroll{overflow-x:auto}
+.kkgeo-table{width:100%;min-width:420px;border-collapse:collapse;font-size:12.5px}
+.kkgeo-table th{text-align:left;padding:7px 10px;color:#5b6472;font-size:10px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #dfe7f1}
+.kkgeo-table td{padding:7px 10px;border-bottom:1px solid #eef1f5;color:#182C46}
+.kkgeo-table-town-btn{border:0;background:none;padding:0;font:inherit;font-weight:800;color:#182C46;text-decoration:underline;cursor:pointer}
+.kkgeo-table-town-btn:hover,.kkgeo-table-town-btn:focus-visible{color:#0f5fd6}
 </style>
 
 <!-- V31 PHASE A: additive echte Geo-Karte auf Leaflet-Basis, hinter KK_MAP/MapAdapter.
@@ -3954,6 +4109,20 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
         <span><i class="blue"></i>sehr hoch</span><span><i class="green"></i>hoch</span><span><i class="yellow"></i>mittel</span><span><i class="orange"></i>beobachten</span><span><i class="red"></i>Handlungsbedarf</span><span><i class="gray"></i>keine Daten</span>
       </div>
       <p class="kkgeo-source-note">Ortskoordinaten: plausible Näherungswerte aus allgemeiner Ortskenntnis, keine amtlich vermessenen Daten. Gemeindegrenzen folgen, sobald eine geprüfte GeoJSON-Quelle vorliegt (Architektur ist vorbereitet, siehe Backup → Datenqualität). Kontaktdichte-Ansicht zeigt keine echten Adressen und keine Namen — nur eine unscharfe Streuung um den Ortskern zur Mengenveranschaulichung.</p>
+    </div>
+    <!-- V31 Phase 15.4b (PRD Teil 4 §46, Teil 2 §32): nicht-optionale, immer im DOM
+         vorhandene Tabellenalternative zur Karte - für Screenreader-Nutzung und alle,
+         die die visuelle Kartenansicht nicht auswerten können. Kein Toggle nötig, um
+         sie zu erreichen; sie bleibt zusätzlich zur Karte bestehen, nicht statt ihr. -->
+    <div class="kkgeo-table-wrap">
+      <h3 class="kkgeo-table-title">Alle Gebiete als Tabelle (Alternative zur Karte)</h3>
+      <div class="kkgeo-table-scroll">
+        <table class="kkgeo-table" id="kkgeo-table">
+          <caption class="sr-only">Barrierefreie Alternative zur Kartenansicht: alle Gebiete des Main-Kinzig-Kreises mit der aktuell gewählten Kennzahl und Status.</caption>
+          <thead><tr><th scope="col">Ort</th><th scope="col" id="kkgeo-table-metric-header">Kennzahl</th><th scope="col">Status</th></tr></thead>
+          <tbody id="kkgeo-table-rows"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </section>
@@ -5364,6 +5533,22 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
        Browser, kein zweites Dialogsystem im Sinne von PRD Teil 2 §0.2. */
     .kkcp-detail-dialog{border:0;border-radius:18px;box-shadow:var(--v30-shadow-lg,0 20px 48px rgba(16,20,24,.16));padding:0;width:min(640px,92vw);max-height:85vh;color:var(--primary);background:#fff}
     .kkcp-detail-dialog::backdrop{background:rgba(20,26,32,.5)}
+    /* V31 Phase 15.1: Import-Vorschau-Dialog (PRD Teil 3 §29) — natives <dialog>,
+       kein zweites Dialogsystem, gleiches Muster wie kkcp-detail-dialog/kkhCallResultDialog. */
+    .kkimp-preview-dialog{border:0;border-radius:18px;box-shadow:var(--v30-shadow-lg,0 20px 48px rgba(16,20,24,.16));padding:0;width:min(560px,92vw);max-height:85vh;overflow:auto;color:var(--primary);background:#fff}
+    .kkimp-preview-dialog::backdrop{background:rgba(20,26,32,.5)}
+    .kkimp-preview-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
+    .kkimp-preview-head h3{margin:0 0 4px;font-family:Inter,system-ui,sans-serif;font-size:18px;color:var(--primary)}
+    .kkimp-preview-sub{margin:0;font-size:12.5px;color:var(--muted)}
+    .kkimp-preview-body{padding:14px 20px}
+    .kkimp-preview-warn{background:#fff4ed;border:1px solid #f4a460;color:#8a4b00;border-radius:10px;padding:10px 12px;font-size:12.5px;font-weight:750;margin:0 0 12px}
+    .kkimp-preview-table{width:100%;border-collapse:collapse;font-size:12.5px}
+    .kkimp-preview-table th{text-align:left;padding:6px 8px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line)}
+    .kkimp-preview-table td{padding:6px 8px;border-bottom:1px solid #f0f2f5}
+    .kkimp-preview-table td:last-child{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+    .kkimp-preview-skipped{margin:10px 0 0;font-size:11.5px;color:var(--muted)}
+    .kkimp-preview-actions{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px 18px;border-top:1px solid var(--line);position:sticky;bottom:0;background:#fff}
+    @media (max-width:480px){.kkimp-preview-actions{flex-direction:column-reverse}.kkimp-preview-actions .kkh-btn{width:100%}}
     .kkcp-detail-dialog .kkcp-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--line)}
     .kkcp-detail-dialog h3{margin:0 0 4px;font-family:Inter,system-ui,sans-serif;font-size:19px;color:var(--primary)}
     .kkcp-detail-meta{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted);font-weight:750}
@@ -5384,6 +5569,11 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
     .kkcp-detail-notes{font-size:13px;color:var(--primary);background:var(--box);border-radius:10px;padding:10px 12px;white-space:pre-wrap;margin:0}
     @media(max-width:620px){.kkcp-detail-grid{grid-template-columns:1fr}}
     #crm-pro-os .kkcp-quickfilter-banner[hidden]{display:none}
+    /* V31 Phase 15.2: benannte Standardansichten als sichtbare, einzeln entfernbare
+       Chips statt nur versteckter Dropdowns (PRD Teil 2 §9.1/§19). */
+    #crm-pro-os .kkcp-quickview-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+    #crm-pro-os .kkcp-quickview-chip{border-radius:999px;padding:6px 12px;font-size:11.5px}
+    #crm-pro-os .kkcp-quickview-chip.is-active{background:var(--v30-blue,var(--primary))!important;color:#fff!important;border-color:transparent!important}
     #crm-pro-os .kkcp-alert{border-left:5px solid var(--accent);background:rgba(192,57,43,.08);border-radius:14px;padding:12px;color:var(--primary);font-size:13px;font-weight:850;line-height:1.4}.kkcp-alert.green{border-left-color:var(--green);background:rgba(39,174,96,.10)}.kkcp-alert.orange{border-left-color:var(--orange);background:rgba(243,156,18,.15)}.kkcp-empty{border:1px dashed rgba(20,28,40,.24);border-radius:14px;background:var(--box);padding:13px;color:var(--muted);font-size:13px;font-weight:750}.kkcp-flow{display:flex;gap:8px;overflow:auto;padding:4px 0}.kkcp-flow span{min-width:130px;text-align:center;border:1px solid var(--line);border-radius:14px;background:var(--box);padding:10px 8px;color:var(--primary);font-size:11px;font-weight:950}.kkcp-flow span:after{content:"↓";display:block;color:var(--accent);line-height:1.1}.kkcp-flow span:last-child:after{content:"✓";color:var(--green)}
     #crm-pro-os .kkcp-checks{display:grid;gap:8px}.kkcp-checks label{display:flex;gap:8px;align-items:flex-start;background:#fffdf9;border:1px solid var(--line);border-radius:12px;padding:9px;font-size:13px;font-weight:750;color:var(--primary)}#crm-pro-os .kkcp-checks input{width:auto;margin-top:2px}.kkcp-toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(16px);background:var(--primary);color:#fff;border-radius:999px;padding:10px 14px;font-size:12px;font-weight:950;box-shadow:0 14px 34px rgba(20,28,40,.24);z-index:var(--z-toast);opacity:0;pointer-events:none;transition:.2s ease}.kkcp-toast.is-visible{opacity:1;transform:translateX(-50%) translateY(0)}
     @media (max-width:900px){#crm-pro-os .kkcp-head{display:block}#crm-pro-os .kkcp-actions{justify-content:flex-start;margin-top:12px}.kkcp-two,.kkcp-four,.kkcp-five,.kkcp-row,.kkcp-row.two,.kkcp-row.three,.kkcp-row.five{grid-template-columns:1fr 1fr}}
@@ -5457,6 +5647,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 </article>
 <article class="kkcp-card">
 <h3>Kontaktliste mit CRM-Prüfung</h3>
+<div class="kkcp-quickview-chips" id="kkcrmproQuickViewChips" role="group" aria-label="Standardansichten"></div>
 <div class="kkcp-quickfilter-banner" id="kkcrmproQuickFilterBanner" hidden="" role="status"><span id="kkcrmproQuickFilterText"></span><button type="button" class="kkcp-btn light" id="kkcrmproQuickFilterClear">Filter zurücksetzen</button></div>
 <div class="kkcp-row three"><div class="kkcp-field"><label>Suche</label><input aria-label="Name, Ort, Tag, Quelle" id="kkcrmproContactSearch" placeholder="Name, Ort, Tag, Quelle"/></div><div class="kkcp-field"><label>Gebiet</label><select aria-label="kkcrmproContactAreaFilter" id="kkcrmproContactAreaFilter"><option value="">alle</option></select></div><div class="kkcp-field"><label>Status</label><select aria-label="kkcrmproContactStatusFilter" id="kkcrmproContactStatusFilter"><option value="">alle</option></select></div></div>
 <div class="kkcp-table-wrap"><table class="kkcp-table"><thead><tr><th>Name</th><th>Typ</th><th>Gebiet</th><th>Nächste Aktion</th><th>WV</th><th>Aktion</th></tr></thead><tbody id="kkcrmproContactRows"></tbody></table></div>
@@ -5642,12 +5833,30 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
      Nutzt exakt dieselbe Erkennungslogik wie die Dashboard-Kennzahl selbst
      (kk-heute-v30-3-js renderKpis), damit die angezeigte Liste tatsaechlich
      zur geklickten Zahl passt statt nur grob in die richtige Richtung zu zeigen. */
-  var quickLeadFilter=false;
+  var activeQuickView='';
   function openLeadStatus(v){v=String(v||'').toLowerCase();return !/(erledigt|abgeschlossen|geschlossen|done|lost|verloren|archiv|inaktiv)/.test(v)}
   function isOpenLead(c){var t=[c.category,c.contactType,c.role,c.status].join(' ');return openLeadStatus(c.status)&&/(lead|eigentümer|eigentuemer|käufer|kaeufer|suchkunde|interessent|chance)/i.test(t)}
-  function updateQuickFilterBanner(matchCount){var el=$('#kkcrmproQuickFilterBanner'),txt=$('#kkcrmproQuickFilterText');if(!el)return;el.hidden=!quickLeadFilter;if(quickLeadFilter&&txt)txt.textContent='Gefiltert: Offene Leads aus dem Dashboard ('+matchCount+' Treffer)';}
-  function clearQuickFilter(){quickLeadFilter=false;renderContacts();}
-  function renderContacts(){var q=norm($('#kkcrmproContactSearch').value), area=$('#kkcrmproContactAreaFilter').value, status=$('#kkcrmproContactStatusFilter').value; var leadMatches=0; var rows=arr(KEYS.contacts).filter(function(c){var hay=norm([c.name,c.phone,c.email,c.area,c.district,c.tags,c.source,c.nextAction,c.notes].join(' ')); var okBase=(!q||hay.indexOf(q)>-1)&&(!area||c.area===area)&&(!status||c.status===status); if(!quickLeadFilter)return okBase; var okLead=isOpenLead(c); if(okBase&&okLead)leadMatches++; return okBase&&okLead}).sort(function(a,b){return String(contactNext(a)||'9999').localeCompare(String(contactNext(b)||'9999'))||String(a.name||'').localeCompare(String(b.name||''),'de')}).slice(0,80).map(function(c){var bad=[]; if(!c.phone)bad.push('Telefon fehlt'); if(!contactNext(c))bad.push('keine WV'); if(!c.nextAction)bad.push('keine Aktion'); return '<tr><td><div class="kkcp-name-row"><span class="kkcp-avatar" aria-hidden="true">'+esc((String(c.name||'?').trim().charAt(0)||'?').toUpperCase())+'</span><div class="kkcp-name-col"><b>'+esc(c.name)+'</b><br><span class="kkcp-pill '+(bad.length?'orange':'green')+'">'+(bad.length?bad.join(', '):'sauber')+'</span></div></div></td><td>'+esc(c.category||'')+'<br><small>'+esc(c.role||'')+'</small></td><td>'+esc(c.area||'—')+'</td><td>'+esc(c.nextAction||'—')+'</td><td>'+esc(contactNext(c)||'—')+'</td><td><button class="kkcp-btn light" data-contact-detail="'+esc(c.id)+'">Details</button> <button class="kkcp-btn light" data-edit-contact="'+esc(c.id)+'">Bearbeiten</button> <button class="kkcp-btn light" data-fu-contact="'+esc(c.id)+'">WV</button></td></tr>'}).join(''); $('#kkcrmproContactRows').innerHTML=rows||('<tr><td colspan="6">'+(quickLeadFilter?'Keine offenen Leads gefunden. <button type="button" class="kkcp-btn light" id="kkcrmproQuickFilterClearInline">Filter zurücksetzen</button>':'Keine Kontakte gefunden.')+'</td></tr>'); updateQuickFilterBanner(leadMatches); var inlineClear=$('#kkcrmproQuickFilterClearInline'); if(inlineClear)inlineClear.onclick=clearQuickFilter; bindMiniActions()}
+  function hasAnyActivity(c){var acts=arr(KEYS.activities);return acts.some(function(a){return (a.contactId&&c.id&&a.contactId===c.id)||(a.contact&&c.name&&norm(a.contact)===norm(c.name))})}
+  function dupeContactIdSet(){var ignored=read(KEYS.duplicates,{}),ids={};detectDupes().filter(function(g){return ignored[g.key]!=='ignorieren'}).forEach(function(g){g.items.forEach(function(c){if(c.id)ids[c.id]=true})});return ids}
+  /* V31 Phase 15.2 (PRD Teil 2 §9.1/§19): sechs benannte Standardansichten statt nur
+     einer einzelnen Dashboard-Drilldown-Kennzahl. "Eigentümer Kerngebiet" nutzt die
+     bereits bestehende Tier-A-Gebietsliste (AREA_TIER, Zeile ~5608), "Neue Kontakte"
+     die bestehende Aktivitätshistorie, "Datenqualität" die bestehende Dublettenprüfung —
+     keine neue Datenquelle, nur eine sichtbare, anklickbare Filterschicht darüber. */
+  var QUICK_VIEWS=[
+    {id:'openLeads',label:'Offene Leads',match:function(c){return isOpenLead(c)}},
+    {id:'noNextAction',label:'Ohne nächste Aktion',match:function(c){return openLeadStatus(c.status)&&!c.nextAction}},
+    {id:'contactToday',label:'Heute kontaktieren',match:function(c){var n=contactNext(c);return !!n&&n<=today()}},
+    {id:'ownerCore',label:'Eigentümer Kerngebiet',match:function(c){return /eigent(ü|ue)mer/i.test([c.category,c.role,c.contactType].join(' '))&&AREA_TIER[c.area]==='A'}},
+    {id:'newContacts',label:'Neue Kontakte',match:function(c){if(!c.createdAt)return false;var ageDays=(Date.now()-new Date(c.createdAt).getTime())/86400000;return ageDays<=14&&!hasAnyActivity(c)}},
+    {id:'dataQuality',label:'Datenqualität',match:function(c){var dupes=dupeContactIdSet();if(!normPhone(c.phone))return true;if(c.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email))return true;return !!(c.id&&dupes[c.id])}}
+  ];
+  function quickViewById(id){return QUICK_VIEWS.filter(function(v){return v.id===id})[0]}
+  function updateQuickFilterBanner(matchCount){var el=$('#kkcrmproQuickFilterBanner'),txt=$('#kkcrmproQuickFilterText'),view=quickViewById(activeQuickView);if(!el)return;el.hidden=!view;if(view&&txt)txt.textContent='Gefiltert: '+view.label+' ('+matchCount+' Treffer)';}
+  function clearQuickFilter(){activeQuickView='';renderContacts();}
+  function setQuickView(id){activeQuickView=(activeQuickView===id)?'':id;renderContacts();}
+  function renderQuickViewChips(){var host=$('#kkcrmproQuickViewChips');if(!host)return;host.innerHTML=QUICK_VIEWS.map(function(v){return '<button type="button" class="kkcp-btn light kkcp-quickview-chip'+(activeQuickView===v.id?' is-active':'')+'" data-quick-view="'+esc(v.id)+'" aria-pressed="'+(activeQuickView===v.id?'true':'false')+'">'+esc(v.label)+'</button>'}).join('');$$('[data-quick-view]',host).forEach(function(b){b.onclick=function(){setQuickView(b.dataset.quickView)}})}
+  function renderContacts(){var q=norm($('#kkcrmproContactSearch').value), area=$('#kkcrmproContactAreaFilter').value, status=$('#kkcrmproContactStatusFilter').value; var leadMatches=0; var view=quickViewById(activeQuickView); var rows=arr(KEYS.contacts).filter(function(c){var hay=norm([c.name,c.phone,c.email,c.area,c.district,c.tags,c.source,c.nextAction,c.notes].join(' ')); var okBase=(!q||hay.indexOf(q)>-1)&&(!area||c.area===area)&&(!status||c.status===status); if(!view)return okBase; var okView=view.match(c); if(okBase&&okView)leadMatches++; return okBase&&okView}).sort(function(a,b){return String(contactNext(a)||'9999').localeCompare(String(contactNext(b)||'9999'))||String(a.name||'').localeCompare(String(b.name||''),'de')}).slice(0,80).map(function(c){var bad=[]; if(!c.phone)bad.push('Telefon fehlt'); if(!contactNext(c))bad.push('keine WV'); if(!c.nextAction)bad.push('keine Aktion'); return '<tr><td><div class="kkcp-name-row"><span class="kkcp-avatar" aria-hidden="true">'+esc((String(c.name||'?').trim().charAt(0)||'?').toUpperCase())+'</span><div class="kkcp-name-col"><b>'+esc(c.name)+'</b><br><span class="kkcp-pill '+(bad.length?'orange':'green')+'">'+(bad.length?bad.join(', '):'sauber')+'</span></div></div></td><td>'+esc(c.category||'')+'<br><small>'+esc(c.role||'')+'</small></td><td>'+esc(c.area||'—')+'</td><td>'+esc(c.nextAction||'—')+'</td><td>'+esc(contactNext(c)||'—')+'</td><td><button class="kkcp-btn light" data-contact-detail="'+esc(c.id)+'">Details</button> <button class="kkcp-btn light" data-edit-contact="'+esc(c.id)+'">Bearbeiten</button> <button class="kkcp-btn light" data-fu-contact="'+esc(c.id)+'">WV</button></td></tr>'}).join(''); $('#kkcrmproContactRows').innerHTML=rows||('<tr><td colspan="6">'+(view?'Keine Treffer für „'+esc(view.label)+'“. <button type="button" class="kkcp-btn light" id="kkcrmproQuickFilterClearInline">Filter zurücksetzen</button>':'Keine Kontakte gefunden.')+'</td></tr>'); updateQuickFilterBanner(leadMatches); renderQuickViewChips(); var inlineClear=$('#kkcrmproQuickFilterClearInline'); if(inlineClear)inlineClear.onclick=clearQuickFilter; bindMiniActions()}
   
   function renderPipeline(){var stage=$('#kkcrmproPipeStageFilter').value, area=$('#kkcrmproPipeAreaFilter').value, sort=$('#kkcrmproPipeSort').value; var data=getOwners().filter(function(x){return isOpen(x.stage)&&(!stage||x.stage===stage)&&(!area||x.area===area)}); data.sort(function(a,b){if(sort==='due')return String(a.followUpDate||'9999').localeCompare(String(b.followUpDate||'9999')); return weighted(b)-weighted(a)||String(a.followUpDate||'9999').localeCompare(String(b.followUpDate||'9999'))}); $('#kkcrmproPipelineRows').innerHTML=data.map(function(x){return '<tr><td><b>'+esc(x.name)+'</b></td><td>'+esc(x.area||'—')+'</td><td>'+esc(x.objectType||'')+'<br><small>'+esc(x.address||'')+'</small></td><td>'+esc(x.stage||'—')+'</td><td>'+esc(x.lastContact||'—')+'</td><td>'+esc(x.nextStep||x.nextAction||'—')+'</td><td>'+esc(x.followUpDate||'—')+'</td><td>'+money(x.expectedCommission||x.commission)+'</td><td>'+pct(x.probability)+'</td><td><b>'+money(weighted(x))+'</b></td><td><button class="kkcp-btn light" data-pipeline-fu="'+esc(x.id)+'">WV</button></td></tr>'}).join('')||'<tr><td colspan="11">Keine offenen Verkäuferchancen.</td></tr>'; bindMiniActions(); renderObjectPipeline()}
   function renderObjectPipeline(){var objects=arr(KEYS.objects); $('#kkcrmproObjectPipelineRows').innerHTML=objects.map(function(o){var missing=DOCS.filter(function(d){return (o.docs||[]).indexOf(d)<0}); return '<tr><td><b>'+esc(o.address)+'</b><br><small>'+esc(o.objectType||o.kind||'')+'</small></td><td>'+esc(o.ownerName||'—')+'</td><td>'+esc(o.area||'—')+'</td><td>'+esc(o.status||'—')+'</td><td>'+(missing.slice(0,4).map(function(x){return '<span class="kkcp-pill orange">'+esc(x)+'</span>'}).join('')||'<span class="kkcp-pill green">vollständig</span>')+'</td><td>'+esc(o.nextStep||'Unterlagen prüfen')+'</td><td><button class="kkcp-btn light" data-edit-object="'+esc(o.id)+'">Bearbeiten</button></td></tr>'}).join('')||'<tr><td colspan="7">Noch keine Objektakten.</td></tr>'; bindMiniActions()}
@@ -5701,7 +5910,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
        Dashboard oder "Kontakt oeffnen" aus den Follow-ups landete dadurch auf
        einem Panel ohne die gefilterte Liste. Per Playwright-Sichtbarkeitscheck
        bestaetigt (offsetParent) und auf das tatsaechlich richtige Panel korrigiert. */
-    showOpenLeads:function(){quickLeadFilter=true;showTab('capture');renderAll();setTimeout(function(){var t=$('#kkcrmproContactRows');if(t)t.closest('.kkcp-table-wrap').scrollIntoView({behavior:'smooth',block:'start'})},120);},
+    showOpenLeads:function(){activeQuickView='openLeads';showTab('capture');renderAll();setTimeout(function(){var t=$('#kkcrmproContactRows');if(t)t.closest('.kkcp-table-wrap').scrollIntoView({behavior:'smooth',block:'start'})},120);},
     openContactByName:function(name){var c=arr(KEYS.contacts).find(function(x){return norm(x.name)===norm(name)}); if(!c){toast('Kein passender CRM-Kontakt gefunden'); return false} showTab('capture'); renderAll(); openContactDetail(c.id); return true;},
     findContactIdByName:function(name){var c=arr(KEYS.contacts).find(function(x){return norm(x.name)===norm(name)}); return c?c.id:''}
   });
@@ -6311,7 +6520,15 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <details class="kkops-card kk-mobile-form-card" open><summary><h3>Bewertungstermin hinzufügen / bearbeiten</h3><span class="kk-mobile-form-hint" aria-hidden="true"></span></summary><form class="kkops-form" id="valuationForm"><input id="valuationId" type="hidden"/><div class="kkops-row"><div class="kkops-field"><label>Eigentümername</label><input aria-label="valuationName" id="valuationName" required=""/></div><div class="kkops-field"><label>Objektadresse</label><input aria-label="valuationAddress" id="valuationAddress"/></div><div class="kkops-field"><label>Gebiet</label><select aria-label="valuationArea" id="valuationArea"></select></div><div class="kkops-field"><label>Objektart</label><select aria-label="valuationObject" id="valuationObject"><option>Haus</option><option>Wohnung</option><option>Mehrfamilienhaus</option><option>Grundstück</option></select></div></div><div class="kkops-row"><div class="kkops-field"><label>Status</label><select aria-label="valuationStatus" id="valuationStatus"><option>angefragt</option><option>vereinbart</option><option>durchgeführt</option><option>Nachfassung läuft</option><option>Auftrag gewonnen</option><option>Auftrag verloren</option></select></div><div class="kkops-field"><label>Termin-Datum</label><input aria-label="valuationDate" id="valuationDate" type="date"/></div><div class="kkops-field"><label>Objektwert €</label><input aria-label="valuationValue" id="valuationValue" step="1000" type="number"/></div><div class="kkops-field"><label>Motivation</label><select aria-label="valuationMotivation" id="valuationMotivation"><option>hoch</option><option>mittel</option><option>niedrig</option></select></div></div><div class="kkops-row"><div class="kkops-field"><label>Verkaufszeitraum</label><select aria-label="valuationTimeframe" id="valuationTimeframe"><option>0–30 Tage</option><option>31–90 Tage</option><option>3–6 Monate</option><option>6–12 Monate</option><option>langfristig</option></select></div><div class="kkops-field"><label>Konkurrenzmakler</label><select aria-label="valuationCompetitor" id="valuationCompetitor"><option>nein</option><option>ja</option></select></div><div class="kkops-field"><label>Unterlagen vollständig</label><select aria-label="valuationDocs" id="valuationDocs"><option>nein</option><option>ja</option></select></div><div class="kkops-field"><label>Follow-up</label><input aria-label="valuationFollow" id="valuationFollow" type="date"/></div></div><div class="kkops-row"><div class="kkops-field"><label>Nächster Schritt</label><input aria-label="valuationNext" id="valuationNext"/></div><div class="kkops-field"><label>Auftragspotenzial €</label><input aria-label="valuationCommission" id="valuationCommission" type="number" value="6000"/></div><div class="kkops-field"><label>Wahrscheinlichkeit %</label><input aria-label="valuationProbability" id="valuationProbability" max="100" min="0" type="number" value="25"/></div><div class="kkops-field"><label>Verlustgrund</label><input aria-label="valuationLoss" id="valuationLoss"/></div></div><div class="kkops-field"><label>Notizen</label><textarea aria-label="valuationNotes" id="valuationNotes"></textarea></div><button class="kkops-btn" type="submit">Bewertung speichern</button></form></details>
 <div class="kkops-card" style="margin-top:14px"><h3>Bewertungstermine nach Dringlichkeit</h3><div class="kkops-list" id="valuationList"></div></div>
 </div>
-</section></div><div aria-label="Tippgeber" class="kk-app-panel" data-app-panel="tippgeber" hidden="" id="kk-app-panel-tippgeber" role="tabpanel"><section class="kkops-section" id="tippgeber-pipeline">
+</section></div><div aria-label="Tippgeber" class="kk-app-panel" data-app-panel="tippgeber" hidden="" id="kk-app-panel-tippgeber" role="tabpanel">
+<!-- V31 Phase 15.3 (PRD Teil 2 §14): "Empfehlungsmaschine V20" (kk-referral-machine-v20,
+     unten) ist jetzt die primäre Tippgeber-Ansicht mit den 5 PRD-Standardansichten,
+     Detaildialog und ohne Personen-Scoring. Diese ältere Kennzahlen-/Formularvariante
+     lief bisher gleichzeitig sichtbar daneben - komplett funktionsfähig, aber bewusst
+     eingeklappt (Phase-D-Muster). Nichts entfernt, keine ID/Storage/Logik verändert. -->
+<details class="kk-tippgeber-legacy-wrap" id="kk-tippgeber-pipeline-legacy-wrap">
+<summary>Alternative Tippgeber-Übersicht öffnen · Kennzahlen und Formular (nutzt kk_referral_pipeline, fließt in die Empfehlungsmaschine V20 unten mit ein)</summary>
+<section class="kkops-section" id="tippgeber-pipeline">
 <div class="kkops-shell">
 <div class="kkops-head"><div><span class="kkops-kicker">Ebene 2 · Management</span><h2>Empfehlungsmaschine: Tippgeber → Eigentümerkontakt</h2><p>Aufbau und Pflege lokaler Multiplikatoren mit Kontaktfrequenz, Gegenwert und messbarem Ergebnis.</p></div><div class="kkops-actions"><button class="kkops-btn light" data-export="kk_referral_pipeline" type="button">Export</button></div></div>
 <div class="kkops-grid kkops-four" id="referralStats"></div>
@@ -6319,6 +6536,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <div class="kkops-card" style="margin-top:14px"><h3>Tippgeber und offene Pflege</h3><div class="kkops-list" id="referralList"></div></div>
 </div>
 </section>
+</details>
 <section aria-label="Tippgeber Empfehlungsmaschine" class="kkref20-section" id="kk-referral-machine-v20">
 <div class="kkref20-shell">
 <div class="kkref20-head">
@@ -6328,7 +6546,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <p>Dieses Modul verwaltet lokale Tippgeber nach Kategorie, Ort, Status sowie manuell gesetzten Kontaktterminen. Es berechnet keine Personen-Scores und erstellt keine automatischen Prioritäten.</p>
 </div>
 <div class="kkref20-actions">
-<button class="kkref20-btn light" data-kkref20-view="week" type="button">Diese Woche</button>
+<button class="kkref20-btn light" data-kkref20-view="due" type="button">Pflege fällig</button>
 <button class="kkref20-btn light" data-kkref20-migrate="" type="button">Bestehende Daten übernehmen</button>
 <button class="kkref20-btn light" data-kkref20-export="" type="button">Export</button>
 </div>
@@ -6365,14 +6583,19 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 </div>
 </form>
 </article>
-<article class="kkref20-card">
+<article class="kkref20-card" id="kkref20ViewsCard" tabindex="-1">
 <h3>Operative Ansichten</h3>
+<!-- V31 Phase 15.3 (PRD Teil 2 §14): die 5 vom PRD benannten Standardansichten
+     zuerst, in PRD-Reihenfolge/-Wortlaut; "Vernachlässigte Kontakte" ist keine
+     PRD-Pflichtansicht, bleibt aber als bestehende, funktionierende Zusatzansicht
+     erhalten statt entfernt zu werden. -->
 <div aria-label="Tippgeber Ansichten" class="kkref20-tabs" role="tablist">
-<button class="kkref20-tab is-active" data-kkref20-view="top" type="button">Alle Tippgeber</button>
-<button class="kkref20-tab" data-kkref20-view="week" type="button">Diese Woche pflegen</button>
+<button class="kkref20-tab is-active" data-kkref20-view="due" type="button">Pflege fällig</button>
+<button class="kkref20-tab" data-kkref20-view="new" type="button">Neue Partner</button>
+<button class="kkref20-tab" data-kkref20-view="active" type="button">Aktive Empfehlungen</button>
+<button class="kkref20-tab" data-kkref20-view="recent" type="button">Letzte Kontakte</button>
+<button class="kkref20-tab" data-kkref20-view="network" type="button">Netzwerk nach Ort/Branche</button>
 <button class="kkref20-tab" data-kkref20-view="neglected" type="button">Vernachlässigte Kontakte</button>
-<button class="kkref20-tab" data-kkref20-view="town" type="button">Nach Ort</button>
-<button class="kkref20-tab" data-kkref20-view="category" type="button">Nach Kategorie</button>
 </div>
 <div id="kkref20ViewContent"></div>
 </article>
@@ -6383,8 +6606,48 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <div class="kkref20-validation" id="kkref20Validation">Validierung läuft.</div>
 </article>
 </div>
+<!-- V31 Phase 15.3 (PRD Teil 2 §14 "Listenansicht + Detailansicht"): natives <dialog>,
+     kein zweites Dialogsystem - gleiches Muster wie kkcrmproContactDetailDialog (Phase 8). -->
+<dialog class="kkref20-detail-dialog" id="kkref20DetailDialog" aria-labelledby="kkref20DetailName">
+  <div class="kkref20-detail-head">
+    <div>
+      <h3 id="kkref20DetailName"></h3>
+      <div class="kkref20-detail-meta" id="kkref20DetailMeta"></div>
+    </div>
+    <button type="button" class="kkref20-detail-close" id="kkref20DetailClose" aria-label="Schließen">✕</button>
+  </div>
+  <div class="kkref20-detail-body">
+    <div class="kkref20-detail-grid" id="kkref20DetailGrid"></div>
+    <div class="kkref20-detail-block">
+      <h4>Nächster Pflegeschritt</h4>
+      <p id="kkref20DetailNextAction"></p>
+    </div>
+    <div class="kkref20-detail-block">
+      <h4>Empfehlungshistorie</h4>
+      <p id="kkref20DetailHistory"></p>
+    </div>
+    <div class="kkref20-detail-block">
+      <h4>Notizen</h4>
+      <p class="kkref20-detail-notes" id="kkref20DetailNotes"></p>
+    </div>
+  </div>
+  <div class="kkref20-detail-actions">
+    <button type="button" class="kkref20-btn light" id="kkref20DetailTouchBtn">Heute kontaktiert</button>
+    <button type="button" class="kkref20-btn light" id="kkref20DetailEditBtn">Bearbeiten</button>
+  </div>
+</dialog>
 </section>
 
+<!-- V31 Phase 15.3 (PRD Teil 2 §14): Netzwerk-Playbook-Kapitel (Skripte je Branche) und
+     das alte "Tippgeber-Betriebssystem" (kkref-, eigenes Storage kk_referral_partners_os)
+     liefen bisher permanent sichtbar unterhalb der neuen Empfehlungsmaschine V20 -
+     Verstoß gegen PRD §14 ("Skripte kontextbezogen aufrufbar, nicht dauerhaft dominant")
+     und die Navigationsregel, kein Modul allein wegen seines Umfangs primär zu halten
+     (dieser Block ist selbst >2000 Zeilen). Eingeklappt, nicht gelöscht (Phase-D-Muster);
+     kkref-Formulare/-Board bleiben voll funktionsfähig, ihre Daten fließen weiterhin über
+     migrate() in kk_referral_network_v1 (V20) ein. -->
+<details class="kk-tippgeber-legacy-wrap" id="kk-tippgeber-netzwerk-legacy-wrap">
+<summary>Netzwerk-Playbook &amp; altes Tippgeber-Betriebssystem öffnen · Branchenskripte, Kontaktmatrix, Legacy-Formular</summary>
 <section class="chapter" id="netzwerk"><div class="container wide"><h2>06 · Netzwerk &amp; Tippgeber: bestehende Kontaktbasis</h2><p>Die vorhandenen Kontaktgruppen bleiben erhalten. Sie werden durch das Tippgeber-System operativ über Status, Einwilligung, Wiedervorlage, Skripte und messbare Ergebnisse gepflegt.</p><div class="callout"><strong>Arbeitslogik:</strong> Kontaktkarten sind nur Rohmaterial. Wert entsteht erst, wenn pro Kontakt ein Verkaufsanlass, eine saubere Empfehlungsformulierung, ein nächster Touchpoint und ein messbares Ergebnis gepflegt werden.</div>
 <div class="partner-section" id="pg-hausverwaltungen">
 <h3>Hausverwaltungen</h3>
@@ -8404,7 +8667,9 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <article class="kkref-card" style="margin-top:14px"><h3>Tägliche, wöchentliche und monatliche Tippgeber-KPIs</h3><div class="kkref-grid kkref-three"><div class="kkref-card"><h4>Täglich</h4><p>Neue Tippgeberkontakte, Erstkontakte, erledigte Follow-ups, Partnergespräche, neue Hinweise.</p></div><div class="kkref-card"><h4>Wöchentlich</h4><p>Ziel: 10–20 geprüfte Kontakte, 8–15 Erstkontakte, 4–8 echte Gespräche, 1–3 Termine, 1–3 Hinweise.</p></div><div class="kkref-card"><h4>Monatlich</h4><p>Ziel: 10–25 aktive Tippgeber, 3–8 qualifizierte Hinweise, 1–4 Bewertungstermine, 1–2 Aufträge als Zielbild.</p></div></div></article>
 <article class="kkref-card" style="margin-top:14px"><h3>50 Maßnahmen für das Tippgeber-System</h3><ol class="kkref-top50"><li>Eigene Kategorie Senioren &amp; Pflege als großen Netzwerkhebel führen.</li><li>Entrümpler &amp; Haushaltsauflöser als Kanal aufnehmen.</li><li>Partnerstatus von Rohkontakt bis Aktiver Partner pflegen.</li><li>Ansprechpartner-Feld verpflichtend machen; keine Firmen ohne Person.</li><li>Trigger-Feld pro Partnergruppe ergänzen.</li><li>Einwilligung als Pflichtfeld vor jeder Kontaktaufnahme setzen.</li><li>Empfehlungsformulierung pro Partnergruppe hinterlegen.</li><li>Nachlassimmobilien-Prozess mit 7/21/45-Tage-Follow-up aufnehmen.</li><li>Senioren-Wohnwechsel-Prozess mit Angehörigenleitfaden ergänzen.</li><li>WEG-Beirat-Strategie in A-Gebieten aufbauen.</li><li>Handwerker nach Gewerk segmentieren.</li><li>SHK, Dachdecker, Elektriker, Entrümpler und Gartenbau zuerst aktivieren.</li><li>Steuerberater-Angebot auf Immobilien-Schnellcheck und Vermieter-Frust-Check verdichten.</li><li>Anwälte-Angebot auf Erbe, Scheidung, Immobilienwert und Unterlagenstruktur fokussieren.</li><li>Notare aus Tippgeberlogik herausnehmen und als Qualitätskanal führen.</li><li>Vereine auf drei Kernvereine pro A-Gebiet reduzieren.</li><li>Unternehmerliste pro Region starten.</li><li>Monatliche Partnerpflege-Routine einbauen.</li><li>Conversion Tipp → Gespräch → Bewertung → Auftrag messen.</li><li>Wöchentliche Tippgeber-Aktivierung ins Dashboard setzen.</li><li>Jeden Hinweis mit Quelle, Einwilligung und Qualität erfassen.</li><li>Nach jedem Hinweis Dank und Statusupdate ohne vertrauliche Details senden.</li><li>Nach erfolgreichem Abschluss persönlichen Dank senden, ohne unseriöse Vergütungsversprechen.</li><li>Quartalsweise anonymisierte Fallbeispiele für Steuerberater und Anwälte erstellen.</li><li>WEG-Verkaufsservice als klares Angebot für Hausverwaltungen formulieren.</li><li>Notar-ready-Unterlagenliste in WEG- und Nachlassfällen nutzen.</li><li>Sanieren-oder-Verkaufen-Check für Handwerker als Türöffner einsetzen.</li><li>Immobilie-im-Alter-Checkliste für Pflegedienste und Seniorenberater nutzen.</li><li>Angehörigen-Gesprächsleitfaden in Nachlass- und Pflegefällen hinterlegen.</li><li>Jede aktive Quelle mindestens mit nächstem Touchpoint versehen.</li><li>C-Kontakte nicht aktiv pflegen, wenn keine klare Relevanz besteht.</li><li>Jeden Montag 10 neue oder bestehende Kontakte qualifizieren.</li><li>Jeden Dienstag fünf Handwerker/Hausverwaltungen anrufen.</li><li>Jeden Mittwoch Fachpartner ohne Lead-Sprache kontaktieren.</li><li>Jeden Donnerstag eine echte lokale Präsenzaktion durchführen.</li><li>Jeden Freitag alle Tippgeber-Follow-ups schließen.</li><li>Mindestens 10–20 neue geprüfte Tippgeberkontakte pro Woche aufbauen.</li><li>Wöchentlich 4–8 echte Partnergespräche führen.</li><li>Monatlich 3–8 qualifizierte Hinweise als Zielwert kontrollieren.</li><li>Monatlich 1–4 Bewertungstermine aus Empfehlungen anstreben.</li><li>A-Gebiete bei allen Partnern sichtbar priorisieren.</li><li>B-Gebiete nur bei guter Qualität pflegen; C-Gebiete anlassbezogen.</li><li>Jeden Partner mit konkreter Nutzenhypothese ansprechen.</li><li>Keine pauschalen „Haben Sie jemanden?”-Fragen verwenden.</li><li>Keine personenbezogenen Daten ohne ausdrückliche Zustimmung annehmen.</li><li>Keine Rechts- oder Steuerberatung simulieren.</li><li>Senioren- und Nachlasssprache ruhig, würdevoll und nicht verkäuferisch halten.</li><li>Bestehende Kontaktkarten aus dem Netzwerk-Kapitel ins neue Partner-OS übernehmbar machen.</li><li>Exportfunktion für Tippgeberdaten regelmäßig zur Datensicherung nutzen.</li></ol></article>
 </div>
-</section></div>
+</section>
+</details>
+</div>
 <div aria-label="KI-Prompt-Assistent" class="kk-app-panel" data-app-panel="ki-prompts" hidden="" id="kk-app-panel-ki-prompts" role="tabpanel">
 <section class="kkai-section" id="ki-prompt-assistent" aria-label="KI-Prompt-Assistent ohne API">
   <div class="kkai-shell">
@@ -10148,7 +10413,21 @@ Wenn du eine Immobilie im Main-Kinzig-Kreis besitzt und nicht sicher bist, ob od
 <article class="kk11-card" id="global-backup"><h3>Globaler Export / Import / Backup</h3><p>Verwendet dieselbe zentrale V28.2-Backup-Engine wie die technische Sicherung darüber. CRM, Follow-ups, Pipeline, Tippgeber, Markt- und Tagesdaten werden über eine gemeinsame Key-Registry exportiert und validiert importiert.</p><div class="kk11-backupbar"><button class="kk11-btn" data-kk11-action="backup" type="button">Vollständiges Produktionssystem sichern</button><label class="kk11-btn light">Backup importieren <input accept="application/json" aria-label="Backup importieren" hidden="" id="kk11ImportFile" type="file"/></label><button class="kk11-btn light" data-kk11-action="schema" type="button">Schema speichern</button></div><div class="kk11-status" id="kk11BackupStatus">Bereit.</div></article>
 </div>
 </div>
-</section><section class="kkops-section" id="datenqualitaet"><div class="kkops-shell"><div class="kkops-head"><div><span class="kkops-kicker">Ebene 2 · Datenqualität</span><h2>Datenqualität / Recherche-Warteschlange</h2><p>Kontakte mit fehlender Telefonnummer, fehlender E-Mail, Platzhaltern, falschen Feldern oder fehlendem nächsten Schritt werden vor der Akquise sichtbar.</p></div><div class="kkops-actions"><button class="kkops-btn" id="dataScanBtn" type="button">CRM prüfen</button><button class="kkops-btn light" data-export="kk_data_quality_queue" type="button">Export</button></div></div><div class="kkops-grid kkops-four" id="dataStats"></div><div class="kkops-card" style="margin-top:14px"><h3>Recherche-Warteschlange</h3><div class="kkops-list" id="dataQueue"></div></div></div></section></div></main>
+</section><section class="kkops-section" id="datenqualitaet"><div class="kkops-shell"><div class="kkops-head"><div><span class="kkops-kicker">Ebene 2 · Datenqualität</span><h2>Datenqualität / Recherche-Warteschlange</h2><p>Kontakte mit fehlender Telefonnummer, fehlender E-Mail, Platzhaltern, falschen Feldern oder fehlendem nächsten Schritt werden vor der Akquise sichtbar.</p></div><div class="kkops-actions"><button class="kkops-btn" id="dataScanBtn" type="button">CRM prüfen</button><button class="kkops-btn light" data-export="kk_data_quality_queue" type="button">Export</button></div></div><div class="kkops-grid kkops-four" id="dataStats"></div><div class="kkops-card" style="margin-top:14px"><h3>Recherche-Warteschlange</h3><div class="kkops-list" id="dataQueue"></div></div></div></section><dialog class="kkimp-preview-dialog" id="kkImportPreviewDialog" aria-labelledby="kkImportPreviewTitle">
+<div class="kkimp-preview-head">
+<div><h3 id="kkImportPreviewTitle">Import prüfen</h3><p class="kkimp-preview-sub" id="kkImportPreviewSubtitle"></p></div>
+<button aria-label="Schließen" class="kkh-btn light" id="kkImportPreviewCloseBtn" type="button">✕</button>
+</div>
+<div class="kkimp-preview-body">
+<p class="kkimp-preview-warn" hidden="" id="kkImportPreviewWarn"></p>
+<table class="kkimp-preview-table"><thead><tr><th>Bereich</th><th>Datensätze</th></tr></thead><tbody id="kkImportPreviewRows"></tbody></table>
+<p class="kkimp-preview-skipped" hidden="" id="kkImportPreviewSkipped"></p>
+</div>
+<div class="kkimp-preview-actions">
+<button class="kkh-btn light" id="kkImportPreviewCancelBtn" type="button">Abbrechen</button>
+<button class="kkh-btn" id="kkImportPreviewConfirmBtn" type="button">Übernehmen</button>
+</div>
+</dialog></div></main>
 <script>
 (function(){
   'use strict';
@@ -12194,7 +12473,7 @@ window.KK_BOOT.register('markt-tagesmonitor',init,{priority:64});
   var DAY=86400000;
   var TOWNS=['Bruchköbel','Hanau','Schöneck','Nidderau','Erlensee','Langenselbold','Maintal','Neuberg','Hammersbach','Rodenbach','Freigericht','Gelnhausen','Main-Kinzig-Kreis','Rhein-Main','überregional / prüfen'];
   var CATEGORIES=['Handwerker','Hausverwaltungen','Steuerberater','Anwälte','Notare','Architekten','Energieberater','Gutachter','Versicherungen','Bankberater','Unternehmer','Vereinskontakte','Gastronomen','Friseure','Bestatter','Pflege-/Seniorenkontakte','Arbeitgeber / Industrie','lokale Multiplikatoren'];
-  var state={view:'top'};
+  var state={view:'due',networkBy:'town'};
   var qs=window.KK_UTIL.qs;
   var qsa=window.KK_UTIL.qsa;
   var esc=window.KK_UTIL.esc;
@@ -12227,21 +12506,55 @@ window.KK_BOOT.register('markt-tagesmonitor',init,{priority:64});
   function saveForm(e){if(e)e.preventDefault();var x=normalize(form());if(!x.name||x.name==='Unbenannter Tippgeber'){toast('Name fehlt.');return}var list=items(),idx=list.findIndex(function(a){return a.id===x.id});if(idx>-1){x.createdAt=list[idx].createdAt||x.createdAt;x.legacyScore=list[idx].legacyScore;x.legacyScoreCategory=list[idx].legacyScoreCategory;x.legacyTipQuality=list[idx].legacyTipQuality;list[idx]=x}else list.push(x);save(list);render();clearForm();toast('Tippgeber gespeichert.')}
   function touch(id){var list=items(),x=list.find(function(a){return a.id===id});if(!x)return;x.lastContact=todayISO();x.updatedAt=new Date().toISOString();save(list);render();toast('Kontakt als heute dokumentiert. Nächsten Termin bei Bedarf manuell setzen.')}
   function remove(id){save(items().filter(function(x){return x.id!==id}));render();toast('Tippgeber entfernt. Legacy-Daten bleiben erhalten.')}
+  /* V31 Phase 15.3 (PRD Teil 2 §14, 5 benannte Standardansichten): jede Liste ist ein
+     rein faktenbasierter Filter/Sortierung auf vorhandenen Feldern - keine berechneten
+     Scores oder Rankings, entsprechend der PRD-Vorgabe "keine automatische Personen-
+     bewertung". */
   function dueList(){return items().filter(function(x){var d=daysUntil(x.nextContact);return d<=7}).sort(function(a,b){return String(a.nextContact||'9999').localeCompare(String(b.nextContact||'9999'))})}
   function neglectedList(){return items().filter(function(x){return daysSince(x.lastContact)>90}).sort(function(a,b){return daysSince(b.lastContact)-daysSince(a.lastContact)})}
   function allList(){return items().slice().sort(function(a,b){return String(a.name||'').localeCompare(String(b.name||''),'de')})}
-  function itemCard(x){return '<div class="kkref20-item"><strong>'+esc(x.name)+'</strong><span class="kkref20-pill">'+esc(x.status)+'</span><span class="kkref20-pill">'+esc(x.category)+'</span><small>'+esc(x.ort)+' · letzter Kontakt: '+esc(x.lastContact||'—')+' · nächster Kontakt: '+esc(x.nextContact||'—')+'</small><small>Nächste Aktion: '+esc(x.nextAction||'—')+'</small><div class="kkref20-item-actions"><button class="kkref20-btn light" data-kkref20-edit="'+esc(x.id)+'">Bearbeiten</button><button class="kkref20-btn light" data-kkref20-touch="'+esc(x.id)+'">Heute kontaktiert</button><button class="kkref20-btn danger" data-kkref20-delete="'+esc(x.id)+'">Löschen</button></div></div>'}
-  function table(){var box=qs('#kkref20Table');if(!box)return;var list=allList();box.innerHTML=list.length?'<div class="kkref20-tablewrap"><table class="kkref20-table"><thead><tr><th>Name</th><th>Kategorie</th><th>Ort</th><th>Status</th><th>Letzter Kontakt</th><th>Nächster Kontakt</th><th>Tipps</th><th>Wert</th><th>Aktion</th></tr></thead><tbody>'+list.map(function(x){return '<tr><td><b>'+esc(x.name)+'</b></td><td>'+esc(x.category)+'</td><td>'+esc(x.ort)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.lastContact||'—')+'</td><td>'+esc(x.nextContact||'—')+'</td><td>'+esc(x.previousTips)+'</td><td>'+esc(euro(x.estimatedReferralValue))+'</td><td><button class="kkref20-btn light" data-kkref20-edit="'+esc(x.id)+'">Bearbeiten</button></td></tr>'}).join('')+'</tbody></table></div>':'<div class="kkref20-empty">Noch keine Tippgeber erfasst.</div>'}
+  /* "Neue Partner" = Onboarding unvollständig: noch in den beiden frühesten,
+     nicht-aktiven Status-Stufen (Recherche/Neu), neueste zuerst. */
+  function newPartnerList(){return items().filter(function(x){return x.status==='Recherche'||x.status==='Neu'}).sort(function(a,b){return String(b.createdAt||'').localeCompare(String(a.createdAt||''))})}
+  /* "Aktive Empfehlungen" = offener Status (alles außer bewusst pausiert). */
+  function activeList(){return items().filter(function(x){return x.status!=='Pausiert'}).sort(function(a,b){return String(a.name||'').localeCompare(String(b.name||''),'de')})}
+  /* "Letzte Kontakte" = chronologische Historie der zuletzt dokumentierten Kontakte. */
+  function recentList(){return items().filter(function(x){return !!x.lastContact}).sort(function(a,b){return String(b.lastContact).localeCompare(String(a.lastContact))})}
+  function itemCard(x){return '<div class="kkref20-item"><button type="button" class="kkref20-name-btn" data-kkref20-detail="'+esc(x.id)+'">'+esc(x.name)+'</button><span class="kkref20-pill">'+esc(x.status)+'</span><span class="kkref20-pill">'+esc(x.category)+'</span><small>'+esc(x.ort)+' · letzter Kontakt: '+esc(x.lastContact||'—')+' · nächster Kontakt: '+esc(x.nextContact||'—')+'</small><small>Nächste Aktion: '+esc(x.nextAction||'—')+'</small><div class="kkref20-item-actions"><button class="kkref20-btn light" data-kkref20-edit="'+esc(x.id)+'">Bearbeiten</button><button class="kkref20-btn light" data-kkref20-touch="'+esc(x.id)+'">Heute kontaktiert</button><button class="kkref20-btn danger" data-kkref20-delete="'+esc(x.id)+'">Löschen</button></div></div>'}
+  function table(){var box=qs('#kkref20Table');if(!box)return;var list=allList();box.innerHTML=list.length?'<div class="kkref20-tablewrap"><table class="kkref20-table"><thead><tr><th>Name</th><th>Kategorie</th><th>Ort</th><th>Status</th><th>Letzter Kontakt</th><th>Nächster Kontakt</th><th>Tipps</th><th>Wert</th><th>Aktion</th></tr></thead><tbody>'+list.map(function(x){return '<tr><td><button type="button" class="kkref20-name-btn" data-kkref20-detail="'+esc(x.id)+'">'+esc(x.name)+'</button></td><td>'+esc(x.category)+'</td><td>'+esc(x.ort)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.lastContact||'—')+'</td><td>'+esc(x.nextContact||'—')+'</td><td>'+esc(x.previousTips)+'</td><td>'+esc(euro(x.estimatedReferralValue))+'</td><td><button class="kkref20-btn light" data-kkref20-edit="'+esc(x.id)+'">Bearbeiten</button></td></tr>'}).join('')+'</tbody></table></div>':'<div class="kkref20-empty">Noch keine Tippgeber erfasst.</div>'}
   function renderStats(){var list=items(),active=list.filter(function(x){return x.status==='Aktiv'}).length,due=dueList().length,neg=neglectedList().length,value=list.reduce(function(s,x){return s+n(x.estimatedReferralValue)},0),stats=[['Tippgeber gesamt',list.length,'Speicher: '+KEY],['Aktiv',active,'manuell gepflegter Status'],['Kontakttermine fällig',due,'manuell gesetzte Termine'],['Länger nicht kontaktiert',neg,'über 90 Tage'],['erfasster Tippgeberwert',euro(value),'Summe Netzwerk']];var el=qs('#kkref20Stats');if(el)el.innerHTML=stats.map(function(x){return '<div class="kkref20-card kkref20-stat"><b>'+esc(x[1])+'</b><span>'+esc(x[0])+'</span><small>'+esc(x[2])+'</small></div>'}).join('')}
   function renderGrouped(by){var list=items(),groups={};list.forEach(function(x){var key=by==='category'?x.category:x.ort;if(!groups[key])groups[key]=[];groups[key].push(x)});var keys=Object.keys(groups).sort(function(a,b){return a.localeCompare(b,'de')});if(!keys.length)return '<div class="kkref20-empty">Noch keine gruppierbaren Tippgeber vorhanden.</div>';return '<div class="kkref20-groupgrid">'+keys.map(function(k){var a=groups[k].slice().sort(function(x,y){return String(x.name).localeCompare(String(y.name),'de')});return '<div class="kkref20-group"><h4>'+esc(k)+' <span class="kkref20-pill">'+a.length+'</span></h4><ul>'+a.slice(0,8).map(function(x){return '<li><strong>'+esc(x.name)+'</strong> · '+esc(x.status)+' · '+esc(x.nextContact||'offen')+'</li>'}).join('')+'</ul></div>'}).join('')+'</div>'}
-  function renderView(view){state.view=view||state.view||'top';qsa('[data-kkref20-view]').forEach(function(b){b.classList.toggle('is-active',b.getAttribute('data-kkref20-view')===state.view)});var box=qs('#kkref20ViewContent');if(!box)return;if(state.view==='top'){var a=allList();box.innerHTML=a.length?'<div class="kkref20-list">'+a.slice(0,30).map(itemCard).join('')+'</div>':'<div class="kkref20-empty">Noch keine Tippgeber erfasst.</div>';return}if(state.view==='week'){var w=dueList();box.innerHTML=w.length?'<div class="kkref20-list">'+w.map(itemCard).join('')+'</div>':'<div class="kkref20-alert green">Keine manuell gesetzten Kontakttermine in den nächsten sieben Tagen.</div>';return}if(state.view==='neglected'){var nlist=neglectedList();box.innerHTML=nlist.length?'<div class="kkref20-list">'+nlist.map(itemCard).join('')+'</div>':'<div class="kkref20-alert green">Keine Kontakte seit mehr als 90 Tagen ohne Pflege.</div>';return}if(state.view==='town'){box.innerHTML=renderGrouped('town');return}if(state.view==='category'){box.innerHTML=renderGrouped('category')}}
+  function networkToggleHtml(){return '<div class="kkref20-network-toggle"><button type="button" class="kkref20-tab'+(state.networkBy==='town'?' is-active':'')+'" data-kkref20-network-by="town">Nach Ort</button><button type="button" class="kkref20-tab'+(state.networkBy==='category'?' is-active':'')+'" data-kkref20-network-by="category">Nach Branche</button></div>'}
+  function renderView(view){state.view=view||state.view||'due';qsa('[data-kkref20-view]').forEach(function(b){b.classList.toggle('is-active',b.getAttribute('data-kkref20-view')===state.view)});var box=qs('#kkref20ViewContent');if(!box)return;
+    if(state.view==='due'){var w=dueList();box.innerHTML=w.length?'<div class="kkref20-list">'+w.map(itemCard).join('')+'</div>':'<div class="kkref20-alert green">Keine fällige oder überfällige Pflege in den nächsten sieben Tagen.</div>';return}
+    if(state.view==='new'){var np=newPartnerList();box.innerHTML=np.length?'<div class="kkref20-list">'+np.map(itemCard).join('')+'</div>':'<div class="kkref20-empty">Keine Partner in der Onboarding-Phase (Recherche/Neu).</div>';return}
+    if(state.view==='active'){var ac=activeList();box.innerHTML=ac.length?'<div class="kkref20-list">'+ac.slice(0,30).map(itemCard).join('')+'</div>':'<div class="kkref20-empty">Keine aktiven Empfehlungen (alle Partner pausiert).</div>';return}
+    if(state.view==='recent'){var rc=recentList().slice(0,30);box.innerHTML=rc.length?'<div class="kkref20-list">'+rc.map(itemCard).join('')+'</div>':'<div class="kkref20-empty">Noch kein dokumentierter Kontakt.</div>';return}
+    if(state.view==='network'){box.innerHTML=networkToggleHtml()+renderGrouped(state.networkBy);return}
+    if(state.view==='neglected'){var nlist=neglectedList();box.innerHTML=nlist.length?'<div class="kkref20-list">'+nlist.map(itemCard).join('')+'</div>':'<div class="kkref20-alert green">Keine Kontakte seit mehr als 90 Tagen ohne Pflege.</div>';return}
+  }
   function renderKpi(){var panel=qs('#kk-app-panel-kpis');if(!panel)return;var box=qs('#kkref20KpiCard');if(!box){box=document.createElement('section');box.id='kkref20KpiCard';box.className='kkref20-card kkref20-kpi-insert';panel.insertBefore(box,panel.firstElementChild||null)}var list=items(),value=list.reduce(function(sum,item){return sum+n(item.estimatedReferralValue)},0);box.innerHTML='<h3>Tippgeber-KPIs</h3><div class="kkref20-grid kkref20-three"><div class="kkref20-stat"><b>'+esc(list.length)+'</b><span>Tippgeber gesamt</span></div><div class="kkref20-stat"><b>'+esc(list.filter(function(item){return item.status==='Aktiv'}).length)+'</b><span>aktive Tippgeber</span></div><div class="kkref20-stat"><b>'+esc(euro(value))+'</b><span>erfasster Tippgeberwert</span></div></div><p class="kkref20-validation">Keine automatische Personenbewertung oder Kontaktpriorisierung.</p>'}
   function renderValidation(){var el=qs('#kkref20Validation');if(el)el.innerHTML='Prüfung: Tippgeber sichtbar '+(qs('#kkref20Table')?'✓':'✕')+' · Personen-Scoring deaktiviert ✓ · Daten in <strong>'+KEY+'</strong>'}
   function render(){renderStats();renderView(state.view);table();renderKpi();renderValidation()}
   function populateSelects(){var cat=qs('#kkref20Category'),t=qs('#kkref20Town');if(cat&&!cat.dataset.ready){cat.innerHTML=CATEGORIES.map(function(c){return '<option>'+esc(c)+'</option>'}).join('');cat.dataset.ready='1'}if(t&&!t.dataset.ready){t.innerHTML=TOWNS.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');t.dataset.ready='1'}}
   function exportData(){window.KK_STORE.downloadJSON('kk_referral_network_v1_export.json',getStore());}
   var toast=function(msg){return window.KK_UTIL.toast(msg,{selector:'.kkref20-toast',className:'kkref20-toast',visibleClass:'is-visible',duration:1900,create:true})};
-  function bind(){var root=qs('#kk-referral-machine-v20');if(root){qs('#kkref20Form')?.addEventListener('submit',saveForm);root.addEventListener('click',function(e){var b=e.target.closest('[data-kkref20-view],[data-kkref20-migrate],[data-kkref20-export],[data-kkref20-reset],[data-kkref20-edit],[data-kkref20-touch],[data-kkref20-delete]');if(!b)return;if(b.hasAttribute('data-kkref20-view')){state.view=b.getAttribute('data-kkref20-view');renderView(state.view);return}if(b.hasAttribute('data-kkref20-migrate')){migrate(false);render();return}if(b.hasAttribute('data-kkref20-export')){exportData();return}if(b.hasAttribute('data-kkref20-reset')){clearForm();return}if(b.hasAttribute('data-kkref20-edit')){var x=items().find(function(i){return i.id===b.getAttribute('data-kkref20-edit')});if(x)fill(x);return}if(b.hasAttribute('data-kkref20-touch')){touch(b.getAttribute('data-kkref20-touch'));return}if(b.hasAttribute('data-kkref20-delete')){if(confirm('Diesen Tippgeber wirklich löschen? Der Datensatz wird aus der aktiven Tippgeberliste entfernt; alte Legacy-Daten bleiben erhalten.'))remove(b.getAttribute('data-kkref20-delete'));return}})}window.addEventListener('storage',function(ev){if(ev.key===KEY)render()})}
+  /* V31 Phase 15.3 (PRD Teil 2 §10-Muster übertragen auf Tippgeber): Detaildialog
+     analog zur CRM-Kontakt-Detailansicht (Phase 8) - Partnerstatus, letzter/nächster
+     Kontakt, nächster Pflegeschritt, Empfehlungshistorie (Tipps/Wert/Erfasst-seit,
+     da Tippgeber keine eigene Aktivitäts-Log-Entität wie kk_crm_activities besitzen). */
+  var detailPartnerId=null,detailLastFocus=null;
+  function populateDetail(x){
+    var name=qs('#kkref20DetailName');if(name)name.textContent=x.name;
+    var meta=qs('#kkref20DetailMeta');if(meta)meta.innerHTML=['<span class="kkref20-pill">'+esc(x.status)+'</span>','<span class="kkref20-pill">'+esc(x.category)+'</span>','<span class="kkref20-pill">'+esc(x.ort)+'</span>'].join('');
+    var grid=qs('#kkref20DetailGrid');if(grid)grid.innerHTML=[['Letzter Kontakt',x.lastContact||'—'],['Nächster Kontakt',x.nextContact||'—'],['Kontaktkanal',x.contactChannel||'—'],['Beziehungstiefe',x.relationshipDepth||'—']].map(function(p){return '<div><b>'+esc(p[0])+'</b>'+esc(p[1])+'</div>'}).join('');
+    var na=qs('#kkref20DetailNextAction');if(na)na.textContent=x.nextAction||'Kein nächster Schritt dokumentiert.';
+    var hist=qs('#kkref20DetailHistory');if(hist)hist.textContent=n(x.previousTips)+' bisherige Tipps · geschätzter Empfehlungswert '+euro(x.estimatedReferralValue)+' · erfasst seit '+(x.createdAt?new Date(x.createdAt).toLocaleDateString('de-DE'):'—');
+    var notes=qs('#kkref20DetailNotes');if(notes)notes.textContent=x.notes||'Keine Notizen.';
+  }
+  function openDetail(id){var x=items().find(function(i){return i.id===id});if(!x)return;var dlg=qs('#kkref20DetailDialog');if(!dlg||typeof dlg.showModal!=='function')return;detailPartnerId=id;populateDetail(x);detailLastFocus=document.activeElement;dlg.showModal()}
+  function initDetailDialogOnce(){if(window.__kkref20DetailInit)return;var dlg=qs('#kkref20DetailDialog');if(!dlg)return;window.__kkref20DetailInit=true;var closeBtn=qs('#kkref20DetailClose');if(closeBtn)closeBtn.onclick=function(){dlg.close()};dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});dlg.addEventListener('close',function(){var t=detailLastFocus,pid=detailPartnerId;detailPartnerId=null;setTimeout(function(){var target=(t&&t.isConnected)?t:(pid&&qs('[data-kkref20-detail="'+pid+'"]'))||qs('#kkref20ViewsCard');if(target&&typeof target.focus==='function')target.focus()},0)});var touchBtn=qs('#kkref20DetailTouchBtn');if(touchBtn)touchBtn.onclick=function(){if(!detailPartnerId)return;touch(detailPartnerId);var x=items().find(function(i){return i.id===detailPartnerId});if(x)populateDetail(x)};var editBtn=qs('#kkref20DetailEditBtn');if(editBtn)editBtn.onclick=function(){var x=items().find(function(i){return i.id===detailPartnerId});dlg.close();if(x)fill(x)}}
+  function bind(){var root=qs('#kk-referral-machine-v20');if(root){qs('#kkref20Form')?.addEventListener('submit',saveForm);root.addEventListener('click',function(e){var netBy=e.target.closest('[data-kkref20-network-by]');if(netBy){state.networkBy=netBy.getAttribute('data-kkref20-network-by');renderView('network');return}var detail=e.target.closest('[data-kkref20-detail]');if(detail){openDetail(detail.getAttribute('data-kkref20-detail'));return}var b=e.target.closest('[data-kkref20-view],[data-kkref20-migrate],[data-kkref20-export],[data-kkref20-reset],[data-kkref20-edit],[data-kkref20-touch],[data-kkref20-delete]');if(!b)return;if(b.hasAttribute('data-kkref20-view')){state.view=b.getAttribute('data-kkref20-view');renderView(state.view);return}if(b.hasAttribute('data-kkref20-migrate')){migrate(false);render();return}if(b.hasAttribute('data-kkref20-export')){exportData();return}if(b.hasAttribute('data-kkref20-reset')){clearForm();return}if(b.hasAttribute('data-kkref20-edit')){var x=items().find(function(i){return i.id===b.getAttribute('data-kkref20-edit')});if(x)fill(x);return}if(b.hasAttribute('data-kkref20-touch')){touch(b.getAttribute('data-kkref20-touch'));return}if(b.hasAttribute('data-kkref20-delete')){if(confirm('Diesen Tippgeber wirklich löschen? Der Datensatz wird aus der aktiven Tippgeberliste entfernt; alte Legacy-Daten bleiben erhalten.'))remove(b.getAttribute('data-kkref20-delete'));return}});initDetailDialogOnce()}window.addEventListener('storage',function(ev){if(ev.key===KEY)render()})}
   function init(){populateSelects();clearForm();migrate(true);bind();render();setTimeout(render,250)}
   window.KK_REFERRAL_NETWORK_V1={version:VERSION,storeKey:KEY,categories:CATEGORIES.slice(),towns:TOWNS.slice(),items:items,render:render,migrate:migrate,save:function(list){return save(list||items())},validate:renderValidation};
   window.KK_BOOT.register('tippgeber-netzwerk',init,{priority:68});
@@ -12537,7 +12850,20 @@ function newFollowupForTown(){var area=DATA[selected].name;openCrmWorkspace('fol
 function openQualityItem(index){var item=QUALITY.unassigned[index];if(!item)return;var tab=item.tab||'crm';try{if(window.KK_APP_SHELL&&typeof window.KK_APP_SHELL.openTab==='function')window.KK_APP_SHELL.openTab(tab);else location.hash=tab}catch(e){location.hash=tab}setTimeout(function(){if(item.kind==='contact'){var id=String(item.recordId||'');if(window.KK_CRM_PRO&&typeof window.KK_CRM_PRO.editContact==='function'&&id){window.KK_CRM_PRO.editContact(id)}else{var search=document.getElementById('kkcrmproContactSearch');if(search){search.value=item.matchName||item.label;search.dispatchEvent(new Event('input',{bubbles:true}))}var button=id&&document.querySelector('[data-edit-contact="'+(window.CSS&&CSS.escape?CSS.escape(id):id.replace(/"/g,'\"'))+'"]');if(button)button.click()}var form=document.getElementById('kkcrmproLeadForm');if(form)form.scrollIntoView({behavior:'smooth',block:'start'});return}if(item.tab==='crm'&&window.KK_CRM_PRO&&typeof window.KK_CRM_PRO.showTab==='function')window.KK_CRM_PRO.showTab(item.panel||'cockpit');if(item.kind==='followup'){var globalSearch=document.getElementById('kk11GlobalSearch');if(globalSearch){globalSearch.value=item.matchName||item.label;globalSearch.dispatchEvent(new Event('input',{bubbles:true}))}}},180)}
 function openCrm(){var d=DATA[selected];try{if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('crm')}catch(e){}setTimeout(function(){var area=document.getElementById('kkcrmproContactAreaFilter'),search=document.getElementById('kkcrmproContactSearch');if(area){var found=Array.prototype.some.call(area.options||[],function(o){return canon(o.value||o.textContent)===canon(d.name)});if(found){area.value=d.name;area.dispatchEvent(new Event('change',{bubbles:true}));return}}if(search){search.value=d.name;search.dispatchEvent(new Event('input',{bubbles:true}))}},140)}
 function openFollowups(){try{if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('followups')}catch(e){location.hash='followups'}}
-function chooseTown(key){if(!DATA[key])return;selected=key;if(compared===selected)compared=TOWN_KEYS.filter(function(k){return k!==selected})[0];saveViewState();renderMap();renderDetail();renderRanking();var card=root.querySelector('#kkmkk-detail-card');card.classList.add('is-open');var toggle=root.querySelector('#kkmkk-mobile-toggle');toggle.textContent='Details einklappen';toggle.setAttribute('aria-expanded','true')}
+/* V31 Phase 15.5 (PRD Teil 4 §34/§43): jede Gebietsdetailansicht braucht mindestens
+   eine operative Aktion je verknuepftem Modul - Kontakte/Follow-ups waren bereits
+   verlinkt, Pipeline fehlte. Wiederverwendet dieselbe openCrmWorkspace()-Bruecke
+   und denselben Gebietsfilter-Match wie openCrm(). */
+function openPipelineForTown(){var d=DATA[selected];openCrmWorkspace('pipeline',function(){var area=document.getElementById('kkcrmproPipeAreaFilter');if(!area)return;var found=Array.prototype.some.call(area.options||[],function(o){return canon(o.value||o.textContent)===canon(d.name)});if(found){area.value=d.name;area.dispatchEvent(new Event('change',{bubbles:true}))}})}
+function chooseTown(key){if(!DATA[key])return;selected=key;if(compared===selected)compared=TOWN_KEYS.filter(function(k){return k!==selected})[0];saveViewState();renderMap();renderDetail();renderRanking();var card=root.querySelector('#kkmkk-detail-card');card.classList.add('is-open');var toggle=root.querySelector('#kkmkk-mobile-toggle');toggle.textContent='Details einklappen';toggle.setAttribute('aria-expanded','true');
+  /* V31 Phase 15.5b (echter Folgefund): chooseTown() wird auch von der
+     primaeren Leaflet-Karte (kk-realmap-v31, markerClick -> KK_MKK_MAP.selectTown)
+     ausgeloest, aber das Gebietsdetailpanel liegt seit Phase 11 innerhalb des
+     eingeklappten <details id="kkmkk-legacy-wrap">. Ohne dieses Auto-Oeffnen
+     aktualisiert ein Klick auf einen Kartenmarker zwar die Daten, das Panel mit
+     den operativen Aktionen (Kontakte/Follow-ups/Pipeline) blieb aber unsichtbar. */
+  var legacyWrap=document.getElementById('kkmkk-legacy-wrap');if(legacyWrap&&!legacyWrap.open)legacyWrap.open=true;
+}
 function rankingValue(d){var v=d&&d[metric];return isNumber(v)?v:0}
 function renderSummary(){var contacts=0,followups=0,objects=0;TOWN_KEYS.forEach(function(k){contacts+=DATA[k].crmContacts.length;followups+=DATA[k].openFollowups;objects+=DATA[k].activeObjects});var set=function(id,val){var el=root.querySelector('#'+id);if(el)el.textContent=String(val)};set('kkmkk-summary-contacts',contacts);set('kkmkk-summary-followups',followups);set('kkmkk-summary-objects',objects);set('kkmkk-summary-unassigned',QUALITY.unassigned.length);var q=root.querySelector('.kkmkk-summary-card.quality');if(q)q.classList.toggle('is-clean',QUALITY.unassigned.length===0);var u=root.querySelector('#kkmkk-summary-updated');if(u)u.textContent=QUALITY.updatedAt?QUALITY.updatedAt.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'–'}
 function compareTownOptions(){return TOWN_KEYS.filter(function(k){return k!==selected}).map(function(k){return '<option value="'+esc(k)+'">'+esc(TOWNS[k].name)+'</option>'}).join('')}
@@ -12554,9 +12880,23 @@ function renderQuality(){var card=root.querySelector('#kkmkk-quality-card'),coun
 function updateDataNote(){var total=TOWN_KEYS.reduce(function(sum,k){return sum+DATA[k].crmContacts.length},0),manual=TOWN_KEYS.filter(function(k){return DATA[k].marketSource!=='Nicht gepflegt'}).length,el=root.querySelector('#kkmkk-data-note');if(el)el.textContent='Live: '+total+' CRM-Kontakte · '+manual+' Orte mit Marktdaten · '+QUALITY.unassigned.length+' nicht zugeordnet'}
 function refreshData(){DATA=buildData();if(!DATA[selected])selected='bruchkoebel';if(root){renderMap();renderDetail();renderSummary();renderRanking();renderQuality();updateDataNote()}return DATA}
 function toggleFocus(force){var on=typeof force==='boolean'?force:!root.classList.contains('is-focus'),button=root.querySelector('#kkmkk-focus-btn');root.classList.toggle('is-focus',on);document.body.classList.toggle('kkmkk-focus-open',on);if(button){button.textContent=on?'Fokus schließen':'Fokusansicht';button.setAttribute('aria-pressed',on?'true':'false')}if(on)setTimeout(function(){root.scrollTop=0},20)}
-function bind(){root.addEventListener('click',function(e){var sourceOpen=e.target.closest('[data-kkmkk-source-open]');if(sourceOpen){openSourceRecord(Number(sourceOpen.getAttribute('data-kkmkk-source-open')));return}var sourceMetric=e.target.closest('[data-kkmkk-source-metric]');if(sourceMetric){showMetricSources(sourceMetric.getAttribute('data-kkmkk-source-metric'));return}var assign=e.target.closest('[data-kkmkk-quality-assign]');if(assign){var idx=Number(assign.getAttribute('data-kkmkk-quality-assign')),select=root.querySelector('[data-kkmkk-quality-town="'+idx+'"]'),townKey=select&&select.value,row=assign.closest('[data-kkmkk-quality-row]');if(!townKey){qualityToast('Bitte zuerst einen Ort auswählen.');return}assignQualityRecord(idx,townKey,row);return}var open=e.target.closest('[data-kkmkk-quality-open]');if(open){openQualityItem(Number(open.getAttribute('data-kkmkk-quality-open')));return}var filter=e.target.closest('.kkmkk-filter');if(filter){metric=filter.getAttribute('data-metric');saveViewState();renderMap();renderDetail();renderRanking();renderComparison();return}var town=e.target.closest('.kkmkk-town');if(town){chooseTown(town.getAttribute('data-town'));return}var rank=e.target.closest('[data-kkmkk-rank-town]');if(rank){chooseTown(rank.getAttribute('data-kkmkk-rank-town'));return}if(e.target.closest('#kkmkk-focus-btn')){toggleFocus();return}if(e.target.closest('#kkmkk-swap-btn')){swapCompared();return}if(e.target.closest('#kkmkk-quality-filter-clear')){qualityQuery='';qualitySource='all';var search=root.querySelector('#kkmkk-quality-search'),source=root.querySelector('#kkmkk-quality-source');if(search)search.value='';if(source)source.value='all';renderQuality();return}if(e.target.closest('#kkmkk-quality-bulk-assign')){bulkAssignQuality();return}if(e.target.closest('#kkmkk-refresh-btn')){refreshData();qualityToast('Kartendaten aktualisiert.');return}if(e.target.closest('#kkmkk-export-btn')){exportCsv();return}if(e.target.closest('[data-kkmkk-new-contact]')){newContactForTown();return}if(e.target.closest('[data-kkmkk-new-followup]')){newFollowupForTown();return}if(e.target.closest('[data-kkmkk-new-object]')){newObjectForTown();return}if(e.target.closest('#kkmkk-analyse-btn')){showAnalysis();return}if(e.target.closest('#kkmkk-contacts-btn')){showContacts();return}if(e.target.closest('#kkmkk-followups-btn')){showFollowups();return}if(e.target.closest('#kkmkk-market-btn')){showMarketEditor();return}if(e.target.closest('[data-kkmkk-open-crm]')){openCrm();return}if(e.target.closest('[data-kkmkk-open-followups]')){openFollowups();return}if(e.target.closest('[data-kkmkk-clear-market]')){clearMarket();return}if(e.target.closest('#kkmkk-mobile-toggle')){var card=root.querySelector('#kkmkk-detail-card'),isOpen=!card.classList.contains('is-open');card.classList.toggle('is-open',isOpen);e.target.textContent=isOpen?'Details einklappen':'Details anzeigen';e.target.setAttribute('aria-expanded',isOpen?'true':'false')}});root.addEventListener('change',function(e){if(e.target&&e.target.id==='kkmkk-town-jump'){chooseTown(e.target.value);return}if(e.target&&e.target.id==='kkmkk-compare-town'){compared=e.target.value;saveViewState();renderComparison();return}if(e.target&&e.target.id==='kkmkk-quality-source'){qualitySource=e.target.value||'all';renderQuality();return}if(e.target&&e.target.id==='kkmkk-quality-select-all'){root.querySelectorAll('[data-kkmkk-quality-check]').forEach(function(c){c.checked=e.target.checked});updateQualityBulk();return}if(e.target&&e.target.matches('[data-kkmkk-quality-check]'))updateQualityBulk()});root.addEventListener('input',function(e){if(e.target&&e.target.id==='kkmkk-quality-search'){qualityQuery=e.target.value||'';renderQuality()}});root.addEventListener('submit',function(e){if(e.target&&e.target.id==='kkmkk-market-form'){e.preventDefault();saveMarketForm(e.target)}});root.querySelectorAll('.kkmkk-town').forEach(function(g){g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();chooseTown(g.getAttribute('data-town'))}else if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();var current=TOWN_KEYS.indexOf(g.getAttribute('data-town')),step=(e.key==='ArrowRight'||e.key==='ArrowDown')?1:-1,next=(current+step+TOWN_KEYS.length)%TOWN_KEYS.length,target=root.querySelector('.kkmkk-town[data-town="'+TOWN_KEYS[next]+'"]');if(target){target.focus();chooseTown(TOWN_KEYS[next])}}})});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&root.classList.contains('is-focus'))toggleFocus(false)})}
+/* V31 Phase 15.4 (PRD Teil 4 §42): Präsentationsmodus fuer Kundengespraeche -
+   blendet Kontakt-/Follow-up-/Pipeline-Aktionen und die Schnellanlage-Zeile aus,
+   waehrend Marktwerte, Metriken und die aggregierten Gebietssignale (nur Zahlen,
+   keine Namen) sichtbar bleiben. Schliesst zusaetzlich eine ggf. bereits offene
+   Kontakt-/Follow-up-Liste im Aktionskasten, damit keine personenbezogenen Daten
+   stehen bleiben, wenn der Modus waehrend eines Gesprächs aktiviert wird. */
+function togglePresentationMode(force){
+  var on=typeof force==='boolean'?force:!document.body.classList.contains('kk-market-presentation');
+  document.body.classList.toggle('kk-market-presentation',on);
+  try{window.KK_STORE.setRaw('kk_market_presentation_mode',on?'1':'0')}catch(e){}
+  var button=root.querySelector('#kkmkk-presentation-btn');
+  if(button){button.textContent=on?'Präsentationsmodus beenden':'Präsentationsmodus';button.setAttribute('aria-pressed',on?'true':'false')}
+  if(on){var box=root.querySelector('#kkmkk-action-box');if(box){box.classList.remove('is-visible');box.innerHTML=''}}
+}
+function bind(){root.addEventListener('click',function(e){var sourceOpen=e.target.closest('[data-kkmkk-source-open]');if(sourceOpen){openSourceRecord(Number(sourceOpen.getAttribute('data-kkmkk-source-open')));return}var sourceMetric=e.target.closest('[data-kkmkk-source-metric]');if(sourceMetric){showMetricSources(sourceMetric.getAttribute('data-kkmkk-source-metric'));return}var assign=e.target.closest('[data-kkmkk-quality-assign]');if(assign){var idx=Number(assign.getAttribute('data-kkmkk-quality-assign')),select=root.querySelector('[data-kkmkk-quality-town="'+idx+'"]'),townKey=select&&select.value,row=assign.closest('[data-kkmkk-quality-row]');if(!townKey){qualityToast('Bitte zuerst einen Ort auswählen.');return}assignQualityRecord(idx,townKey,row);return}var open=e.target.closest('[data-kkmkk-quality-open]');if(open){openQualityItem(Number(open.getAttribute('data-kkmkk-quality-open')));return}var filter=e.target.closest('.kkmkk-filter');if(filter){metric=filter.getAttribute('data-metric');saveViewState();renderMap();renderDetail();renderRanking();renderComparison();return}var town=e.target.closest('.kkmkk-town');if(town){chooseTown(town.getAttribute('data-town'));return}var rank=e.target.closest('[data-kkmkk-rank-town]');if(rank){chooseTown(rank.getAttribute('data-kkmkk-rank-town'));return}if(e.target.closest('#kkmkk-focus-btn')){toggleFocus();return}if(e.target.closest('#kkmkk-presentation-btn')){togglePresentationMode();return}if(e.target.closest('#kkmkk-swap-btn')){swapCompared();return}if(e.target.closest('#kkmkk-quality-filter-clear')){qualityQuery='';qualitySource='all';var search=root.querySelector('#kkmkk-quality-search'),source=root.querySelector('#kkmkk-quality-source');if(search)search.value='';if(source)source.value='all';renderQuality();return}if(e.target.closest('#kkmkk-quality-bulk-assign')){bulkAssignQuality();return}if(e.target.closest('#kkmkk-refresh-btn')){refreshData();qualityToast('Kartendaten aktualisiert.');return}if(e.target.closest('#kkmkk-export-btn')){exportCsv();return}if(e.target.closest('[data-kkmkk-new-contact]')){newContactForTown();return}if(e.target.closest('[data-kkmkk-new-followup]')){newFollowupForTown();return}if(e.target.closest('[data-kkmkk-new-object]')){newObjectForTown();return}if(e.target.closest('#kkmkk-analyse-btn')){showAnalysis();return}if(e.target.closest('#kkmkk-contacts-btn')){showContacts();return}if(e.target.closest('#kkmkk-followups-btn')){showFollowups();return}if(e.target.closest('#kkmkk-pipeline-btn')){openPipelineForTown();return}if(e.target.closest('#kkmkk-market-btn')){showMarketEditor();return}if(e.target.closest('[data-kkmkk-open-crm]')){openCrm();return}if(e.target.closest('[data-kkmkk-open-followups]')){openFollowups();return}if(e.target.closest('[data-kkmkk-clear-market]')){clearMarket();return}if(e.target.closest('#kkmkk-mobile-toggle')){var card=root.querySelector('#kkmkk-detail-card'),isOpen=!card.classList.contains('is-open');card.classList.toggle('is-open',isOpen);e.target.textContent=isOpen?'Details einklappen':'Details anzeigen';e.target.setAttribute('aria-expanded',isOpen?'true':'false')}});root.addEventListener('change',function(e){if(e.target&&e.target.id==='kkmkk-town-jump'){chooseTown(e.target.value);return}if(e.target&&e.target.id==='kkmkk-compare-town'){compared=e.target.value;saveViewState();renderComparison();return}if(e.target&&e.target.id==='kkmkk-quality-source'){qualitySource=e.target.value||'all';renderQuality();return}if(e.target&&e.target.id==='kkmkk-quality-select-all'){root.querySelectorAll('[data-kkmkk-quality-check]').forEach(function(c){c.checked=e.target.checked});updateQualityBulk();return}if(e.target&&e.target.matches('[data-kkmkk-quality-check]'))updateQualityBulk()});root.addEventListener('input',function(e){if(e.target&&e.target.id==='kkmkk-quality-search'){qualityQuery=e.target.value||'';renderQuality()}});root.addEventListener('submit',function(e){if(e.target&&e.target.id==='kkmkk-market-form'){e.preventDefault();saveMarketForm(e.target)}});root.querySelectorAll('.kkmkk-town').forEach(function(g){g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();chooseTown(g.getAttribute('data-town'))}else if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();var current=TOWN_KEYS.indexOf(g.getAttribute('data-town')),step=(e.key==='ArrowRight'||e.key==='ArrowDown')?1:-1,next=(current+step+TOWN_KEYS.length)%TOWN_KEYS.length,target=root.querySelector('.kkmkk-town[data-town="'+TOWN_KEYS[next]+'"]');if(target){target.focus();chooseTown(TOWN_KEYS[next])}}})});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&root.classList.contains('is-focus'))toggleFocus(false)})}
 function relevantChange(e){var key=e&&e.detail&&e.detail.key||e&&e.key||'';if(!key||RELEVANT_KEYS.test(String(key)))setTimeout(refreshData,40)}
-function init(){root=document.getElementById('mkk-market-map');if(!root)return;bind();DATA=buildData();loadViewState();refreshData();window.addEventListener('storage',relevantChange);window.addEventListener('kk:storage-changed',relevantChange);window.addEventListener('kk:storage-imported',function(){setTimeout(refreshData,80)});document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='marktmonitor')setTimeout(refreshData,40)});try{if(window.KK_APP_SHELL&&window.KK_APP_SHELL.registerAnchor)window.KK_APP_SHELL.registerAnchor('mkk-market-map','marktmonitor')}catch(e){}}
+function init(){root=document.getElementById('mkk-market-map');if(!root)return;bind();DATA=buildData();loadViewState();refreshData();if(window.KK_STORE.getRaw('kk_market_presentation_mode')==='1')togglePresentationMode(true);window.addEventListener('storage',relevantChange);window.addEventListener('kk:storage-changed',relevantChange);window.addEventListener('kk:storage-imported',function(){setTimeout(refreshData,80)});document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='marktmonitor')setTimeout(refreshData,40)});try{if(window.KK_APP_SHELL&&window.KK_APP_SHELL.registerAnchor)window.KK_APP_SHELL.registerAnchor('mkk-market-map','marktmonitor')}catch(e){}}
 window.KK_MKK_MAP={version:'29.10',refresh:refreshData,getData:function(){return DATA},selectTown:chooseTown,selectComparison:function(key){if(DATA[key]&&key!==selected){compared=key;saveViewState();renderComparison()}},swapComparison:swapCompared,marketKey:MARKET_KEY,stateKey:STATE_KEY,getQuality:function(){return QUALITY},openQualityItem:openQualityItem,assignRecordTown:assignQualityRecord,exportCsv:exportCsv,newContact:newContactForTown,newFollowup:newFollowupForTown,newObject:newObjectForTown,showSources:showMetricSources,bulkAssign:bulkAssignQuality,assignRecordBatch:assignQualityBatch,toggleFocus:toggleFocus,colorForPotential:colorForPotential,colorForMetric:colorForMetric,getMetrics:function(){return METRICS},getTownKeys:function(){return TOWN_KEYS.slice()},getSelected:function(){return selected},getTownName:function(k){return (DATA[k]&&DATA[k].name)||k}};
 if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('mkk-market-map',init,{priority:76});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
@@ -13038,7 +13378,25 @@ function scheduleRender(){
   renderDebounce=setTimeout(function(){renderDebounce=null;renderNow()},250);
 }
 
+/* V31 Phase 15.4b (PRD Teil 4 §46): baut die immer sichtbare Tabellenalternative
+   zur Karte aus denselben Daten wie die Marker (window.KK_MKK_MAP), unabhängig
+   vom Ladezustand der Kartenkacheln - funktioniert auch offline. */
+function renderAccessibleTable(){
+  var api=mkkMap();if(!api)return;
+  var data=api.getData()||{},keys=api.getTownKeys?api.getTownKeys():Object.keys(TOWN_COORDS);
+  var metrics=(api.getMetrics&&api.getMetrics())||{},cfg=metrics[selectedMetric];
+  var header=document.getElementById('kkgeo-table-metric-header');
+  if(header)header.textContent=cfg?cfg.label:'Kennzahl';
+  var rowsHost=document.getElementById('kkgeo-table-rows');
+  if(!rowsHost)return;
+  var items=keys.map(function(k){return data[k]}).filter(Boolean).sort(function(a,b){return String(a.name||'').localeCompare(String(b.name||''),'de')});
+  rowsHost.innerHTML=items.map(function(d){
+    var val=cfg&&typeof cfg.format==='function'?cfg.format(d[selectedMetric],d):String(d[selectedMetric]==null?'—':d[selectedMetric]);
+    return '<tr><th scope="row"><button type="button" class="kkgeo-table-town-btn" data-kkgeo-table-town="'+esc(d.key)+'">'+esc(d.name)+'</button></th><td>'+esc(val)+'</td><td>'+esc(d.status||'—')+'</td></tr>';
+  }).join('')||'<tr><td colspan="3">Keine Gebietsdaten verfügbar.</td></tr>';
+}
 function renderNow(){
+  renderAccessibleTable();
   if(!adapter||!adapter.isReady())return;
   if(heatOn){
     var api=mkkMap(),data=(api&&api.getData())||{};
@@ -13094,6 +13452,11 @@ function init(){
 function bind(){
   updateStatusLine();
   renderMetricFilters();
+  var tableRows=document.getElementById('kkgeo-table-rows');
+  if(tableRows)tableRows.addEventListener('click',function(e){
+    var b=e.target.closest('[data-kkgeo-table-town]');if(!b)return;
+    var api=mkkMap();if(api&&api.selectTown)api.selectTown(b.getAttribute('data-kkgeo-table-town'));
+  });
   var btn=document.getElementById('kkgeo-refresh-btn');
   if(btn)btn.addEventListener('click',function(){
     if(window.KK_MARKET)window.KK_MARKET.MarketProvider.refreshAll().then(function(){updateStatusLine();renderNow()});
