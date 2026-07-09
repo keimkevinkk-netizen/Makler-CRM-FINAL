@@ -1985,6 +1985,57 @@ function importBackupPayloadCentral(payload,options){
     return {ok:false,error:String(err&&err.message||err),imported:0,skipped:validation.skipped||[],rolledBack:true};
   }
 }
+/* V31 Phase 15.1: Import-Vorschau (PRD Teil 3 §29 / Teil 2 §17) — ersetzt den
+   bisherigen bloßen window.confirm() durch eine Aufschlüsselung nach
+   Datenbereich + Datensatzanzahl, sichtbaren Modus (Zusammenführen/Ersetzen)
+   und Hinweis auf ignorierte Bereiche, bevor der Import tatsächlich schreibt. */
+var IMPORT_KEY_LABELS={
+  kk_crm_contacts:'CRM-Kontakte',kkcrmpro_contacts:'CRM-Kontakte',kkcrmpro_leads:'Leads',kk_crmpro_leads:'Leads',kk_eigentuemer:'Eigentümer',
+  kk_followups:'Follow-ups',kk_crm_followups:'Follow-ups',kk_fu_items:'Follow-ups',kk12_followups:'Follow-ups',kkcrmpro_followups:'Follow-ups',
+  kk_crm_activities:'Aktivitäten',kk_referral_activity_os:'Tippgeber-Aktivitäten',
+  kk_pipeline_deals:'Pipeline-Deals',kk_sales_pipeline:'Pipeline / Verkaufschancen',kk_valuation_pipeline:'Bewertungspipeline',kk_crm_owner_pipeline:'Eigentümerpipeline',kk_referral_pipeline:'Tippgeber-Pipeline',kk_owner_opportunities:'Eigentümerchancen',
+  kk_crm_objects:'Objekte',kk12_objects:'Objekte',
+  kk_referrals:'Tippgeber',kk_crm_referrals:'Tippgeber',kk_tippgeber:'Tippgeber',kk_referral_partners_os:'Tippgeber-Partner',kk_referral_network_v1:'Tippgeber-Netzwerk',
+  kk12_tasks:'Aufgaben',kk_call_queue:'Anruf-Warteschlange',
+  kk_market_monitor_entries_v1:'Marktmonitor',kk_offer_monitor_entries_v1:'Angebotsmonitor',kk_angebot_monitor_entries_v1:'Angebotsmonitor',kk_region_market_cockpit_v10:'Markt-Cockpit',kk_mkk_market_reference_v29_4:'Marktreferenz (Karte)',kk_mkk_area_plans_v29_10:'Gebietspläne (Karte)',
+  kk_kpi_targets:'KPI-Ziele',kk_conversion_metrics:'Kennzahlen',kk_data_quality_queue:'Datenqualitäts-Warteschlange',kk_ai_prompt_assistant_v1:'KI-Prompts'
+};
+function prettifyImportKey(key){var s=String(key||'').replace(/^kk_?/,'').replace(/_v\d+$/,'').replace(/_/g,' ').trim();return s?s.replace(/\b\w/g,function(c){return c.toUpperCase();}):String(key||'');}
+function importDomainLabel(key){return IMPORT_KEY_LABELS[key]||prettifyImportKey(key);}
+function countImportRecords(raw){try{var v=JSON.parse(raw);if(Array.isArray(v))return v.length;if(v&&typeof v==='object')return Object.keys(v).length;return v==null?0:1;}catch(e){return 1;}}
+var importPreviewState=null,importPreviewLastFocus=null;
+function initImportPreviewDialogOnce(){
+  if(window.__kkImportPreviewInit)return;var dlg=document.getElementById('kkImportPreviewDialog');if(!dlg)return;window.__kkImportPreviewInit=true;
+  var confirmBtn=document.getElementById('kkImportPreviewConfirmBtn'),cancelBtn=document.getElementById('kkImportPreviewCancelBtn'),closeBtn=document.getElementById('kkImportPreviewCloseBtn');
+  if(confirmBtn)confirmBtn.addEventListener('click',function(){dlg.returnValue='confirm';dlg.close();});
+  if(cancelBtn)cancelBtn.addEventListener('click',function(){dlg.returnValue='cancel';dlg.close();});
+  if(closeBtn)closeBtn.addEventListener('click',function(){dlg.returnValue='cancel';dlg.close();});
+  dlg.addEventListener('click',function(e){if(e.target===dlg){dlg.returnValue='cancel';dlg.close();}});
+  dlg.addEventListener('close',function(){
+    var state=importPreviewState;importPreviewState=null;
+    var trigger=importPreviewLastFocus;importPreviewLastFocus=null;
+    setTimeout(function(){if(trigger&&typeof trigger.focus==='function')trigger.focus();},0);
+    if(!state)return;
+    if(dlg.returnValue==='confirm')state.onConfirm&&state.onConfirm();else state.onCancel&&state.onCancel();
+  });
+}
+function showImportPreviewDialog(validation,options,onConfirm,onCancel){
+  var replace=options.mode==='replace',keys=Object.keys(validation.data),dlg=document.getElementById('kkImportPreviewDialog');
+  if(!dlg||typeof dlg.showModal!=='function'){
+    var q=replace?'Bestehende App-Daten werden ersetzt. Vorher wird intern ein Wiederherstellungspunkt angelegt. Fortfahren?':keys.length+' App-Datenpunkte werden zusammengeführt. Fortfahren?';
+    if(window.confirm(q))onConfirm();else onCancel();return;
+  }
+  initImportPreviewDialogOnce();
+  var total=0,rows=keys.map(function(key){var n=countImportRecords(validation.data[key]);total+=n;return {label:importDomainLabel(key),count:n};}).sort(function(a,b){return b.count-a.count||a.label.localeCompare(b.label);});
+  var title=document.getElementById('kkImportPreviewTitle'),sub=document.getElementById('kkImportPreviewSubtitle'),warn=document.getElementById('kkImportPreviewWarn'),rowsHost=document.getElementById('kkImportPreviewRows'),skippedEl=document.getElementById('kkImportPreviewSkipped'),confirmBtn=document.getElementById('kkImportPreviewConfirmBtn');
+  if(title)title.textContent=replace?'Import prüfen: Daten werden ersetzt':'Import prüfen: Daten werden zusammengeführt';
+  if(sub)sub.textContent=keys.length+' Datenbereich'+(keys.length===1?'':'e')+', '+total+' Datensätze insgesamt.';
+  if(warn){if(replace){warn.hidden=false;warn.textContent='Bestehende App-Daten werden vollständig ersetzt. Ein Wiederherstellungspunkt wird automatisch vor dem Import angelegt und kann bei Bedarf wiederhergestellt werden.';}else{warn.hidden=true;}}
+  if(rowsHost)rowsHost.innerHTML=rows.map(function(r){return '<tr><td>'+window.KK_UTIL.esc(r.label)+'</td><td>'+r.count+'</td></tr>';}).join('')||'<tr><td colspan="2">Keine erkennbaren Datensätze.</td></tr>';
+  if(skippedEl){if(validation.skipped&&validation.skipped.length){skippedEl.hidden=false;skippedEl.textContent=validation.skipped.length+' unbekannte oder nicht erlaubte Bereich(e) wurden ignoriert: '+validation.skipped.map(function(s){return window.KK_UTIL.esc(s);}).join(', ');}else{skippedEl.hidden=true;}}
+  if(confirmBtn)confirmBtn.textContent=replace?'Ersetzen':'Übernehmen';
+  importPreviewState={onConfirm:onConfirm,onCancel:onCancel};importPreviewLastFocus=document.activeElement;dlg.returnValue='';dlg.showModal();
+}
 function importBackupFileCentral(file,options,callback){
   options=options||{};
   if(!file){var noFile={ok:false,error:'Bitte zuerst eine JSON-Datei auswählen.'};if(callback)callback(noFile);return;}
@@ -1993,8 +2044,9 @@ function importBackupFileCentral(file,options,callback){
   reader.onload=function(){
     var payload;try{payload=JSON.parse(reader.result);}catch(e){var bad={ok:false,error:'Import abgebrochen: ungültiges JSON.'};if(callback)callback(bad);return;}
     var map=extractImportStorageMap(payload),validation=validateImportStorageMap(map);if(!validation.ok){if(callback)callback(validation);return;}
-    if(options.confirm!==false){var replace=options.mode==='replace',q=replace?'Bestehende App-Daten werden ersetzt. Vorher wird intern ein Wiederherstellungspunkt angelegt. Fortfahren?':Object.keys(validation.data).length+' App-Datenpunkte werden zusammengeführt. Fortfahren?';if(!window.confirm(q)){if(callback)callback({ok:false,cancelled:true,error:'Import abgebrochen.'});return;}}
-    var result=importBackupPayloadCentral(payload,options);if(callback)callback(result);
+    function doImport(){var result=importBackupPayloadCentral(payload,options);if(callback)callback(result);}
+    if(options.confirm!==false){showImportPreviewDialog(validation,options,doImport,function(){if(callback)callback({ok:false,cancelled:true,error:'Import abgebrochen.'});});}
+    else doImport();
   };
   reader.onerror=function(){if(callback)callback({ok:false,error:'Datei konnte nicht gelesen werden.'});};reader.readAsText(file);
 }
@@ -5364,6 +5416,22 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
        Browser, kein zweites Dialogsystem im Sinne von PRD Teil 2 §0.2. */
     .kkcp-detail-dialog{border:0;border-radius:18px;box-shadow:var(--v30-shadow-lg,0 20px 48px rgba(16,20,24,.16));padding:0;width:min(640px,92vw);max-height:85vh;color:var(--primary);background:#fff}
     .kkcp-detail-dialog::backdrop{background:rgba(20,26,32,.5)}
+    /* V31 Phase 15.1: Import-Vorschau-Dialog (PRD Teil 3 §29) — natives <dialog>,
+       kein zweites Dialogsystem, gleiches Muster wie kkcp-detail-dialog/kkhCallResultDialog. */
+    .kkimp-preview-dialog{border:0;border-radius:18px;box-shadow:var(--v30-shadow-lg,0 20px 48px rgba(16,20,24,.16));padding:0;width:min(560px,92vw);max-height:85vh;overflow:auto;color:var(--primary);background:#fff}
+    .kkimp-preview-dialog::backdrop{background:rgba(20,26,32,.5)}
+    .kkimp-preview-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
+    .kkimp-preview-head h3{margin:0 0 4px;font-family:Inter,system-ui,sans-serif;font-size:18px;color:var(--primary)}
+    .kkimp-preview-sub{margin:0;font-size:12.5px;color:var(--muted)}
+    .kkimp-preview-body{padding:14px 20px}
+    .kkimp-preview-warn{background:#fff4ed;border:1px solid #f4a460;color:#8a4b00;border-radius:10px;padding:10px 12px;font-size:12.5px;font-weight:750;margin:0 0 12px}
+    .kkimp-preview-table{width:100%;border-collapse:collapse;font-size:12.5px}
+    .kkimp-preview-table th{text-align:left;padding:6px 8px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line)}
+    .kkimp-preview-table td{padding:6px 8px;border-bottom:1px solid #f0f2f5}
+    .kkimp-preview-table td:last-child{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+    .kkimp-preview-skipped{margin:10px 0 0;font-size:11.5px;color:var(--muted)}
+    .kkimp-preview-actions{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px 18px;border-top:1px solid var(--line);position:sticky;bottom:0;background:#fff}
+    @media (max-width:480px){.kkimp-preview-actions{flex-direction:column-reverse}.kkimp-preview-actions .kkh-btn{width:100%}}
     .kkcp-detail-dialog .kkcp-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--line)}
     .kkcp-detail-dialog h3{margin:0 0 4px;font-family:Inter,system-ui,sans-serif;font-size:19px;color:var(--primary)}
     .kkcp-detail-meta{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted);font-weight:750}
@@ -10148,7 +10216,21 @@ Wenn du eine Immobilie im Main-Kinzig-Kreis besitzt und nicht sicher bist, ob od
 <article class="kk11-card" id="global-backup"><h3>Globaler Export / Import / Backup</h3><p>Verwendet dieselbe zentrale V28.2-Backup-Engine wie die technische Sicherung darüber. CRM, Follow-ups, Pipeline, Tippgeber, Markt- und Tagesdaten werden über eine gemeinsame Key-Registry exportiert und validiert importiert.</p><div class="kk11-backupbar"><button class="kk11-btn" data-kk11-action="backup" type="button">Vollständiges Produktionssystem sichern</button><label class="kk11-btn light">Backup importieren <input accept="application/json" aria-label="Backup importieren" hidden="" id="kk11ImportFile" type="file"/></label><button class="kk11-btn light" data-kk11-action="schema" type="button">Schema speichern</button></div><div class="kk11-status" id="kk11BackupStatus">Bereit.</div></article>
 </div>
 </div>
-</section><section class="kkops-section" id="datenqualitaet"><div class="kkops-shell"><div class="kkops-head"><div><span class="kkops-kicker">Ebene 2 · Datenqualität</span><h2>Datenqualität / Recherche-Warteschlange</h2><p>Kontakte mit fehlender Telefonnummer, fehlender E-Mail, Platzhaltern, falschen Feldern oder fehlendem nächsten Schritt werden vor der Akquise sichtbar.</p></div><div class="kkops-actions"><button class="kkops-btn" id="dataScanBtn" type="button">CRM prüfen</button><button class="kkops-btn light" data-export="kk_data_quality_queue" type="button">Export</button></div></div><div class="kkops-grid kkops-four" id="dataStats"></div><div class="kkops-card" style="margin-top:14px"><h3>Recherche-Warteschlange</h3><div class="kkops-list" id="dataQueue"></div></div></div></section></div></main>
+</section><section class="kkops-section" id="datenqualitaet"><div class="kkops-shell"><div class="kkops-head"><div><span class="kkops-kicker">Ebene 2 · Datenqualität</span><h2>Datenqualität / Recherche-Warteschlange</h2><p>Kontakte mit fehlender Telefonnummer, fehlender E-Mail, Platzhaltern, falschen Feldern oder fehlendem nächsten Schritt werden vor der Akquise sichtbar.</p></div><div class="kkops-actions"><button class="kkops-btn" id="dataScanBtn" type="button">CRM prüfen</button><button class="kkops-btn light" data-export="kk_data_quality_queue" type="button">Export</button></div></div><div class="kkops-grid kkops-four" id="dataStats"></div><div class="kkops-card" style="margin-top:14px"><h3>Recherche-Warteschlange</h3><div class="kkops-list" id="dataQueue"></div></div></div></section><dialog class="kkimp-preview-dialog" id="kkImportPreviewDialog" aria-labelledby="kkImportPreviewTitle">
+<div class="kkimp-preview-head">
+<div><h3 id="kkImportPreviewTitle">Import prüfen</h3><p class="kkimp-preview-sub" id="kkImportPreviewSubtitle"></p></div>
+<button aria-label="Schließen" class="kkh-btn light" id="kkImportPreviewCloseBtn" type="button">✕</button>
+</div>
+<div class="kkimp-preview-body">
+<p class="kkimp-preview-warn" hidden="" id="kkImportPreviewWarn"></p>
+<table class="kkimp-preview-table"><thead><tr><th>Bereich</th><th>Datensätze</th></tr></thead><tbody id="kkImportPreviewRows"></tbody></table>
+<p class="kkimp-preview-skipped" hidden="" id="kkImportPreviewSkipped"></p>
+</div>
+<div class="kkimp-preview-actions">
+<button class="kkh-btn light" id="kkImportPreviewCancelBtn" type="button">Abbrechen</button>
+<button class="kkh-btn" id="kkImportPreviewConfirmBtn" type="button">Übernehmen</button>
+</div>
+</dialog></div></main>
 <script>
 (function(){
   'use strict';
