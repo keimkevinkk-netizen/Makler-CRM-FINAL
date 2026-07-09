@@ -11159,6 +11159,23 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
     version:'2.0.0-v28.1-navigation',registry:REGISTRY,byId:BY_ID,tabs:TABS.slice(),primaryTabs:PRIMARY_TABS.slice(),labels:LABELS,panelIds:PANEL_IDS,anchorToTabMap:ANCHOR_TO_TAB,storageKey:STORAGE_KEY,
     init:init,refresh:refresh,setActiveTab:setActiveTab,openTab:setActiveTab,openAnchor:openAnchor,getActiveTab:getActiveTab,syncNavigation:syncNavigation,afterTabChange:afterTabChange,isValidTab:isValidTab,isPrimaryTab:isPrimaryTab,getTabForAnchor:getTabForAnchor,registerAnchor:registerAnchor
   };
+  /* V31 Phase 1: duenner, additiver KK_NAV-Einstiegspunkt (PRD Teil 3 §6). Deckt bewusst nur den Teil des
+     Vertrags ab, der auf dem heutigen Stand ehrlich erfuellbar ist: Tab/Anchor oeffnen und optional einen
+     Datensatz per focusId hervorheben (nutzt bestehendes .kk-command-highlight aus dem Command Center).
+     "filters" wird entgegengenommen und als kk-nav-filters-Event weitergereicht, aber NICHT als bereits
+     ueberall wirksame Filteranwendung behauptet - einzelne Module muessen das Event noch abonnieren, bevor
+     ein Filter tatsaechlich sichtbar gesetzt wird. Das ist bewusst so dokumentiert, um keine Scheinerfuellung
+     des vollen Deep-Link-Vertrags vorzutaeuschen (Teil 5 §17 / Teil 2 "Keine Scheinerfuellung"). */
+  function navOpen(opts){
+    opts=opts||{};
+    var tab=opts.tab||opts.view;
+    var target=opts.focusId||tab;
+    var result=openAnchor(target,{forceEvent:opts.forceEvent})||setActiveTab(tab,{forceEvent:opts.forceEvent});
+    if(opts.focusId){var el=document.getElementById(clean(opts.focusId));if(el){el.classList.add('kk-command-highlight');setTimeout(function(){el.classList.remove('kk-command-highlight')},1600);}}
+    if(opts.filters){try{document.dispatchEvent(new CustomEvent('kk-nav-filters',{detail:{tab:result,filters:opts.filters,source:opts.source||'kk-nav'}}));}catch(e){}}
+    return result;
+  }
+  window.KK_NAV={version:'1.0.0-v31-phase1',open:navOpen};
   window.KK_BOOT.register('app-shell',init,{priority:60});
 })();
 </script>
@@ -12703,7 +12720,25 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 (function(){
 'use strict';
 if(window.KK_V30_SHELL&&window.KK_V30_SHELL.version==='30.2')return;
-var tabs=[
+/* V31 Phase 1 (KK_NAV-Fundament): tabs/mobilePrimary werden jetzt additiv aus KK_APP_SHELL.registry
+   abgeleitet statt als zweite, separat gepflegte Liste zu existieren (Ist-Zustand-Befund in
+   docs/prd/00-ist-zustand-inventar.md §4). Nur Sidebar-Praesentationsdaten (sub-Text, Icon-Name,
+   punktuelle Label-Abweichung "Dashboard" statt "Heute") bleiben hier lokal, weil sie ausschliesslich
+   diese Sidebar betreffen. Faellt KK_APP_SHELL aus irgendeinem Grund aus, greift ein Fallback mit der
+   zuvor hart codierten Liste, damit die Sidebar nie leer bleibt. */
+var TAB_META={
+  heute:{label:'Dashboard',sub:'Dein Überblick für heute',icon:'grid'},
+  marktmonitor:{sub:'Main-Kinzig-Kreis und Marktdaten',icon:'target'},
+  crm:{sub:'Kontakte, Eigentümer und Objekte',icon:'users'},
+  followups:{sub:'Wiedervorlagen und offene Kontakte',icon:'check'},
+  pipeline:{sub:'Verkaufschancen und Mandate',icon:'funnel'},
+  tippgeber:{sub:'Netzwerk und Empfehlungen',icon:'network'},
+  'ki-prompts':{sub:'Texte und Gesprächsvorbereitung',icon:'spark'},
+  kpis:{sub:'Aktivität und Zielkontrolle',icon:'chart'},
+  backup:{sub:'Sicherung, Import und Diagnose',icon:'shield'},
+  wissen:{sub:'Playbook, Ortsprofile, Skripte und Strategie',icon:'search'}
+};
+var FALLBACK_TABS=[
   {id:'heute',label:'Dashboard',sub:'Dein Überblick für heute',icon:'grid'},
   {id:'marktmonitor',label:'Marktmonitor',sub:'Main-Kinzig-Kreis und Marktdaten',icon:'target'},
   {id:'crm',label:'CRM',sub:'Kontakte, Eigentümer und Objekte',icon:'users'},
@@ -12713,12 +12748,22 @@ var tabs=[
   {id:'ki-prompts',label:'KI-Prompts',sub:'Texte und Gesprächsvorbereitung',icon:'spark'},
   {id:'kpis',label:'KPIs',sub:'Aktivität und Zielkontrolle',icon:'chart'},
   {id:'backup',label:'Backup',sub:'Sicherung, Import und Diagnose',icon:'shield'},
-  /* KK-PHASE1-SICHTBARKEIT: ergänzt, damit das Wissens-/Skripte-Archiv auch in dieser (tatsächlich sichtbaren)
-     Sidebar auftaucht statt nur intern in KK_APP_SHELL registriert zu sein. Kein Icon-Redesign: bestehendes
-     "search"-Symbol wiederverwendet (Nachschlagen). Nichts entfernt oder umbenannt. */
   {id:'wissen',label:'Archiv: Wissen',sub:'Playbook, Ortsprofile, Skripte und Strategie',icon:'search'}
 ];
-var mobilePrimary=['heute','crm','followups','pipeline'];
+function deriveTabs(){
+  var reg=window.KK_APP_SHELL&&window.KK_APP_SHELL.registry;
+  if(!reg||!reg.length)return FALLBACK_TABS;
+  return reg.filter(function(r){return r.primary}).map(function(r){
+    var meta=TAB_META[r.id]||{};
+    return {id:r.id,label:meta.label||r.label,sub:meta.sub||'',icon:meta.icon||'grid'};
+  });
+}
+function deriveMobilePrimary(reg){
+  if(!reg||!reg.length)return['heute','crm','followups','pipeline'];
+  return reg.filter(function(r){return r.primary&&r.mobile}).map(function(r){return r.id});
+}
+var tabs=deriveTabs();
+var mobilePrimary=deriveMobilePrimary(window.KK_APP_SHELL&&window.KK_APP_SHELL.registry);
 function icon(name){var p={
  grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
  target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M22 12h-3M12 22v-3M2 12h3"/>',
