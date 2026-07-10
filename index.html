@@ -2578,15 +2578,29 @@ else window.addEventListener('load', function(){ setTimeout(selfTest, 3000); });
   /* Zentrale Ableitung: aus Adresse/Geo-Feldern eines Datensatzes die beste verfuegbare
      Kartenposition bestimmen. Gibt null zurueck, wenn wirklich keine geografische Angabe
      existiert (Punkt 7: "keinen falschen Marker erzeugen"). */
+  /* Punkt 17 (Datenschutz-Standortmodi): geo.visibility begrenzt die maximal gezeigte
+     Praezision, UNABHAENGIG davon, wie genau die tatsaechlich bekannte Position ist.
+     "district" zeigt also selbst bei bekannter Exaktadresse nur den Ortsteil-Anker,
+     "city" nur den Stadt-Anker, "hidden" gar keinen Marker. Ist die gewuenschte
+     Praezision mangels Daten nicht erreichbar, wird automatisch auf die naechst-
+     groebere verfuegbare Stufe ausgewichen (nie eine falsche, aber duerfen wir eine
+     groebere zeigen) - es wird dabei nie praeziser dargestellt als eingestellt. */
   function resolvePosition(record,townKey,seedId){
     var geo=record&&record.geo, addr=record&&record.addr;
-    if(geo&&geo.visibility===VISIBILITY.HIDDEN)return null;
-    if(geo&&isFinite(geo.latitude)&&isFinite(geo.longitude)&&(geo.status===GEO_STATUS.EXACT||geo.status===GEO_STATUS.STREET||geo.status===GEO_STATUS.MANUAL||geo.status===GEO_STATUS.UNCONFIRMED)){
-      return {lat:geo.latitude,lng:geo.longitude,precision:geo.status,approx:false};
-    }
+    var visibility=(geo&&geo.visibility)||VISIBILITY.EXACT;
+    if(visibility===VISIBILITY.HIDDEN)return null;
     var district=addr&&addr.district, city=townKey||(addr&&addr.city);
     var cityKey=normalizeTownKey(city);
-    if(district&&cityKey){
+    var hasExact=geo&&isFinite(geo.latitude)&&isFinite(geo.longitude)&&(geo.status===GEO_STATUS.EXACT||geo.status===GEO_STATUS.STREET||geo.status===GEO_STATUS.MANUAL||geo.status===GEO_STATUS.UNCONFIRMED);
+
+    if(visibility===VISIBILITY.EXACT&&hasExact){
+      return {lat:geo.latitude,lng:geo.longitude,precision:geo.status,approx:false};
+    }
+    if(visibility===VISIBILITY.STREET&&hasExact){
+      var ps=jitter([geo.latitude,geo.longitude],seedId||record.id||'street',90);
+      return {lat:ps[0],lng:ps[1],precision:GEO_STATUS.STREET,approx:true};
+    }
+    if(visibility!==VISIBILITY.CITY&&district&&cityKey){
       var ort=findOrtsteil(cityKey,district);
       if(ort){var p=jitter(ort.anchor,seedId||record.id||ort.id,180);return {lat:p[0],lng:p[1],precision:GEO_STATUS.DISTRICT,approx:true,ortsteil:ort.name}}
     }
@@ -4580,6 +4594,47 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
 .kkgeo-unmapped-note{margin-top:10px;font-size:12px;color:var(--v30-muted,#5b6472);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .kkgeo-unmapped-note button{border:0;background:none;color:var(--v30-blue,#182c46);font:inherit;font-size:12px;font-weight:750;cursor:pointer;text-decoration:underline;padding:0}
 @media (max-width:760px){.kkgeo-layer-grid{grid-template-columns:1fr 1fr}}
+/* V31 Marktmonitor-Rebuild Schritt 6 (Seitenstruktur, Punkt 18): Kennzahlenleiste,
+   Detailpanel, Ergebnisliste und Orts-/Preisauswertung - alle additiv, lesen nur
+   aus bereits vorhandenen oeffentlichen APIs (window.KK_MKK_MAP, buildRecordMarkers),
+   keine zweite Datenhaltung. */
+.kkgeo-kpi-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:2px 0 14px}
+.kkgeo-kpi-tile{border:1px solid var(--v30-border,#e3e5e8);border-radius:12px;background:#fff;padding:10px 12px}
+.kkgeo-kpi-tile span{display:block;font-size:10.5px;color:var(--v30-muted,#5b6472);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:3px}
+.kkgeo-kpi-tile b{font-size:19px;color:var(--v30-ink,#141a21);font-weight:900;letter-spacing:-.02em}
+.kkgeo-detail-panel{margin-top:14px}
+.kkgeo-detail-panel:empty{display:none}
+.kkgeo-detail-card{border:1px solid var(--v30-border,#e3e5e8);border-radius:16px;background:#fff;padding:16px 18px}
+.kkgeo-detail-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.kkgeo-detail-card-head h3{margin:0 0 3px;font-size:18px;color:var(--v30-ink,#141a21);letter-spacing:-.01em}
+.kkgeo-detail-card-head p{margin:0;font-size:12px;color:var(--v30-muted,#5b6472)}
+.kkgeo-detail-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0}
+.kkgeo-detail-stats div{background:var(--v30-surface-2,#f1f2f4);border-radius:10px;padding:8px 10px}
+.kkgeo-detail-stats span{display:block;font-size:10px;color:var(--v30-muted,#5b6472);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.kkgeo-detail-stats b{font-size:15px;color:var(--v30-ink,#141a21)}
+.kkgeo-detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.kkgeo-detail-actions button{border:1px solid var(--v30-border,#e3e5e8);background:#fff;color:var(--v30-blue,#182c46);border-radius:9px;font:inherit;font-size:12px;font-weight:750;padding:7px 12px;cursor:pointer}
+.kkgeo-detail-actions button:hover{background:var(--v30-surface-2,#f1f2f4)}
+.kkgeo-results-wrap{margin-top:16px}
+.kkgeo-results-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.kkgeo-results-head h3{margin:0;font-size:13px;font-weight:850;color:var(--v30-ink,#141a21)}
+.kkgeo-results-head span{font-size:11.5px;color:var(--v30-muted,#5b6472);font-weight:700}
+.kkgeo-results-list{max-height:280px;overflow-y:auto;border:1px solid var(--v30-border,#e3e5e8);border-radius:12px;background:#fff}
+.kkgeo-results-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #eef1f5;font-size:12.5px}
+.kkgeo-results-row:last-child{border-bottom:0}
+.kkgeo-results-row i{width:9px;height:9px;border-radius:3px;flex:0 0 auto}
+.kkgeo-results-row b{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--v30-ink,#141a21);font-weight:700}
+.kkgeo-results-row small{color:var(--v30-muted,#5b6472);flex:0 0 auto}
+.kkgeo-results-row button{border:0;background:none;color:var(--v30-blue,#182c46);font:inherit;font-size:11.5px;font-weight:750;cursor:pointer;text-decoration:underline;padding:0;flex:0 0 auto}
+.kkgeo-results-empty{padding:16px;text-align:center;color:var(--v30-muted,#5b6472);font-size:12.5px}
+.kkgeo-district-eval{margin-top:16px}
+.kkgeo-district-eval-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.kkgeo-district-card{border:1px solid var(--v30-border,#e3e5e8);border-radius:12px;background:#fff;padding:11px 13px}
+.kkgeo-district-card b{display:block;font-size:13px;color:var(--v30-ink,#141a21);margin-bottom:4px}
+.kkgeo-district-card .kkgeo-price{font-size:16px;font-weight:900;color:var(--v30-blue,#182c46)}
+.kkgeo-district-card .kkgeo-price.is-missing{font-size:12px;font-weight:700;color:var(--v30-muted,#5b6472)}
+.kkgeo-district-card small{display:block;margin-top:4px;color:var(--v30-muted,#5b6472);font-size:10.5px;line-height:1.4}
+@media (max-width:760px){.kkgeo-kpi-bar{grid-template-columns:1fr 1fr}.kkgeo-district-eval-body{grid-template-columns:1fr 1fr}}
 </style>
 
 <!-- V31 PHASE A: additive echte Geo-Karte auf Leaflet-Basis, hinter KK_MAP/MapAdapter.
@@ -4589,6 +4644,7 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
      window.KK_MKK_MAP-API (getData/selectTown), keine zweite Datenhaltung. -->
 <section class="kkgeo-section" id="kk-realmap-v31" aria-labelledby="kkgeo-title">
   <div class="kkgeo-shell">
+    <!-- 1. Kennzahlenleiste -->
     <div class="kkgeo-head">
       <div>
         <span class="kkgeo-kicker">Marktmonitor · Kartenengine</span>
@@ -4600,6 +4656,9 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
         <button class="kkgeo-btn" id="kkgeo-refresh-btn" type="button">Aktualisieren</button>
       </div>
     </div>
+    <div class="kkgeo-kpi-bar" id="kkgeo-kpi-bar" aria-label="Kartenkennzahlen"></div>
+
+    <!-- 2. Kartenfilter und Ebenenauswahl -->
     <div class="kkmkk-toolbar" id="kkgeo-metric-filters" role="toolbar" aria-label="Kartenkennzahl auswählen"></div>
     <div class="kkgeo-layer-actions">
       <button class="kkgeo-toggle" id="kkgeo-heat-toggle" type="button" aria-pressed="false">Heatmap</button>
@@ -4615,12 +4674,37 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
       </div>
       <div class="kkgeo-layer-grid" id="kkgeo-layer-grid"></div>
     </div>
+
+    <!-- 3. Große reale Main-Kinzig-Kreis-Karte -->
     <div class="kkgeo-offline" id="kkgeo-offline" hidden="" role="status">
       <strong>Kartenkacheln nicht verfügbar.</strong> Vermutlich kein Internetzugriff — Orte, Marker und Daten bleiben trotzdem nutzbar.
     </div>
     <div class="kkgeo-map-wrap">
       <div class="kkgeo-map" id="kkgeo-map" role="img" aria-label="Interaktive Karte des Main-Kinzig-Kreises mit Marktgebieten und CRM-Datensätzen"></div>
     </div>
+
+    <!-- 4. Detailpanel für ausgewählten Ort, Ortsteil oder Datensatz -->
+    <div class="kkgeo-detail-panel" id="kkgeo-detail-panel" aria-live="polite"></div>
+
+    <!-- 5. Liste der aktuell sichtbaren Ergebnisse -->
+    <div class="kkgeo-results-wrap">
+      <div class="kkgeo-results-head">
+        <h3>Aktuell sichtbare Datensätze</h3>
+        <span id="kkgeo-results-count">0 Datensätze</span>
+      </div>
+      <div class="kkgeo-results-list" id="kkgeo-results-list"></div>
+    </div>
+
+    <!-- 6. Ortsteil- und Immobilienpreisauswertung -->
+    <div class="kkgeo-district-eval" id="kkgeo-district-eval">
+      <div class="kkgeo-results-head">
+        <h3>Orts- und Preisauswertung</h3>
+        <span>Main-Kinzig-Kreis</span>
+      </div>
+      <div class="kkgeo-district-eval-body" id="kkgeo-district-eval-body"></div>
+    </div>
+
+    <!-- 7. Datenqualitäts- und Aktualisierungshinweise -->
     <div class="kkgeo-unmapped-note" id="kkgeo-unmapped-note" hidden>
       <span id="kkgeo-unmapped-count"></span>
       <button type="button" id="kkgeo-unmapped-open">Liste öffnen</button>
@@ -13982,7 +14066,8 @@ function buildRecordMarkers(){
         approx:pos.approx, dimmed:false,
         draggable:editModeRecordId===(def.storageKey+':'+rec.id),
         popupHtml:'<div class="kkgeo-record-popup">'+def.popup(rec)+precisionNote+'<div class="kkgeo-popup-actions">'+actions.join(' · ')+'</div></div>',
-        layerKey:def.key, storageKey:def.storageKey, recordId:rec.id
+        layerKey:def.key, layerLabel:def.label, storageKey:def.storageKey, recordId:rec.id,
+        name:rec.name||rec.address||rec.ownerName||'Ohne Bezeichnung', precisionLabel:pos.approx?window.KK_GEO.qualityLabel(pos.precision):''
       });
     });
   });
@@ -14009,6 +14094,85 @@ function renderUnmappedNote(unmapped){
   if(!unmapped||!unmapped.length){note.hidden=true;return}
   note.hidden=false;
   countEl.textContent=unmapped.length+' Datensatz'+(unmapped.length===1?'':'ätze')+' ohne Kartenposition (kein Ort/Ortsteil hinterlegt).';
+}
+
+/* V31 Marktmonitor-Rebuild Schritt 6 (Seitenstruktur, Punkte 1/4/5/6): Kennzahlenleiste,
+   Detailpanel, Ergebnisliste und Orts-/Preisauswertung. Rein additiv, lesen ausschliesslich
+   aus buildRecordMarkers() und der bestehenden window.KK_MKK_MAP-API - keine neue
+   Datenhaltung, keine erfundenen Werte (fehlende Marktdaten bleiben "Keine Preisdaten"). */
+function kpiTile(label,value){return '<div class="kkgeo-kpi-tile"><span>'+esc(label)+'</span><b>'+esc(String(value))+'</b></div>'}
+function renderKpiBar(recordData){
+  var host=document.getElementById('kkgeo-kpi-bar');
+  if(!host)return;
+  var api=mkkMap(),selKey=api&&api.getSelected&&api.getSelected(),selName=selKey&&api.getTownName?api.getTownName(selKey):'';
+  host.innerHTML=[
+    kpiTile('Sichtbare Datensätze',recordData.markers.length),
+    kpiTile('Ohne Kartenposition',(recordData.unmapped||[]).length),
+    kpiTile('Aktive Ebenen',activeLayers.length+' / '+LAYER_DEFS.length),
+    kpiTile('Ausgewählter Ort',selName||'Kein Ort ausgewählt')
+  ].join('');
+}
+function detailStat(label,value){return '<div><span>'+esc(label)+'</span><b>'+esc(String(value==null||value===''?'—':value))+'</b></div>'}
+function fmtDateShort(v){var s=String(v||'').slice(0,10);var m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?(m[3]+'.'+m[2]+'.'+m[1]):'—'}
+/* Detailpanel zeigt aktuell das ausgewaehlte ORT-Aggregat (Punkt 12: "Karte auswertbar
+   auf Ebene Main-Kinzig-Kreis/Stadt/Ortsteil/Datensatz"). Eine Ortsteil-genaue Aggregation
+   existiert noch nicht als eigene Datengrundlage (folgt mit dem Marktbeobachtungen-Modul,
+   Teil 2 dieses Auftrags) - hier bewusst keine Naeherung vortaeuschen. Einzelne Datensaetze
+   zeigen ihre Details bereits im Marker-Popup (Punkt 6). */
+function renderDetailPanel(){
+  var host=document.getElementById('kkgeo-detail-panel');
+  if(!host)return;
+  var api=mkkMap();
+  var key=api&&api.getSelected&&api.getSelected();
+  var data=key&&api.getData&&api.getData()[key];
+  if(!data){host.innerHTML='';return}
+  var priceLine=isFinite(Number(data.avgPrice))&&data.avgPrice!=null?(Number(data.avgPrice).toLocaleString('de-DE')+' €/m² · '+esc(data.marketSource||'Manuell gepflegt')):'Keine Preisdaten hinterlegt';
+  host.innerHTML='<div class="kkgeo-detail-card">'+
+    '<div class="kkgeo-detail-card-head"><div><h3>'+esc(data.name||key)+'</h3><p>'+esc(data.region||'Main-Kinzig-Kreis')+' · '+priceLine+'</p></div></div>'+
+    '<div class="kkgeo-detail-stats">'+
+      detailStat('CRM-Kontakte',(data.crmContacts||[]).length)+
+      detailStat('Offene Follow-ups',data.openFollowups)+
+      detailStat('Aktive Objekte/Chancen',data.activeObjects)+
+      detailStat('Datenabdeckung',data.coverage!=null?data.coverage+' %':null)+
+      detailStat('Letzte Aktivität',data.lastActivityAt?fmtDateShort(data.lastActivityAt):'Kein datierter Datensatz')+
+    '</div>'+
+    '<div class="kkgeo-detail-actions">'+
+      '<button type="button" data-kkgeo-detail-action="contacts">Kontakte öffnen</button>'+
+      '<button type="button" data-kkgeo-detail-action="followups">Follow-ups öffnen</button>'+
+      '<button type="button" data-kkgeo-detail-action="pipeline">Pipeline im Gebiet öffnen</button>'+
+    '</div>'+
+  '</div>';
+}
+function renderResultsList(markers){
+  var host=document.getElementById('kkgeo-results-list'),countEl=document.getElementById('kkgeo-results-count');
+  if(!host)return;
+  if(countEl)countEl.textContent=markers.length+' Datensatz'+(markers.length===1?'':'e')+' aktuell auf der Karte sichtbar';
+  if(!markers.length){host.innerHTML='<div class="kkgeo-results-empty">Keine Datensätze sichtbar. Ebene aktivieren oder Filter prüfen.</div>';return}
+  host.innerHTML=markers.slice(0,300).map(function(m){
+    return '<div class="kkgeo-results-row"><i style="background:'+m.color+'"></i><b>'+esc(m.name)+'</b><small>'+esc(m.layerLabel||'')+(m.precisionLabel?' · '+esc(m.precisionLabel):'')+'</small><button type="button" data-kkgeo-results-open="'+esc(m.layerKey)+':'+esc(m.recordId)+'">Öffnen</button></div>';
+  }).join('');
+}
+/* Orts-/Preisauswertung (Punkt 6 der Seitenstruktur): nutzt die bereits bestehenden,
+   manuell gepflegten Marktreferenzwerte je Ort (window.KK_MKK_MAP.getData()[key].avgPrice).
+   Fehlt ein Wert, wird "Keine Preisdaten hinterlegt" gezeigt statt eines geschaetzten
+   Werts (§11: "keine erfundenen Immobilienpreise"). Ortsteil-genaue Preise sind noch
+   keine eigene Datengrundlage - siehe Hinweistext in der Karte selbst. */
+function renderDistrictEval(){
+  var host=document.getElementById('kkgeo-district-eval-body');
+  if(!host)return;
+  var api=mkkMap();
+  if(!api){host.innerHTML='<div class="kkgeo-results-empty">Ortsauswertung nicht verfügbar.</div>';return}
+  var data=api.getData()||{},keys=api.getTownKeys?api.getTownKeys():Object.keys(data);
+  var items=keys.map(function(k){return data[k]}).filter(Boolean).sort(function(a,b){return String(a.name||'').localeCompare(String(b.name||''),'de')});
+  host.innerHTML=items.map(function(d){
+    var hasPrice=d.avgPrice!=null&&isFinite(Number(d.avgPrice));
+    var price=hasPrice?('<b class="kkgeo-price">'+Number(d.avgPrice).toLocaleString('de-DE')+' €/m²</b>'):'<b class="kkgeo-price is-missing">Keine Preisdaten hinterlegt</b>';
+    return '<div class="kkgeo-district-card" data-kkgeo-district-card="'+esc(d.key)+'">'+
+      '<b>'+esc(d.name)+'</b>'+price+
+      '<small>'+(hasPrice?('Quelle: '+esc(d.marketSource||'Manuell')+(d.marketUpdatedAt?' · '+fmtDateShort(d.marketUpdatedAt):'')):'Datengrundlage folgt mit dem Marktbeobachtungen-Modul')+
+      '<br>'+(d.crmContacts||[]).length+' CRM-Kontakte · '+(d.openFollowups||0)+' offene Follow-ups</small>'+
+    '</div>';
+  }).join('')||'<div class="kkgeo-results-empty">Keine Gebietsdaten verfügbar.</div>';
 }
 
 function updateStatusLine(){
@@ -14052,6 +14216,10 @@ function renderNow(){
   var recordData=buildRecordMarkers();
   renderLayerPanel(recordData.counts);
   renderUnmappedNote(recordData.unmapped);
+  renderKpiBar(recordData);
+  renderDetailPanel();
+  renderResultsList(recordData.markers);
+  renderDistrictEval();
   if(!adapter||!adapter.isReady())return;
   if(heatOn){
     var api=mkkMap(),data=(api&&api.getData())||{};
@@ -14093,7 +14261,7 @@ function init(){
       offlineTimer=setTimeout(function(){if(info.ok===0)showOffline(true)},1200);
     });
     adapter.on('tilesOk',function(){showOffline(false);if(offlineTimer){clearTimeout(offlineTimer);offlineTimer=null}});
-    adapter.on('markerClick',function(p){if(p.recordId)return;var townKey=String(p.id||'').split('-c')[0];if(mkkMap()&&mkkMap().selectTown)mkkMap().selectTown(townKey)});
+    adapter.on('markerClick',function(p){if(p.recordId)return;var townKey=String(p.id||'').split('-c')[0];if(mkkMap()&&mkkMap().selectTown){mkkMap().selectTown(townKey);renderKpiBar(buildRecordMarkers());renderDetailPanel()}});
     adapter.on('markerDragEnd',function(info){
       if(!info||!info.record||!info.record.storageKey)return;
       if(window.KK_GEOCODE)window.KK_GEOCODE.setManualPosition(info.record.storageKey,info.record.recordId,info.lat,info.lng);
@@ -14117,7 +14285,44 @@ function bind(){
   var tableRows=document.getElementById('kkgeo-table-rows');
   if(tableRows)tableRows.addEventListener('click',function(e){
     var b=e.target.closest('[data-kkgeo-table-town]');if(!b)return;
-    var api=mkkMap();if(api&&api.selectTown)api.selectTown(b.getAttribute('data-kkgeo-table-town'));
+    var api=mkkMap();if(api&&api.selectTown){api.selectTown(b.getAttribute('data-kkgeo-table-town'));renderKpiBar(buildRecordMarkers());renderDetailPanel()}
+  });
+  var districtEvalHost=document.getElementById('kkgeo-district-eval-body');
+  if(districtEvalHost)districtEvalHost.addEventListener('click',function(e){
+    var card=e.target.closest('[data-kkgeo-district-card]');if(!card)return;
+    var api=mkkMap();if(api&&api.selectTown){api.selectTown(card.getAttribute('data-kkgeo-district-card'));renderKpiBar(buildRecordMarkers());renderDetailPanel()}
+    var panel=document.getElementById('kkgeo-detail-panel');if(panel)panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+  var detailHost=document.getElementById('kkgeo-detail-panel');
+  if(detailHost)detailHost.addEventListener('click',function(e){
+    var b=e.target.closest('[data-kkgeo-detail-action]');if(!b)return;
+    var action=b.getAttribute('data-kkgeo-detail-action');
+    var api=mkkMap(),key=api&&api.getSelected&&api.getSelected();
+    if(!key)return;
+    try{
+      if(action==='contacts'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('crm')}
+      else if(action==='followups'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('followups')}
+      else if(action==='pipeline'){
+        if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('pipeline');
+        setTimeout(function(){
+          var name=api.getTownName?api.getTownName(key):'';
+          var area=document.getElementById('kkcrmproPipeAreaFilter');
+          if(area&&name){var found=Array.prototype.some.call(area.options||[],function(o){return String(o.value||o.textContent||'').toLowerCase().indexOf(name.toLowerCase())>-1});
+            if(found){area.value=name;area.dispatchEvent(new Event('change',{bubbles:true}))}}
+        },170);
+      }
+    }catch(err){}
+  });
+  var resultsHost=document.getElementById('kkgeo-results-list');
+  if(resultsHost)resultsHost.addEventListener('click',function(e){
+    var b=e.target.closest('[data-kkgeo-results-open]');if(!b)return;
+    var parts=b.getAttribute('data-kkgeo-results-open').split(':'),layerKey=parts[0],id=parts.slice(1).join(':');
+    try{
+      if(layerKey==='objects'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('crm');setTimeout(function(){if(window.KK_CRM_PRO)window.KK_CRM_PRO.editObject(id)},170)}
+      else if(layerKey==='owners'||layerKey==='buyers'||layerKey==='leads'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('crm');setTimeout(function(){if(window.KK_CRM_PRO)window.KK_CRM_PRO.editContact(id)},170)}
+      else if(layerKey==='referrers'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('tippgeber')}
+      else{if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('pipeline')}
+    }catch(err){}
   });
   var btn=document.getElementById('kkgeo-refresh-btn');
   if(btn)btn.addEventListener('click',function(){
