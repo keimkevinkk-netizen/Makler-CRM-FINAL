@@ -2684,7 +2684,17 @@ else window.addEventListener('load', function(){ setTimeout(selfTest, 3000); });
        erhalten, address/geo werden nur ERGAENZT (siehe ensureRecordGeo). */
     G.migrateStorageGeo('kk_crm_contacts',{city:'area',district:'district',rawAddress:'address'});
     G.migrateStorageGeo('kk_crm_objects',{city:'area',district:'district',rawAddress:'address'});
-    G.migrateStorageGeo('kk_referral_network_v1',{city:'area'});
+    /* kk_referral_network_v1 speichert {version,items:[...]} statt eines reinen
+       Arrays, und der Ortsname liegt dort unter "ort" statt "area" - migrateStorageGeo
+       geht von einem flachen Array aus, daher hier von Hand entpacken/wieder verpacken. */
+    try{
+      var refRaw=window.KK_UTIL.readJSON('kk_referral_network_v1',null);
+      if(refRaw&&Array.isArray(refRaw.items)&&refRaw.items.length){
+        var refCount=0;
+        refRaw.items.forEach(function(r){if(!r.geo||r.geo.__v!==1){G.ensureRecordGeo(r,{city:'ort'});refCount++}});
+        if(refCount)window.KK_UTIL.writeJSON('kk_referral_network_v1',refRaw);
+      }
+    }catch(e){}
   }
   if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('geo-migration-v1',run,{priority:6});
   else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});
@@ -4524,6 +4534,10 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 .kkgeo-map{width:100%;height:440px;background:#eef1ec}
 .kkgeo-map .leaflet-popup-content{font-family:Inter,system-ui,sans-serif;font-size:12.5px;min-width:180px}
 .kkgeo-map .leaflet-popup-content b{display:block;font-size:13.5px;color:#141a21;margin-bottom:4px}
+.kkgeo-record-popup small{display:block;color:#8b93a0;margin-top:4px}
+.kkgeo-popup-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #eef1f5}
+.kkgeo-popup-actions a,.kkgeo-popup-actions button{border:0;background:none;padding:0;font:inherit;font-size:12px;font-weight:750;color:#182C46;text-decoration:underline;cursor:pointer}
+.kkgeo-popup-actions a:hover,.kkgeo-popup-actions button:hover{color:#B0431F}
 .kkgeo-foot{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;padding-top:12px}
 .kkgeo-legend{display:flex;gap:10px;flex-wrap:wrap}
 .kkgeo-legend span{display:inline-flex;align-items:center;gap:5px;color:#5b6472;font-size:10px;font-weight:650}
@@ -4540,6 +4554,32 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 .kkgeo-table td{padding:7px 10px;border-bottom:1px solid #eef1f5;color:#182C46}
 .kkgeo-table-town-btn{border:0;background:none;padding:0;font:inherit;font-weight:800;color:#182C46;text-decoration:underline;cursor:pointer}
 .kkgeo-table-town-btn:hover,.kkgeo-table-town-btn:focus-visible{color:#0f5fd6}
+/* Datensatz-Marker (Punkt 5/9): eigener Glyph je Datensatzart statt reinem Punkt,
+   Naeherungs-/gedimmter Zustand ueber Rahmen/Deckkraft statt Farbe allein (Punkt 5:
+   Statusinformationen nicht nur ueber Farbe). */
+.kkgeo-record-marker-dot{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);box-shadow:0 3px 8px rgba(16,20,24,.28);border:2px solid #fff}
+.kkgeo-record-marker-dot svg{width:14px;height:14px;stroke:#fff;transform:rotate(45deg)}
+.kkgeo-record-marker.is-approx .kkgeo-record-marker-dot{border-style:dashed;border-color:#fff;opacity:.88}
+.kkgeo-record-marker.is-dimmed .kkgeo-record-marker-dot{opacity:.55}
+.kkgeo-layer-panel{display:grid;gap:6px;margin:0 0 12px;padding:12px 14px;border:1px solid var(--v30-border,#e3e5e8);border-radius:14px;background:#fff}
+.kkgeo-layer-panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px}
+.kkgeo-layer-panel-head b{font-size:12px;color:var(--v30-ink,#141a21)}
+.kkgeo-layer-mini-actions{display:flex;gap:6px}
+.kkgeo-layer-mini-actions button{border:0;background:none;color:var(--v30-blue,#182c46);font:inherit;font-size:11px;font-weight:750;cursor:pointer;text-decoration:underline;padding:0}
+.kkgeo-layer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}
+.kkgeo-layer-check{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:9px;cursor:pointer;font-size:12.5px;color:var(--v30-ink,#141a21)}
+.kkgeo-layer-check:hover{background:var(--v30-surface-2,#f1f2f4)}
+/* Gleiches wiederkehrendes Spezifitaets-Problem (vierte Instanz diese Sitzung): eine
+   App-weite Regel erzwingt width:100%/min-height auf alle <input> in [data-app-panel],
+   was auch diese Checkbox erfasste und auf ~190px aufblies - das quetschte Label und
+   Zaehler auf 0px Breite zusammen. Gezielt mit !important zurueckgesetzt. */
+body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!important;min-height:16px!important;height:16px!important;flex:0 0 auto!important;padding:0!important;accent-color:var(--v30-blue,#182c46)}
+.kkgeo-layer-check .kkgeo-layer-dot{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
+.kkgeo-layer-check .kkgeo-layer-label{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kkgeo-layer-check .kkgeo-layer-count{font-variant-numeric:tabular-nums;font-size:11px;color:var(--v30-muted,#5b6472);font-weight:700}
+.kkgeo-unmapped-note{margin-top:10px;font-size:12px;color:var(--v30-muted,#5b6472);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kkgeo-unmapped-note button{border:0;background:none;color:var(--v30-blue,#182c46);font:inherit;font-size:12px;font-weight:750;cursor:pointer;text-decoration:underline;padding:0}
+@media (max-width:760px){.kkgeo-layer-grid{grid-template-columns:1fr 1fr}}
 </style>
 
 <!-- V31 PHASE A: additive echte Geo-Karte auf Leaflet-Basis, hinter KK_MAP/MapAdapter.
@@ -4565,11 +4605,25 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
       <button class="kkgeo-toggle" id="kkgeo-heat-toggle" type="button" aria-pressed="false">Heatmap</button>
       <button class="kkgeo-toggle" id="kkgeo-density-toggle" type="button" aria-pressed="false">Kontaktdichte</button>
     </div>
+    <div class="kkgeo-layer-panel">
+      <div class="kkgeo-layer-panel-head">
+        <b>Datensatz-Ebenen</b>
+        <div class="kkgeo-layer-mini-actions">
+          <button type="button" id="kkgeo-layers-all">Alle anzeigen</button>
+          <button type="button" id="kkgeo-layers-none">Alle ausblenden</button>
+        </div>
+      </div>
+      <div class="kkgeo-layer-grid" id="kkgeo-layer-grid"></div>
+    </div>
     <div class="kkgeo-offline" id="kkgeo-offline" hidden="" role="status">
       <strong>Kartenkacheln nicht verfügbar.</strong> Vermutlich kein Internetzugriff — Orte, Marker und Daten bleiben trotzdem nutzbar.
     </div>
     <div class="kkgeo-map-wrap">
-      <div class="kkgeo-map" id="kkgeo-map" role="img" aria-label="Interaktive Karte des Main-Kinzig-Kreises mit einem Marker je Gebiet"></div>
+      <div class="kkgeo-map" id="kkgeo-map" role="img" aria-label="Interaktive Karte des Main-Kinzig-Kreises mit Marktgebieten und CRM-Datensätzen"></div>
+    </div>
+    <div class="kkgeo-unmapped-note" id="kkgeo-unmapped-note" hidden>
+      <span id="kkgeo-unmapped-count"></span>
+      <button type="button" id="kkgeo-unmapped-open">Liste öffnen</button>
     </div>
     <div class="kkgeo-foot">
       <div class="kkgeo-legend" id="kkgeo-legend">
@@ -6286,7 +6340,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
   function createActivity(o){var a={id:uid('act'),date:o.date||today(),contactId:o.contactId||'',contact:o.contact||o.name||'',type:o.type||'Telefonat',channel:o.channel||'Telefon',result:o.result||'',nextStep:o.nextStep||'',followUpDate:o.followUpDate||'',note:o.note||'',createdAt:new Date().toISOString()}; saveOrUpdate(KEYS.activities,a); return a}
   function readLeadForm(){var data={id:$('#kkcrmproLeadId').value||'',name:$('#kkcrmproName').value.trim(),phone:$('#kkcrmproPhone').value.trim(),email:$('#kkcrmproEmail').value.trim(),category:$('#kkcrmproCategory').value,status:$('#kkcrmproStatus').value,source:$('#kkcrmproSource').value,area:$('#kkcrmproArea').value,district:$('#kkcrmproDistrict').value.trim(),address:$('#kkcrmproAddress').value.trim(),role:$('#kkcrmproRole').value,relationship:$('#kkcrmproRelationship').value,channel:$('#kkcrmproChannel').value,preferredChannel:$('#kkcrmproChannel').value,frequency:$('#kkcrmproFrequency').value,consent:$('#kkcrmproConsent').value,lastContact:$('#kkcrmproLastContact').value,lastActivity:$('#kkcrmproLastActivity').value,nextAction:$('#kkcrmproNextAction').value.trim(),followUpDate:$('#kkcrmproNextDate').value,tags:$('#kkcrmproTags').value.trim(),notes:$('#kkcrmproNotes').value.trim(),objectType:$('#kkcrmproObjectType').value,salesIntent:$('#kkcrmproSalesIntent').value,timeline:$('#kkcrmproTimeline').value,salesReason:$('#kkcrmproSalesReason').value,urgency:$('#kkcrmproUrgency').value,objectValue:num($('#kkcrmproObjectValue').value),expectedCommission:num($('#kkcrmproCommission').value),probability:num($('#kkcrmproProbability').value),stage:$('#kkcrmproOwnerStage').value,decisionMakers:$('#kkcrmproDecisionMakers').value.trim(),competition:$('#kkcrmproCompetition').value,docs:$('#kkcrmproDocs').value,objection:$('#kkcrmproObjection').value.trim(),conversionStep:$('#kkcrmproConversionStep').value.trim(),expectedClose:$('#kkcrmproExpectedClose').value}; if(!data.expectedCommission&&data.objectValue)data.expectedCommission=expectedCommissionFromValue(data.objectValue); return data}
   function resetLeadForm(){var f=$('#kkcrmproLeadForm'); if(f)f.reset(); $('#kkcrmproLeadId').value=''; initOptions(); $('#kkcrmproProbability').value=25}
-  function saveLead(e){e.preventDefault(); var d=readLeadForm(); if(!d.name){toast('Name fehlt'); return} if(!d.nextAction||!d.followUpDate){toast('Nächste Aktion und Wiedervorlage ergänzen'); return} var contact=ensureContact(d); if(window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded(KEYS.contacts,contact.id); var shouldOwner=/Eigentümer|Lead|Verkaufschance/i.test(d.category)||d.salesIntent!=='nein'||d.address; if(shouldOwner){var p=Object.assign({},d,{id:d.id||'owner_'+contact.id,contactId:contact.id,expectedRevenue:weighted(d),nextStep:d.nextAction,followUpDate:d.followUpDate}); saveOrUpdate(KEYS.owner,p); saveOrUpdate(KEYS.sales,{id:p.id,name:p.name,phone:p.phone,email:p.email,area:p.area,objectType:p.objectType,objectValue:p.objectValue,commission:p.expectedCommission,expectedCommission:p.expectedCommission,probability:p.probability,stage:p.stage,timeframe:p.timeline,source:p.source,lastContact:p.lastContact,nextStep:p.nextStep,followUpDate:p.followUpDate,notes:p.notes,lossReason:'',expectedRevenue:weighted(p),updatedAt:new Date().toISOString()})} if(d.address){saveOrUpdate(KEYS.objects,{id:'obj_'+contact.id,address:d.address,ownerName:d.name,contactId:contact.id,area:d.area,district:d.district,objectType:d.objectType,status:'Objekt identifiziert',marketValue:d.objectValue,wantedPrice:0,priceRange:'',docs:[],nextStep:d.nextAction,notes:d.notes})} createFollowup({contactId:contact.id,name:d.name,channel:d.channel,date:d.followUpDate,goal:d.nextAction,type:d.conversionStep||'Nachfassgespräch',reason:d.salesReason,objection:d.objection,pipelineRef:shouldOwner?(d.id||'owner_'+contact.id):''}); if(d.lastContact)createActivity({contactId:contact.id,contact:d.name,type:d.lastActivity,channel:d.channel,date:d.lastContact,result:'Kontakt aktualisiert',nextStep:d.nextAction,followUpDate:d.followUpDate,note:d.notes}); resetLeadForm(); renderAll(); toast('Kontakt, Chance und Wiedervorlage gespeichert')}
+  function saveLead(e){e.preventDefault(); var d=readLeadForm(); if(!d.name){toast('Name fehlt'); return} if(!d.nextAction||!d.followUpDate){toast('Nächste Aktion und Wiedervorlage ergänzen'); return} var contact=ensureContact(d); if(window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded(KEYS.contacts,contact.id); var shouldOwner=/Eigentümer|Lead|Verkaufschance/i.test(d.category)||d.salesIntent!=='nein'||d.address; if(shouldOwner){var p=Object.assign({},d,{id:d.id||'owner_'+contact.id,contactId:contact.id,expectedRevenue:weighted(d),nextStep:d.nextAction,followUpDate:d.followUpDate,addr:contact.addr,geo:contact.geo}); saveOrUpdate(KEYS.owner,p); saveOrUpdate(KEYS.sales,{id:p.id,name:p.name,phone:p.phone,email:p.email,area:p.area,objectType:p.objectType,objectValue:p.objectValue,commission:p.expectedCommission,expectedCommission:p.expectedCommission,probability:p.probability,stage:p.stage,timeframe:p.timeline,source:p.source,lastContact:p.lastContact,nextStep:p.nextStep,followUpDate:p.followUpDate,notes:p.notes,lossReason:'',expectedRevenue:weighted(p),updatedAt:new Date().toISOString()})} if(d.address){saveOrUpdate(KEYS.objects,{id:'obj_'+contact.id,address:d.address,ownerName:d.name,contactId:contact.id,area:d.area,district:d.district,objectType:d.objectType,status:'Objekt identifiziert',marketValue:d.objectValue,wantedPrice:0,priceRange:'',docs:[],nextStep:d.nextAction,notes:d.notes})} createFollowup({contactId:contact.id,name:d.name,channel:d.channel,date:d.followUpDate,goal:d.nextAction,type:d.conversionStep||'Nachfassgespräch',reason:d.salesReason,objection:d.objection,pipelineRef:shouldOwner?(d.id||'owner_'+contact.id):''}); if(d.lastContact)createActivity({contactId:contact.id,contact:d.name,type:d.lastActivity,channel:d.channel,date:d.lastContact,result:'Kontakt aktualisiert',nextStep:d.nextAction,followUpDate:d.followUpDate,note:d.notes}); resetLeadForm(); renderAll(); toast('Kontakt, Chance und Wiedervorlage gespeichert')}
   function editContact(id){var c=arr(KEYS.contacts).find(function(x){return x.id===id}); if(!c)return; var owner=arr(KEYS.owner).find(function(x){return x.contactId===id})||{}; var d=Object.assign({},c,owner); $('#kkcrmproLeadId').value=d.id||''; [['Name','name'],['Phone','phone'],['Email','email'],['District','district'],['Address','address'],['LastContact','lastContact'],['NextAction','nextAction'],['NextDate','followUpDate'],['ObjectValue','objectValue'],['Commission','expectedCommission'],['Probability','probability'],['DecisionMakers','decisionMakers'],['Objection','objection'],['ConversionStep','conversionStep'],['ExpectedClose','expectedClose'],['Tags','tags'],['Notes','notes']].forEach(function(p){var el=$('#kkcrmpro'+p[0]); if(el)el.value=d[p[1]]||''}); [['Category','category'],['Role','role'],['Status','status'],['Source','source'],['Area','area'],['Relationship','relationship'],['Channel','channel'],['Frequency','frequency'],['ObjectType','objectType'],['SalesIntent','salesIntent'],['Timeline','timeline'],['SalesReason','salesReason'],['Urgency','urgency'],['OwnerStage','stage'],['Competition','competition'],['Docs','docs'],['Consent','consent'],['LastActivity','lastActivity']].forEach(function(p){var el=$('#kkcrmpro'+p[0]); if(el)el.value=d[p[1]]||el.value}); showTab('capture'); location.hash='#crm-pro-os'}
   function addFuForContact(id){var c=arr(KEYS.contacts).find(function(x){return x.id===id}); if(!c)return; createFollowup({contactId:c.id,name:c.name,channel:c.channel||'Telefon',date:today(),goal:c.nextAction||'Nächsten Schritt klären',type:'Nachfassgespräch',priority:'B'}); renderAll(); toast('Follow-up erstellt')}
   
@@ -13727,10 +13781,24 @@ function LeafletMapAdapterFactory(){
       var useCluster=points.length>30;
       function build(group){
         points.forEach(function(p){
-          var marker=L.circleMarker([p.lat,p.lng],{
-            radius:p.radius||11,color:'#fff',weight:2,fillColor:p.color||'#182C46',fillOpacity:.92
-          });
-          if(p.popupHtml)marker.bindPopup(p.popupHtml,{maxWidth:260});
+          var marker;
+          if(p.icon){
+            /* Datensatz-Marker mit eigenem Glyph statt reinem Farbpunkt (Punkt 5:
+               "unterschiedliche Marker je Datensatzart"). L.divIcon statt Bild-Icon,
+               damit Farbe/Form aus denselben CSS-Tokens wie der Rest der App kommen. */
+            var divIcon=L.divIcon({
+              className:'kkgeo-record-marker'+(p.approx?' is-approx':'')+(p.dimmed?' is-dimmed':''),
+              html:'<span class="kkgeo-record-marker-dot" style="background:'+(p.color||'#182C46')+'">'+p.icon+'</span>',
+              iconSize:[30,30],iconAnchor:[15,28],popupAnchor:[0,-26]
+            });
+            marker=L.marker([p.lat,p.lng],{icon:divIcon,draggable:!!p.draggable});
+            if(p.draggable)marker.on('dragend',function(){var ll=marker.getLatLng();emit('markerDragEnd',{id:p.id,lat:ll.lat,lng:ll.lng,record:p})});
+          }else{
+            marker=L.circleMarker([p.lat,p.lng],{
+              radius:p.radius||11,color:'#fff',weight:2,fillColor:p.color||'#182C46',fillOpacity:.92
+            });
+          }
+          if(p.popupHtml)marker.bindPopup(p.popupHtml,{maxWidth:280});
           marker.on('click',function(){emit('markerClick',p)});
           marker.addTo(group);
         });
@@ -13833,6 +13901,116 @@ function buildDensityMarkers(){
   return out;
 }
 
+/* ------------------------------------------------------------------------
+   V31 Marktmonitor-Rebuild: echte Datensatz-Marker statt reiner Orts-Aggregate.
+   Nutzt ausschliesslich window.KK_GEO (Ortsteil-Aufloesung/Streuung) und die
+   bereits bestehenden CRM-Speicher - keine zweite Datenhaltung. Layer sind
+   einzeln ein-/ausblendbar, Auswahl wird in localStorage gemerkt (Punkt 4).
+   ------------------------------------------------------------------------ */
+var ACTIVE_LAYERS_KEY='kk_geo_active_layers_v1';
+var ICONS={
+  house:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+  key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M17 6l3 3M14 9l2.5 2.5"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
+  target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>',
+  network:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M10.7 7 6.3 15.8M13.3 7l4.4 8.8M7.5 18h9"/></svg>',
+  funnel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></svg>'
+};
+function isClosedStage(s){return /abgeschlossen|verkauft|notartermin durchgef/i.test(String(s||''))}
+function isLostStage(s){return /verloren/i.test(String(s||''))}
+var LAYER_DEFS=[
+  {key:'objects',label:'Objekte / Immobilien',storageKey:'kk_crm_objects',color:'#182C46',icon:ICONS.house,
+    extract:function(arr){return arr},
+    popup:function(o){return '<b>'+esc(o.address||'Objekt ohne Adresse')+'</b>'+esc(o.objectType||'')+(o.status?' · '+esc(o.status):'')+
+      (o.ownerName?'<br>Eigentümer: '+esc(o.ownerName):'')+(o.marketValue?'<br>Marktwert: '+esc(Number(o.marketValue).toLocaleString('de-DE'))+' €':'')}},
+  {key:'owners',label:'Eigentümer',storageKey:'kk_crm_contacts',color:'#B0431F',icon:ICONS.key,
+    extract:function(arr){return arr.filter(function(c){return /Eigentümer/i.test(c.category||'')})},
+    popup:function(c){return '<b>'+esc(c.name||'Ohne Namen')+'</b>Eigentümer'+(c.status?' · '+esc(c.status):'')+(c.nextAction?'<br>Nächste Aktion: '+esc(c.nextAction):'')}},
+  {key:'buyers',label:'Käufer / Suchkunden',storageKey:'kk_crm_contacts',color:'#157347',icon:ICONS.search,
+    extract:function(arr){return arr.filter(function(c){return /Käufer|Suchkunde|Interessent(?!.*Lead)/i.test(c.category||'')&&!/Eigentümer/i.test(c.category||'')})},
+    popup:function(c){return '<b>'+esc(c.name||'Ohne Namen')+'</b>'+esc(c.category||'Suchkunde')+(c.nextAction?'<br>Nächste Aktion: '+esc(c.nextAction):'')}},
+  {key:'leads',label:'Leads',storageKey:'kk_crm_contacts',color:'#96721E',icon:ICONS.target,
+    extract:function(arr){return arr.filter(function(c){return /^Lead$/i.test(String(c.category||'').trim())||/Lead/i.test(c.status||'')})},
+    popup:function(c){return '<b>'+esc(c.name||'Ohne Namen')+'</b>Lead'+(c.status?' · '+esc(c.status):'')+(c.source?'<br>Quelle: '+esc(c.source):'')}},
+  {key:'referrers',label:'Tippgeber / Netzwerkpartner',storageKey:'kk_referral_network_v1',color:'#5B4FA0',icon:ICONS.network,
+    extract:function(arr){return arr},
+    popup:function(r){return '<b>'+esc(r.name||'Ohne Namen')+'</b>'+esc(r.category||'Tippgeber')+(r.status?' · '+esc(r.status):'')}},
+  {key:'sales_open',label:'Offene Verkaufschancen',storageKey:'kk_crm_owner_pipeline',color:'#AD7714',icon:ICONS.funnel,
+    extract:function(arr){return arr.filter(function(x){return !isClosedStage(x.stage)&&!isLostStage(x.stage)})},
+    popup:function(x){return '<b>'+esc(x.name||'Verkaufschance')+'</b>'+esc(x.stage||'Offen')+(x.probability!=null?'<br>Wahrscheinlichkeit: '+esc(x.probability)+' %':'')}},
+  {key:'sales_done',label:'Abgeschlossene Verkäufe',storageKey:'kk_crm_owner_pipeline',color:'#157347',icon:ICONS.check,
+    extract:function(arr){return arr.filter(function(x){return isClosedStage(x.stage)})},
+    popup:function(x){return '<b>'+esc(x.name||'Verkauf')+'</b>Abgeschlossen'+(x.expectedCommission?'<br>Provision: '+esc(Number(x.expectedCommission).toLocaleString('de-DE'))+' €':'')}}
+];
+function defaultActiveLayers(){return ['objects','owners']} // bewusst zurueckhaltender Default, Rest ist Opt-in
+function readActiveLayers(){
+  try{var v=window.KK_UTIL.readJSON(ACTIVE_LAYERS_KEY,null);if(Array.isArray(v))return v}catch(e){}
+  return defaultActiveLayers();
+}
+function writeActiveLayers(list){try{window.KK_UTIL.writeJSON(ACTIVE_LAYERS_KEY,list)}catch(e){}}
+var activeLayers=readActiveLayers();
+var unmappedRecords=[];
+var editModeRecordId=null; // wenn gesetzt: genau dieser Marker ist gerade per Drag verschiebbar
+
+function recordSeedId(rec,layerKey){return layerKey+'::'+(rec.id||JSON.stringify(rec).slice(0,40))}
+
+function buildRecordMarkers(){
+  if(!window.KK_GEO)return {markers:[],counts:{},unmapped:[]};
+  var counts={},unmapped=[],markers=[];
+  LAYER_DEFS.forEach(function(def){
+    var raw=window.KK_UTIL.readJSON(def.storageKey,[]);
+    /* kk_referral_network_v1 speichert {version,items:[...]} statt eines reinen
+       Arrays wie die uebrigen Speicher - hier auf beide Formen defensiv reagieren
+       statt anzunehmen, jeder Storage-Key sei ein flaches Array. */
+    var arr=Array.isArray(raw)?raw:(raw&&Array.isArray(raw.items)?raw.items:[]);
+    var items=def.extract(arr)||[];
+    counts[def.key]=items.length;
+    var on=activeLayers.indexOf(def.key)>-1;
+    items.forEach(function(rec){
+      var pos=window.KK_GEO.resolvePosition(rec,null,recordSeedId(rec,def.key));
+      if(!pos){unmapped.push({layer:def.key,label:def.label,name:rec.name||rec.address||rec.ownerName||'Ohne Bezeichnung',id:rec.id});return}
+      if(!on)return;
+      var actions=[];
+      if(rec.phone)actions.push('<a href="tel:'+esc(rec.phone)+'">Anrufen</a>');
+      if(rec.email)actions.push('<a href="mailto:'+esc(rec.email)+'">E-Mail</a>');
+      actions.push('<button type="button" data-kkgeo-open="'+esc(def.key)+':'+esc(rec.id)+'">Öffnen</button>');
+      actions.push('<button type="button" data-kkgeo-reposition="'+esc(def.storageKey)+':'+esc(rec.id)+'">Position korrigieren</button>');
+      var precisionNote=pos.approx?('<br><small>'+esc(window.KK_GEO.qualityLabel(pos.precision))+(pos.ortsteil?' · '+esc(pos.ortsteil):'')+'</small>'):'';
+      markers.push({
+        id:def.storageKey+':'+rec.id, lat:pos.lat, lng:pos.lng, color:def.color, icon:def.icon,
+        approx:pos.approx, dimmed:false,
+        draggable:editModeRecordId===(def.storageKey+':'+rec.id),
+        popupHtml:'<div class="kkgeo-record-popup">'+def.popup(rec)+precisionNote+'<div class="kkgeo-popup-actions">'+actions.join(' · ')+'</div></div>',
+        layerKey:def.key, storageKey:def.storageKey, recordId:rec.id
+      });
+    });
+  });
+  unmappedRecords=unmapped;
+  return {markers:markers,counts:counts,unmapped:unmapped};
+}
+
+function renderLayerPanel(counts){
+  var grid=document.getElementById('kkgeo-layer-grid');
+  if(!grid)return;
+  grid.innerHTML=LAYER_DEFS.map(function(def){
+    var checked=activeLayers.indexOf(def.key)>-1;
+    var count=counts&&counts[def.key]!=null?counts[def.key]:0;
+    return '<label class="kkgeo-layer-check"><input type="checkbox" data-kkgeo-layer="'+esc(def.key)+'"'+(checked?' checked':'')+'>'+
+      '<span class="kkgeo-layer-dot" style="background:'+def.color+'"></span>'+
+      '<span class="kkgeo-layer-label">'+esc(def.label)+'</span>'+
+      '<span class="kkgeo-layer-count">'+count+'</span></label>';
+  }).join('');
+}
+
+function renderUnmappedNote(unmapped){
+  var note=document.getElementById('kkgeo-unmapped-note'),countEl=document.getElementById('kkgeo-unmapped-count');
+  if(!note||!countEl)return;
+  if(!unmapped||!unmapped.length){note.hidden=true;return}
+  note.hidden=false;
+  countEl.textContent=unmapped.length+' Datensatz'+(unmapped.length===1?'':'ätze')+' ohne Kartenposition (kein Ort/Ortsteil hinterlegt).';
+}
+
 function updateStatusLine(){
   var el=document.getElementById('kkgeo-updated');
   if(!el)return;
@@ -13871,6 +14049,9 @@ function renderAccessibleTable(){
 }
 function renderNow(){
   renderAccessibleTable();
+  var recordData=buildRecordMarkers();
+  renderLayerPanel(recordData.counts);
+  renderUnmappedNote(recordData.unmapped);
   if(!adapter||!adapter.isReady())return;
   if(heatOn){
     var api=mkkMap(),data=(api&&api.getData())||{};
@@ -13884,6 +14065,7 @@ function renderNow(){
     adapter.clearHeatmap();
     var markers=buildTownMarkers();
     if(densityOn)markers=markers.concat(buildDensityMarkers());
+    markers=markers.concat(recordData.markers);
     adapter.setMarkers(markers);
     if(!densityOn&&markers.length)adapter.fitBounds(markers.map(function(m){return [m.lat,m.lng]}));
   }
@@ -13911,7 +14093,13 @@ function init(){
       offlineTimer=setTimeout(function(){if(info.ok===0)showOffline(true)},1200);
     });
     adapter.on('tilesOk',function(){showOffline(false);if(offlineTimer){clearTimeout(offlineTimer);offlineTimer=null}});
-    adapter.on('markerClick',function(p){var townKey=String(p.id||'').split('-c')[0];if(mkkMap()&&mkkMap().selectTown)mkkMap().selectTown(townKey)});
+    adapter.on('markerClick',function(p){if(p.recordId)return;var townKey=String(p.id||'').split('-c')[0];if(mkkMap()&&mkkMap().selectTown)mkkMap().selectTown(townKey)});
+    adapter.on('markerDragEnd',function(info){
+      if(!info||!info.record||!info.record.storageKey)return;
+      if(window.KK_GEOCODE)window.KK_GEOCODE.setManualPosition(info.record.storageKey,info.record.recordId,info.lat,info.lng);
+      editModeRecordId=null;
+      renderNow();
+    });
     renderMetricFilters();
     renderNow();
     return adapter;
@@ -13954,6 +14142,35 @@ function bind(){
     if(densityOn){heatOn=false;var hb=document.getElementById('kkgeo-heat-toggle');if(hb)hb.setAttribute('aria-pressed','false')}
     renderNow();
   });
+  var layerGrid=document.getElementById('kkgeo-layer-grid');
+  if(layerGrid)layerGrid.addEventListener('change',function(e){
+    var cb=e.target.closest('[data-kkgeo-layer]');if(!cb)return;
+    var key=cb.getAttribute('data-kkgeo-layer');
+    if(cb.checked){if(activeLayers.indexOf(key)<0)activeLayers.push(key)}else{activeLayers=activeLayers.filter(function(k){return k!==key})}
+    writeActiveLayers(activeLayers);renderNow();
+  });
+  var layersAllBtn=document.getElementById('kkgeo-layers-all');
+  if(layersAllBtn)layersAllBtn.addEventListener('click',function(){activeLayers=LAYER_DEFS.map(function(d){return d.key});writeActiveLayers(activeLayers);renderNow()});
+  var layersNoneBtn=document.getElementById('kkgeo-layers-none');
+  if(layersNoneBtn)layersNoneBtn.addEventListener('click',function(){activeLayers=[];writeActiveLayers(activeLayers);renderNow()});
+  var mapHost=document.getElementById('kkgeo-map');
+  if(mapHost)mapHost.addEventListener('click',function(e){
+    var openBtn=e.target.closest('[data-kkgeo-open]');
+    if(openBtn){
+      var parts=openBtn.getAttribute('data-kkgeo-open').split(':'),layerKey=parts[0],id=parts.slice(1).join(':');
+      if(layerKey==='objects'){try{if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('crm');setTimeout(function(){if(window.KK_CRM_PRO)window.KK_CRM_PRO.editObject(id)},170)}catch(err){}}
+      else if(layerKey==='owners'||layerKey==='buyers'||layerKey==='leads'){try{if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('crm');setTimeout(function(){if(window.KK_CRM_PRO)window.KK_CRM_PRO.editContact(id)},170)}catch(err){}}
+      else if(layerKey==='referrers'){try{if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('tippgeber')}catch(err){}}
+      else{try{if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('pipeline')}catch(err){}}
+      return;
+    }
+    var repoBtn=e.target.closest('[data-kkgeo-reposition]');
+    if(repoBtn){
+      var rp=repoBtn.getAttribute('data-kkgeo-reposition').split(':'),storeKey=rp[0],recId=rp.slice(1).join(':');
+      editModeRecordId=storeKey+':'+recId;
+      renderNow();
+    }
+  });
   window.addEventListener('storage',function(e){if(e&&/kk_mkk_market_reference|kk_crm_|kk_sales_pipeline|kk_followups/.test(e.key||''))scheduleRender()});
   window.addEventListener('kk:storage-changed',function(){scheduleRender()});
   document.addEventListener('kk-app-tab-changed',function(e){
@@ -13978,7 +14195,7 @@ function boot(){
   if(active==='marktmonitor')init();
 }
 
-window.KK_REALMAP={version:'31.0',init:init,render:render,getMarkers:buildTownMarkers,getDensityMarkers:buildDensityMarkers,townCoords:TOWN_COORDS,setMetric:function(k){selectedMetric=k;renderMetricFilters();renderNow()},toggleHeat:function(v){heatOn=v==null?!heatOn:!!v;renderNow()},toggleDensity:function(v){densityOn=v==null?!densityOn:!!v;renderNow()}};
+window.KK_REALMAP={version:'31.0',init:init,render:render,getMarkers:buildTownMarkers,getDensityMarkers:buildDensityMarkers,townCoords:TOWN_COORDS,setMetric:function(k){selectedMetric=k;renderMetricFilters();renderNow()},toggleHeat:function(v){heatOn=v==null?!heatOn:!!v;renderNow()},toggleDensity:function(v){densityOn=v==null?!densityOn:!!v;renderNow()},getActiveLayers:function(){return activeLayers.slice()},setActiveLayers:function(list){activeLayers=Array.isArray(list)?list:[];writeActiveLayers(activeLayers);renderNow()},getLayerDefs:function(){return LAYER_DEFS.map(function(d){return {key:d.key,label:d.label,color:d.color}})},getUnmapped:function(){return unmappedRecords.slice()},buildRecordMarkers:buildRecordMarkers};
 if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('realmap-v31',boot,{priority:79});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
