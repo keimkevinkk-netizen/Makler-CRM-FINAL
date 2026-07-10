@@ -70,5 +70,17 @@ Systematische Gap-Analyse (Read-only-Agent, alle 5 PRD-Teile gegen `index.html` 
 - **M2 — Amtliche Gemeindegeometrie (BKG VG250):** benötigt echten Internetzugang zum Download + Lizenzprüfung; im aktuellen Sandbox-Dev-Environment nicht durchführbar (siehe frühere Session-Historie: kein allgemeiner Internetzugriff). Bleibt dokumentierte Lücke, Näherungskoordinaten bleiben als solche gekennzeichnet.
 - **M7 — Erster echter Marktdaten-Provider:** benötigt eine Provider-/Kosten-/Lizenzentscheidung (Teil 4 §12/§51) — echter Blocker im Sinne der Auftragsvorgabe ("notwendige kostenpflichtige Datenquelle").
 
+## Phase 16 — Master-Prompt-Triage: Phantommarker-Fix, strukturierte Adressen, Marktwert-Engine ✅ ABGESCHLOSSEN (Commit `109fdc0`)
+Reaktion auf ein sehr umfangreiches Master-Prompt (GIS-/Data-Warehouse-Zielarchitektur für ganz Deutschland). Da die Sandbox weiterhin ohne Internetzugriff läuft und ein produktives Backend eine kostenpflichtige, nicht autonom zu treffende Anbieterentscheidung wäre, wurde bewusst NICHT fingiert, sondern triagiert (siehe `docs/adr/ADR-0001-backend-datawarehouse-zielarchitektur.md`):
+
+1. **Phantommarker-Bugfix** (explizit im Master-Prompt §11.2 benannt): `buildTownMarkers()` lief bisher immer unabhängig von `activeLayers` mit; "Alle ausblenden" ließ 12 Orts-Aggregatmarker sichtbar. Jetzt Teil derselben zentralen Layer-Filterlogik (`TOWN_OVERVIEW_KEY`).
+2. **ADR-0001 + Datenquellen-/Lizenz-Registry** (`docs/prd/07-datenquellen-lizenz-registry.md`): ehrliche Trennung von "in dieser Session geliefert" vs. "Zielarchitektur/Folgephase mit Anbieter-/Budget-Entscheidung".
+3. **Strukturierte Adresse erweitert**: Gemarkung/Flur/Flurstücksnummer/interne Standortnotiz additiv für CRM-Objekte; optionale Straße/Hausnummer/PLZ/Standort-Sichtbarkeit für Tippgeber/Netzwerkpartner. Dabei zwei echte Bugs gefunden und behoben: `editObject()` stellte Straße/Hausnummer/PLZ/Sichtbarkeit beim erneuten Öffnen nicht wieder her; `KK_GEOCODE` crashte an der `{version,items:[...]}`-Speicherhülle von `kk_referral_network_v1`.
+4. **Zentrale Marktwert-Engine `window.KK_VALUATION`**: automatische, klar als unverbindlich gekennzeichnete Marktwertindikation für CRM-Objekte, ausschließlich auf Basis der eigenen `KK_MARKET_OBS`-Datenbank (keine erfundenen Werte, keine externen Quellen). Live-Vorschau im Objektformular (debounced) + Marktwert-Spalte in der Objekt-Pipeline-Tabelle, beides immer frisch berechnet statt gecacht (verhindert abweichende Berechnungsstände).
+
+**Gate erfüllt:** volle Regressionssuite (`verify.js`: XSS/Overflow/Console, 10 Tabs × Desktop 1440/Mobile 390) grün; `test-nachbesserung.js` 56/56; neue Suiten `test-phantom-marker-fix.js` (22/22), `test-structured-address.js` (14/14), `test-valuation-engine.js` (14/14), `test-valuation-ui.js` (8/8) grün. Gepusht auf `claude/project-analysis-audit-u1z1iu`, kein Merge nach `main` (nicht angefragt).
+
+**Bewusst nicht umgesetzt** (siehe ADR-0001 für Details): produktives PostgreSQL+PostGIS-Backend, Auth/RBAC, alle Live-Connectoren (BORIS, ALKIS, Overpass, Statistikquellen, Portale), Dashboard-/Marktanalyse-weite Verdrahtung über das Objektformular/-pipeline hinaus, KI-/Prognose-Engine.
+
 ## Nicht in diesem Umsetzungsplan
 Vollständige Quellcode-Modularisierung (`src/core/...`, Teil 3 §40) — laut PRD selbst erst sinnvoll, wenn Datenverträge stabil sind; wird nicht vorgezogen.
