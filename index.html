@@ -15173,19 +15173,24 @@ var esc=typeof U.esc==='function'?U.esc:function(v){return String(v==null?'':v)}
 var CACHE_KEY='kk_official_gis_capabilities_cache_v2'; // kk_-Praefix -> vom Backup erfasst
 var CACHE_TTL_MS=24*3600*1000; // Capabilities aendern sich selten - nicht bei jedem Seitenaufruf neu abfragen
 
-/* FIX (nach Live-Test): "ALKIS verbindet sich, findet aber keinen Layer" hatte
-   zwei Ursachen. (1) wms-capabilities.js parste verschachtelte Layer-Baeume
-   falsch (siehe dortiger Kommentar/Fix) - behoben. (2) Selbst mit korrekt
-   ausgelesenen Layern kann ein einzelner Hinweis-Regex mehrdeutig sein: ein
-   INSPIRE-Cadastral-Parcels-Dienst liefert typischerweise MEHRERE passende
-   Layer (CP.CadastralParcel = Flurstuecke, CP.CadastralBoundary = Grenzen,
-   CP.CadastralZoning = Gemarkungen/Fluren) - "cadastral" trifft auf alle drei
-   zu. Statt "erster Treffer gewinnt" wird jetzt jeder Layer bewertet
-   (strongHints/weakHints/negativeHints), damit der EINZELNE, tatsaechlich
-   fuer Flurstuecke gemeinte Layer gewinnt statt zufaellig z.B. die Grenzen. */
+/* FIX 2 (nach zweitem Live-Test): Kevins Screenshots zeigten den naechsten
+   echten Bug. Der reale BORIS-Dienst liefert pro Jahrgang (2020/2022/2024/2026)
+   je DREI Rollen: "...-Zonen" (die eigentliche Flaechendarstellung - das ist
+   der laut PRD primaer geforderte Layer "Bodenrichtwertzonen"), "...-Label"
+   (Wert als Textbeschriftung, PRD: "optional") und "...-Info" (vermutlich fuer
+   GetFeatureInfo). Keiner dieser Namen enthaelt woertlich "bodenrichtwert",
+   "brw" oder "brz" - der alte Hinweis-Satz traf auf KEINEN davon staerker als
+   auf einen anderen, alle matchten nur ueber das schwache "boris"-Kriterium
+   und wurden dadurch als mehrdeutig eingestuft (Screenshot: 12 gleichwertige
+   Jahr/Rolle-Kombinationen, "BORIS2020-Label" faelschlich vorbelegt statt des
+   aktuellen Jahrgangs). Fix: "zonen"/"zone" als starker Rollentreffer ergaenzt
+   (gewinnt gegen Label/Info), zusaetzlich ein Jahres-Tie-Breaker, der unter
+   sonst gleichwertigen Kandidaten den JEWEILS AKTUELLSTEN Jahrgang bevorzugt
+   (nicht auf "2026" hartkodiert, damit das auch nach dem naechsten Stichtag
+   noch korrekt funktioniert). */
 var SERVICES=[
   {key:'boris',label:'BORIS Hessen 2026 (Bodenrichtwerte)',color:'#8b5cf6',
-   strongHints:[/bodenrichtwert/i,/\bbrw\b/i,/\bbrz\b/i],weakHints:[/boris/i],negativeHints:[],
+   strongHints:[/bodenrichtwert/i,/\bbrw\b/i,/\bbrz\b/i,/\bzonen?\b/i],weakHints:[/boris/i],negativeHints:[],
    licenseHint:'Datenlizenz Deutschland - Zero - Version 2.0 (laut Metadaten, vor Produktivnutzung am Dienst selbst zu bestaetigen)'},
   {key:'alkis',label:'Flurstuecke / ALKIS (INSPIRE-WMS Hessen)',color:'#0d6efd',
    strongHints:[/flurst(u|ü)ck/i,/cadastral\s*parcel/i],
@@ -15195,16 +15200,27 @@ var SERVICES=[
 ];
 var AMBIGUITY_MARGIN=6; // Punkteabstand, ab dem der Spitzenreiter als eindeutig gilt
 
-var state={}; // key -> {active,status,layerName,title,error,lastChecked,candidates,ambiguous}
-SERVICES.forEach(function(s){state[s.key]={active:false,status:'off',layerName:'',title:'',error:'',lastChecked:'',attribution:'',candidates:[],ambiguous:false}});
+var state={}; // key -> {active,status,layerName,title,error,lastChecked,candidates,ambiguous,rawLayerNames}
+SERVICES.forEach(function(s){state[s.key]={active:false,status:'off',layerName:'',title:'',error:'',lastChecked:'',attribution:'',candidates:[],ambiguous:false,rawLayerNames:[]}});
 
 function readCache(){try{return JSON.parse(localStorage.getItem(CACHE_KEY)||'{}')}catch(e){return {}}}
 function writeCache(obj){try{localStorage.setItem(CACHE_KEY,JSON.stringify(obj))}catch(e){}}
 
+/* Erkennt eine 4-stellige Jahreszahl im Layernamen/-titel. Kein \b davor: in
+   "BORIS2026-Zonen" grenzen Buchstabe und Ziffer direkt aneinander ("S"+"2"
+   sind beides Wortzeichen) - \b findet dort NIE eine Grenze. */
+function extractYear(layer){
+  var text=[layer.name,layer.title||''].join(' ');
+  var years=(text.match(/(?:19|20)\d{2}/g)||[]).map(Number);
+  return years.length?Math.max.apply(null,years):null;
+}
+
 /* Bewertet einen einzelnen Layer fuer einen Dienst - hoeher = passender.
    queryable- und Blatt-Layer werden leicht bevorzugt (Einzel-Layer statt
    Gruppen-/Container-Layer als Standardauswahl), das ist aber nur ein
-   Tie-Breaker, keine harte Regel (Master-PRD erlaubt auch Nicht-Blatt-Layer). */
+   Tie-Breaker, keine harte Regel (Master-PRD erlaubt auch Nicht-Blatt-Layer).
+   Enthaelt bewusst KEINEN Jahres-Bonus - der wird erst in rankLayers() relativ
+   zu den anderen tatsaechlich gefundenen Kandidaten vergeben (siehe dort). */
 function scoreLayer(service,layer){
   var text=[layer.name,layer.title,layer.abstract||''].join(' ').toLowerCase();
   var score=0;
@@ -15223,7 +15239,24 @@ function scoreLayer(service,layer){
    Anzeige ueber Title, nicht ueber den technischen Name). */
 function rankLayers(service,layers){
   if(!layers||!layers.length)return {chosen:null,ambiguous:false,candidates:[]};
-  var scored=layers.map(function(l){return Object.assign({},l,{score:scoreLayer(service,l)})}).sort(function(a,b){return b.score-a.score});
+  /* Jahres-Tie-Breaker relativ zu den tatsaechlich in DIESEM Aufruf gefundenen
+     Jahrgaengen (nicht auf ein festes Jahr hartkodiert, damit das auch nach
+     dem naechsten Bodenrichtwert-Stichtag noch korrekt funktioniert): das
+     aktuellste vorkommende Jahr bekommt +30, jeder Rang darunter -10, minimal
+     0. Feste Rangstufen (10 Punkte) statt eines linearen Kalenderjahr-Werts,
+     damit auch ein UEBLICHER 2-Jahres-Abstand (z.B. 2024 vs. 2026) sicher
+     ueber der Mehrdeutigkeits-Schwelle (AMBIGUITY_MARGIN) liegt, und der
+     maximale Bonus (30) bewusst unter einem einzelnen strongHint-Treffer (50)
+     bleibt - ein blosser Jahresvorsprung darf nie einen fachlich falschen
+     Layer (z.B. "-Label" statt "-Zonen") gewinnen lassen. */
+  var yearsPresent=Array.from(new Set(layers.map(extractYear).filter(function(y){return y!=null}))).sort(function(a,b){return b-a});
+  function yearRankBonus(layer){
+    var y=extractYear(layer);
+    if(y==null)return 0;
+    var rank=yearsPresent.indexOf(y);
+    return Math.max(0,30-rank*10);
+  }
+  var scored=layers.map(function(l){return Object.assign({},l,{score:scoreLayer(service,l)+yearRankBonus(l)})}).sort(function(a,b){return b.score-a.score});
   var top=scored[0];
   if(top.score<=0)return {chosen:null,ambiguous:false,candidates:scored.slice(0,6)};
   var second=scored[1];
@@ -15258,6 +15291,11 @@ async function discover(service,force){
       layerName:ranked.chosen?ranked.chosen.name:'',title:ranked.chosen?(ranked.chosen.title||ranked.chosen.name):'',
       ambiguous:ranked.ambiguous,candidates:ranked.candidates,
       layerCount:data.layerCount,allLayers:data.layers,baseUrl:data.baseUrl,licenseHint:data.licenseHint,
+      /* Diagnose-Anzeige fuer den Fall "verbunden, aber kein passender Layer":
+         zeigt die tatsaechlich vom Dienst gemeldeten Rohnamen direkt in der App,
+         damit ein Fehlbewertung (zu strenge/zu lockere Hinweis-Regeln) ohne
+         Blindflug behoben werden kann - kein Raten mehr noetig. */
+      rawLayerNames:!ranked.chosen?(data.layers||[]).map(function(l){return l.title?l.title+' ('+l.name+')':l.name}).slice(0,20):[],
       fetchedAt:data.fetchedAt||new Date().toISOString()
     };
     cache[service.key]=okResult;writeCache(cache);
@@ -15297,6 +15335,12 @@ function renderStatus(){
     if(st.active)line+='<span>'+esc(s.licenseHint)+'</span>';
     if(st.active&&st.error)line+='<span class="kkofficial-badge blocked">'+esc(st.error)+(st.message?': '+esc(st.message):'')+'</span>';
     line+='</div>';
+    /* Diagnose statt Blindflug: wenn der Dienst geantwortet hat, aber keiner
+       der gemeldeten Layer zu den Hinweis-Regeln passte, die tatsaechlichen
+       Rohnamen direkt anzeigen (siehe Kommentar bei "rawLayerNames" oben). */
+    if(st.active&&st.status==='live_no_layers_found'&&st.rawLayerNames&&st.rawLayerNames.length){
+      line+='<div class="kkofficial-picker"><small>Dienst gemeldete Layer (keiner passte automatisch): '+esc(st.rawLayerNames.join(', '))+'</small></div>';
+    }
     /* Mehrdeutige Layer-Erkennung: mehrere Kandidaten liegen nah beieinander -
        statt zu raten, eine kleine, verstaendliche Auswahl anbieten. Vorbelegt
        mit dem besten Treffer, ein einfacher Klick auf "Übernehmen" reicht also
@@ -15376,6 +15420,7 @@ async function toggleLayer(key,on){
   state[key].message=result.message||'';
   state[key].ambiguous=!!result.ambiguous;
   state[key].candidates=result.candidates||[];
+  state[key].rawLayerNames=result.rawLayerNames||[];
   state[key].baseUrl=result.baseUrl||'';
   state[key].attribution=service.label+' &middot; '+(result.licenseHint||'');
   state[key].lastChecked=result.fetchedAt||new Date().toISOString();

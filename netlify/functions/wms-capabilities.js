@@ -64,14 +64,29 @@ function jsonResponse(statusCode, body) {
    Tag-Stack, jede <Layer>-Ebene bekommt ihren eigenen Namen/Titel/Abstract
    zugeordnet, unabhaengig von Verschachtelungstiefe; hasChildren wird
    mitgefuehrt, damit der Client Gruppen- von Einzel-Layern unterscheiden kann. */
+/* FIX 2: namespace-tolerant. INSPIRE-konforme Dienste (wie der ALKIS-WMS)
+   liefern GetCapabilities haeufig mit XML-Namespace-Praefixen (z.B.
+   <wms:Layer>/<wms:Name>), waehrend einfachere/aeltere Dienste (wie der
+   BORIS-WMS, der live bereits funktionierte) das ohne Praefix tun. Der vorige
+   Tokenizer akzeptierte nur "<Layer"/"<Name" exakt und haette bei einem
+   namespace-praefigierten ALKIS-Dokument still ZERO Layer gefunden - exakt das
+   von Kevin gemeldete Symptom ("verbunden, kein passender Layer"). Jetzt wird
+   ein optionaler "praefix:"-Teil vor jedem Tag-Namen toleriert. */
 function extractLayers(xml) {
   var layers = [];
   var stack = [];
-  var tokenRe = /<Layer\b([^>]*)>|<\/Layer>|<Name>([^<]*)<\/Name>|<Title>([^<]*)<\/Title>|<Abstract>([^<]*)<\/Abstract>/g;
+  var NS = '(?:[a-zA-Z0-9_.-]+:)?';
+  var tokenRe = new RegExp(
+    '<' + NS + 'Layer\\b([^>]*)>|<\\/' + NS + 'Layer>|' +
+    '<' + NS + 'Name>([^<]*)<\\/' + NS + 'Name>|' +
+    '<' + NS + 'Title>([^<]*)<\\/' + NS + 'Title>|' +
+    '<' + NS + 'Abstract>([^<]*)<\\/' + NS + 'Abstract>',
+    'g'
+  );
   var m;
   while ((m = tokenRe.exec(xml)) !== null) {
     var full = m[0];
-    if (full === '</Layer>') {
+    if (/^<\//.test(full)) { // schliessendes "</[praefix:]Layer>"
       var frame = stack.pop();
       if (frame && frame.name) {
         layers.push({
@@ -82,15 +97,16 @@ function extractLayers(xml) {
       if (stack.length) stack[stack.length - 1].hasChildren = true;
       continue;
     }
-    if (full.charAt(1) === 'L') { // "<Layer ...>"
+    if (/^<[^\/]*Layer\b/.test(full)) { // oeffnendes "<[praefix:]Layer ...>"
       stack.push({ name: '', title: '', abstract: '', queryable: /queryable\s*=\s*"1"/i.test(m[1] || ''), hasChildren: false });
       continue;
     }
     if (!stack.length) continue; // Name/Title/Abstract ausserhalb jeder <Layer> (z.B. <Service>) - nicht relevant
     var top = stack[stack.length - 1];
-    if (full.indexOf('<Name>') === 0) { if (!top.name) top.name = (m[2] || '').trim(); }
-    else if (full.indexOf('<Title>') === 0) { if (!top.title) top.title = (m[3] || '').trim(); }
-    else if (full.indexOf('<Abstract>') === 0) { if (!top.abstract) top.abstract = (m[4] || '').trim(); }
+    // m[2]/m[3]/m[4] sind nur bei jeweils genau einer der drei Alternativen gesetzt (Regex-Gruppen der anderen bleiben undefined).
+    if (m[2] !== undefined) { if (!top.name) top.name = (m[2] || '').trim(); }
+    else if (m[3] !== undefined) { if (!top.title) top.title = (m[3] || '').trim(); }
+    else if (m[4] !== undefined) { if (!top.abstract) top.abstract = (m[4] || '').trim(); }
   }
   return layers;
 }
