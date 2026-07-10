@@ -2681,6 +2681,122 @@ else window.addEventListener('load', function(){ setTimeout(selfTest, 3000); });
   else run();
 })();
 </script>
+<script id="kk-geocode-client-v1">
+(function(){
+  'use strict';
+  if(window.KK_GEOCODE&&window.KK_GEOCODE.version==='1.0.0')return;
+  var U=window.KK_UTIL;
+  var ENDPOINT='/.netlify/functions/geocode';
+  var inFlight=Object.create(null); // verhindert parallele Doppelanfragen fuer dieselbe id
+
+  /* Ein Datensatz braucht Geocodierung, wenn genug Adresse vorhanden ist (Strasse+Ort
+     ODER PLZ+Ort) UND noch kein belastbares Ergebnis vorliegt. manual/exact/street/
+     unconfirmed mit gueltigen Koordinaten werden NIE erneut angefragt (Punkt 16:
+     "nicht bei jedem Kartenaufruf erneut geocodieren"). failed darf erneut versucht
+     werden, aber nur nach explizitem Nutzerwunsch (retry-Flag), nicht automatisch bei
+     jedem Speichern - sonst haemmert eine dauerhaft falsche Adresse die Function. */
+  function needsGeocoding(record,opts){
+    opts=opts||{};
+    var addr=record&&record.addr, geo=record&&record.geo;
+    if(!addr||!geo)return false;
+    var hasEnough=!!addr.city&&(!!addr.street||!!addr.postalCode);
+    if(!hasEnough)return false;
+    if(geo.manuallyAdjusted)return false;
+    if(geo.status===window.KK_GEO.GEO_STATUS.EXACT||geo.status===window.KK_GEO.GEO_STATUS.STREET||
+       geo.status===window.KK_GEO.GEO_STATUS.MANUAL||geo.status===window.KK_GEO.GEO_STATUS.UNCONFIRMED){
+      return isFinite(geo.latitude)&&isFinite(geo.longitude)?false:true;
+    }
+    if(geo.status===window.KK_GEO.GEO_STATUS.FAILED)return !!opts.retry;
+    return true; // status 'none'
+  }
+
+  function applyResult(record,payload){
+    var G=window.KK_GEO;
+    if(!payload||!Array.isArray(payload.results)||!payload.results.length){
+      record.geo.status=G.GEO_STATUS.FAILED; record.geo.lastGeocodedAt=new Date().toISOString(); record.geo.source='nominatim';
+      return {status:'failed'};
+    }
+    if(payload.results.length===1){
+      var r=payload.results[0];
+      record.geo.latitude=r.lat; record.geo.longitude=r.lng;
+      record.geo.status=r.precisionHint==='street'?G.GEO_STATUS.EXACT:G.GEO_STATUS.STREET;
+      record.geo.accuracy=r.precisionHint; record.geo.source='nominatim'; record.geo.lastGeocodedAt=new Date().toISOString();
+      return {status:'resolved',precision:record.geo.status};
+    }
+    // Mehrdeutig: erstes Ergebnis als vorlaeufige Schaetzung uebernehmen, aber als
+    // unbestaetigt markieren + alle Kandidaten fuer eine spaetere Auswahl-UI mitgeben.
+    var first=payload.results[0];
+    record.geo.latitude=first.lat; record.geo.longitude=first.lng;
+    record.geo.status=G.GEO_STATUS.UNCONFIRMED; record.geo.source='nominatim'; record.geo.lastGeocodedAt=new Date().toISOString();
+    record.geo.candidates=payload.results;
+    return {status:'ambiguous',count:payload.results.length};
+  }
+
+  async function geocodeIfNeeded(storageKey,recordId,opts){
+    opts=opts||{};
+    if(!window.KK_GEO||typeof fetch!=='function')return {skipped:true,reason:'unavailable'};
+    var flightKey=storageKey+'::'+recordId;
+    if(inFlight[flightKey])return inFlight[flightKey];
+    var p=(async function(){
+      var arr=U.readJSON(storageKey,[]);
+      var idx=arr.findIndex(function(r){return r&&r.id===recordId});
+      if(idx<0)return {skipped:true,reason:'not_found'};
+      var record=arr[idx];
+      if(!needsGeocoding(record,opts))return {skipped:true,reason:'not_needed'};
+      var addr=record.addr;
+      var qs=new URLSearchParams({street:addr.street||'',houseNumber:addr.houseNumber||'',postalCode:addr.postalCode||'',city:addr.city||'',country:addr.country||'Deutschland'});
+      try{
+        var res=await fetch(ENDPOINT+'?'+qs.toString(),{method:'GET'});
+        if(!res.ok){
+          // Function nicht erreichbar/nicht deployed (z.B. lokale file://-Vorschau) -
+          // Status bewusst NICHT auf 'failed' setzen, damit ein spaeterer Versuch auf
+          // der echten Netlify-Deployment automatisch funktioniert.
+          return {skipped:true,reason:'endpoint_unavailable',httpStatus:res.status};
+        }
+        var payload=await res.json();
+        var outcome=applyResult(record,payload);
+        arr[idx]=record; U.writeJSON(storageKey,arr);
+        try{window.dispatchEvent(new CustomEvent('kk:geo-updated',{detail:{storageKey:storageKey,recordId:recordId,outcome:outcome}}))}catch(e){}
+        return outcome;
+      }catch(e){
+        return {skipped:true,reason:'network_error',message:String(e&&e.message||e)};
+      }
+    })();
+    inFlight[flightKey]=p;
+    p.finally(function(){delete inFlight[flightKey]});
+    return p;
+  }
+
+  /* Manuelle Standortkorrektur (Drag/Klick auf die Karte, Punkt 8). Setzt geo.status
+     immer auf 'manual' und markiert manuallyAdjusted=true - damit greift needsGeocoding
+     nie wieder automatisch ein, auch nicht nach einer spaeteren Adressaenderung, bis der
+     Nutzer die Position aktiv zuruecksetzt. */
+  function setManualPosition(storageKey,recordId,lat,lng){
+    var arr=U.readJSON(storageKey,[]);
+    var idx=arr.findIndex(function(r){return r&&r.id===recordId});
+    if(idx<0)return false;
+    var record=arr[idx];
+    if(!record.geo)record.geo=window.KK_GEO.emptyGeo();
+    record.geo.latitude=lat; record.geo.longitude=lng; record.geo.status=window.KK_GEO.GEO_STATUS.MANUAL;
+    record.geo.manuallyAdjusted=true; record.geo.source='manuell'; record.geo.lastGeocodedAt=new Date().toISOString();
+    arr[idx]=record; U.writeJSON(storageKey,arr);
+    try{window.dispatchEvent(new CustomEvent('kk:geo-updated',{detail:{storageKey:storageKey,recordId:recordId,outcome:{status:'manual'}}}))}catch(e){}
+    return true;
+  }
+
+  function resetPosition(storageKey,recordId){
+    var arr=U.readJSON(storageKey,[]);
+    var idx=arr.findIndex(function(r){return r&&r.id===recordId});
+    if(idx<0)return false;
+    var record=arr[idx];
+    record.geo=window.KK_GEO.emptyGeo();
+    arr[idx]=record; U.writeJSON(storageKey,arr);
+    return true;
+  }
+
+  window.KK_GEOCODE=Object.freeze({version:'1.0.0',needsGeocoding:needsGeocoding,geocodeIfNeeded:geocodeIfNeeded,setManualPosition:setManualPosition,resetPosition:resetPosition,applyResult:applyResult,ENDPOINT:ENDPOINT});
+})();
+</script>
 <script id="kk-app-bootstrap-v28-3">
 (function(){
   'use strict';
@@ -6143,7 +6259,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
   function createActivity(o){var a={id:uid('act'),date:o.date||today(),contactId:o.contactId||'',contact:o.contact||o.name||'',type:o.type||'Telefonat',channel:o.channel||'Telefon',result:o.result||'',nextStep:o.nextStep||'',followUpDate:o.followUpDate||'',note:o.note||'',createdAt:new Date().toISOString()}; saveOrUpdate(KEYS.activities,a); return a}
   function readLeadForm(){var data={id:$('#kkcrmproLeadId').value||'',name:$('#kkcrmproName').value.trim(),phone:$('#kkcrmproPhone').value.trim(),email:$('#kkcrmproEmail').value.trim(),category:$('#kkcrmproCategory').value,status:$('#kkcrmproStatus').value,source:$('#kkcrmproSource').value,area:$('#kkcrmproArea').value,district:$('#kkcrmproDistrict').value.trim(),address:$('#kkcrmproAddress').value.trim(),role:$('#kkcrmproRole').value,relationship:$('#kkcrmproRelationship').value,channel:$('#kkcrmproChannel').value,preferredChannel:$('#kkcrmproChannel').value,frequency:$('#kkcrmproFrequency').value,consent:$('#kkcrmproConsent').value,lastContact:$('#kkcrmproLastContact').value,lastActivity:$('#kkcrmproLastActivity').value,nextAction:$('#kkcrmproNextAction').value.trim(),followUpDate:$('#kkcrmproNextDate').value,tags:$('#kkcrmproTags').value.trim(),notes:$('#kkcrmproNotes').value.trim(),objectType:$('#kkcrmproObjectType').value,salesIntent:$('#kkcrmproSalesIntent').value,timeline:$('#kkcrmproTimeline').value,salesReason:$('#kkcrmproSalesReason').value,urgency:$('#kkcrmproUrgency').value,objectValue:num($('#kkcrmproObjectValue').value),expectedCommission:num($('#kkcrmproCommission').value),probability:num($('#kkcrmproProbability').value),stage:$('#kkcrmproOwnerStage').value,decisionMakers:$('#kkcrmproDecisionMakers').value.trim(),competition:$('#kkcrmproCompetition').value,docs:$('#kkcrmproDocs').value,objection:$('#kkcrmproObjection').value.trim(),conversionStep:$('#kkcrmproConversionStep').value.trim(),expectedClose:$('#kkcrmproExpectedClose').value}; if(!data.expectedCommission&&data.objectValue)data.expectedCommission=expectedCommissionFromValue(data.objectValue); return data}
   function resetLeadForm(){var f=$('#kkcrmproLeadForm'); if(f)f.reset(); $('#kkcrmproLeadId').value=''; initOptions(); $('#kkcrmproProbability').value=25}
-  function saveLead(e){e.preventDefault(); var d=readLeadForm(); if(!d.name){toast('Name fehlt'); return} if(!d.nextAction||!d.followUpDate){toast('Nächste Aktion und Wiedervorlage ergänzen'); return} var contact=ensureContact(d); var shouldOwner=/Eigentümer|Lead|Verkaufschance/i.test(d.category)||d.salesIntent!=='nein'||d.address; if(shouldOwner){var p=Object.assign({},d,{id:d.id||'owner_'+contact.id,contactId:contact.id,expectedRevenue:weighted(d),nextStep:d.nextAction,followUpDate:d.followUpDate}); saveOrUpdate(KEYS.owner,p); saveOrUpdate(KEYS.sales,{id:p.id,name:p.name,phone:p.phone,email:p.email,area:p.area,objectType:p.objectType,objectValue:p.objectValue,commission:p.expectedCommission,expectedCommission:p.expectedCommission,probability:p.probability,stage:p.stage,timeframe:p.timeline,source:p.source,lastContact:p.lastContact,nextStep:p.nextStep,followUpDate:p.followUpDate,notes:p.notes,lossReason:'',expectedRevenue:weighted(p),updatedAt:new Date().toISOString()})} if(d.address){saveOrUpdate(KEYS.objects,{id:'obj_'+contact.id,address:d.address,ownerName:d.name,contactId:contact.id,area:d.area,district:d.district,objectType:d.objectType,status:'Objekt identifiziert',marketValue:d.objectValue,wantedPrice:0,priceRange:'',docs:[],nextStep:d.nextAction,notes:d.notes})} createFollowup({contactId:contact.id,name:d.name,channel:d.channel,date:d.followUpDate,goal:d.nextAction,type:d.conversionStep||'Nachfassgespräch',reason:d.salesReason,objection:d.objection,pipelineRef:shouldOwner?(d.id||'owner_'+contact.id):''}); if(d.lastContact)createActivity({contactId:contact.id,contact:d.name,type:d.lastActivity,channel:d.channel,date:d.lastContact,result:'Kontakt aktualisiert',nextStep:d.nextAction,followUpDate:d.followUpDate,note:d.notes}); resetLeadForm(); renderAll(); toast('Kontakt, Chance und Wiedervorlage gespeichert')}
+  function saveLead(e){e.preventDefault(); var d=readLeadForm(); if(!d.name){toast('Name fehlt'); return} if(!d.nextAction||!d.followUpDate){toast('Nächste Aktion und Wiedervorlage ergänzen'); return} var contact=ensureContact(d); if(window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded(KEYS.contacts,contact.id); var shouldOwner=/Eigentümer|Lead|Verkaufschance/i.test(d.category)||d.salesIntent!=='nein'||d.address; if(shouldOwner){var p=Object.assign({},d,{id:d.id||'owner_'+contact.id,contactId:contact.id,expectedRevenue:weighted(d),nextStep:d.nextAction,followUpDate:d.followUpDate}); saveOrUpdate(KEYS.owner,p); saveOrUpdate(KEYS.sales,{id:p.id,name:p.name,phone:p.phone,email:p.email,area:p.area,objectType:p.objectType,objectValue:p.objectValue,commission:p.expectedCommission,expectedCommission:p.expectedCommission,probability:p.probability,stage:p.stage,timeframe:p.timeline,source:p.source,lastContact:p.lastContact,nextStep:p.nextStep,followUpDate:p.followUpDate,notes:p.notes,lossReason:'',expectedRevenue:weighted(p),updatedAt:new Date().toISOString()})} if(d.address){saveOrUpdate(KEYS.objects,{id:'obj_'+contact.id,address:d.address,ownerName:d.name,contactId:contact.id,area:d.area,district:d.district,objectType:d.objectType,status:'Objekt identifiziert',marketValue:d.objectValue,wantedPrice:0,priceRange:'',docs:[],nextStep:d.nextAction,notes:d.notes})} createFollowup({contactId:contact.id,name:d.name,channel:d.channel,date:d.followUpDate,goal:d.nextAction,type:d.conversionStep||'Nachfassgespräch',reason:d.salesReason,objection:d.objection,pipelineRef:shouldOwner?(d.id||'owner_'+contact.id):''}); if(d.lastContact)createActivity({contactId:contact.id,contact:d.name,type:d.lastActivity,channel:d.channel,date:d.lastContact,result:'Kontakt aktualisiert',nextStep:d.nextAction,followUpDate:d.followUpDate,note:d.notes}); resetLeadForm(); renderAll(); toast('Kontakt, Chance und Wiedervorlage gespeichert')}
   function editContact(id){var c=arr(KEYS.contacts).find(function(x){return x.id===id}); if(!c)return; var owner=arr(KEYS.owner).find(function(x){return x.contactId===id})||{}; var d=Object.assign({},c,owner); $('#kkcrmproLeadId').value=d.id||''; [['Name','name'],['Phone','phone'],['Email','email'],['District','district'],['Address','address'],['LastContact','lastContact'],['NextAction','nextAction'],['NextDate','followUpDate'],['ObjectValue','objectValue'],['Commission','expectedCommission'],['Probability','probability'],['DecisionMakers','decisionMakers'],['Objection','objection'],['ConversionStep','conversionStep'],['ExpectedClose','expectedClose'],['Tags','tags'],['Notes','notes']].forEach(function(p){var el=$('#kkcrmpro'+p[0]); if(el)el.value=d[p[1]]||''}); [['Category','category'],['Role','role'],['Status','status'],['Source','source'],['Area','area'],['Relationship','relationship'],['Channel','channel'],['Frequency','frequency'],['ObjectType','objectType'],['SalesIntent','salesIntent'],['Timeline','timeline'],['SalesReason','salesReason'],['Urgency','urgency'],['OwnerStage','stage'],['Competition','competition'],['Docs','docs'],['Consent','consent'],['LastActivity','lastActivity']].forEach(function(p){var el=$('#kkcrmpro'+p[0]); if(el)el.value=d[p[1]]||el.value}); showTab('capture'); location.hash='#crm-pro-os'}
   function addFuForContact(id){var c=arr(KEYS.contacts).find(function(x){return x.id===id}); if(!c)return; createFollowup({contactId:c.id,name:c.name,channel:c.channel||'Telefon',date:today(),goal:c.nextAction||'Nächsten Schritt klären',type:'Nachfassgespräch',priority:'B'}); renderAll(); toast('Follow-up erstellt')}
   
@@ -6185,7 +6301,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
     var street=$('#kkcrmproObjectStreet')?$('#kkcrmproObjectStreet').value.trim():'',houseNo=$('#kkcrmproObjectHouseNo')?$('#kkcrmproObjectHouseNo').value.trim():'',postal=$('#kkcrmproObjectPostal')?$('#kkcrmproObjectPostal').value.trim():'',vis=$('#kkcrmproObjectVisibility')?$('#kkcrmproObjectVisibility').value:'exact';
     if(window.KK_GEO){window.KK_GEO.ensureRecordGeo(o,{city:'area',district:'district',rawAddress:'address'}); if(street)o.addr.street=street; if(houseNo)o.addr.houseNumber=houseNo; if(postal)o.addr.postalCode=postal; o.geo.visibility=vis;}
     return o; }
-  function saveObject(e){e.preventDefault(); var o=readObjectForm(); if(!o.address){toast('Objektadresse fehlt'); return} saveOrUpdate(KEYS.objects,o); if(window.KK_GEO_MAP&&typeof window.KK_GEO_MAP.geocodeIfNeeded==='function')window.KK_GEO_MAP.geocodeIfNeeded('kk_crm_objects',o.id); if(o.ownerName)createActivity({contact:o.ownerName,type:'Unterlagen angefordert',channel:'CRM',result:'Objektakte aktualisiert',nextStep:o.nextStep,note:o.address}); $('#kkcrmproObjectForm').reset(); $('#kkcrmproObjectId').value=''; $$('#kkcrmproDocChecks input').forEach(function(x){x.checked=false}); renderAll(); toast('Objektakte gespeichert')}
+  function saveObject(e){e.preventDefault(); var o=readObjectForm(); if(!o.address){toast('Objektadresse fehlt'); return} saveOrUpdate(KEYS.objects,o); if(window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded('kk_crm_objects',o.id); if(o.ownerName)createActivity({contact:o.ownerName,type:'Unterlagen angefordert',channel:'CRM',result:'Objektakte aktualisiert',nextStep:o.nextStep,note:o.address}); $('#kkcrmproObjectForm').reset(); $('#kkcrmproObjectId').value=''; $$('#kkcrmproDocChecks input').forEach(function(x){x.checked=false}); renderAll(); toast('Objektakte gespeichert')}
   function editObject(id){var o=arr(KEYS.objects).find(function(x){return x.id===id}); if(!o)return; [['ObjectId','id'],['ObjectOwner','ownerName'],['ObjectAddress','address'],['ObjectDistrict','district'],['BuildYear','buildYear'],['LivingArea','livingArea'],['PlotArea','plotArea'],['Rooms','rooms'],['Condition','condition'],['Energy','energyClass'],['Heating','heating'],['Modernizations','modernizations'],['MarketValue','marketValue'],['WantedPrice','wantedPrice'],['PriceRange','priceRange'],['StrategyPrice','strategyPrice'],['ValuationDate','valuationDate'],['ObjectNotes','notes']].forEach(function(p){var el=$('#kkcrmpro'+p[0]); if(el)el.value=o[p[1]]||''}); [['ObjectArea','area'],['ObjectKind','objectType'],['ObjectStatus','status'],['PriceRisk','priceRisk']].forEach(function(p){var el=$('#kkcrmpro'+p[0]); if(el)el.value=o[p[1]]||el.value}); $$('#kkcrmproDocChecks input').forEach(function(x){x.checked=(o.docs||[]).indexOf(x.value)>-1}); showTab('objects')}
   function selectExistingOption(el,value){if(!el)return false;var target=norm(value),found=false;Array.prototype.forEach.call(el.options||[],function(o){if(norm(o.value||o.textContent)===target){el.value=o.value;found=true}});return found}
   function newContactForm(area){resetLeadForm();selectExistingOption($('#kkcrmproArea'),area);showTab('capture');var form=$('#kkcrmproLeadForm');if(form)form.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(function(){var name=$('#kkcrmproName');if(name)name.focus()},180)}
