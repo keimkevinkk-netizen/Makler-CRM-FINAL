@@ -4838,6 +4838,8 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
 .kkofficial-badge.blocked,.kkofficial-badge.error{background:#fdeeee;color:#b0431f}
 .kkofficial-badge.loading{background:#f1f2f4;color:#5b6472}
 .kkofficial-badge.off{background:#f1f2f4;color:#8b93a0}
+.kkofficial-picker{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--v30-muted,#5b6472);width:100%;margin-top:2px}
+.kkofficial-picker select{font:inherit;font-size:11px;border:1px solid var(--v30-border,#e3e5e8);border-radius:6px;padding:2px 6px}
 /* Reichhaltige, konkrete Popup-Inhalte (Punkt 1): Typ-Kicker + Titel + Feldliste
    statt einer generischen Gattungsbezeichnung. Nur tatsaechlich vorhandene Felder
    werden gerendert (fieldRow() liefert bei leerem Wert nichts). */
@@ -15163,29 +15165,71 @@ if(window.KK_OFFICIAL_GIS&&window.KK_OFFICIAL_GIS.version==='1.0')return;
 
 var U=window.KK_UTIL||{};
 var esc=typeof U.esc==='function'?U.esc:function(v){return String(v==null?'':v)};
-var CACHE_KEY='kk_official_gis_capabilities_cache_v1'; // kk_-Praefix -> vom Backup erfasst
+/* v2 statt v1: der Layer-Parser wurde nach dem Live-Test grundlegend gefixt
+   (verschachtelte Capabilities wurden vorher falsch geparst) - ein alter v1-
+   Cache-Eintrag mit dem damaligen fehlerhaften "kein Layer gefunden"-Ergebnis
+   darf nicht als gueltig weiterverwendet werden. Neuer Key erzwingt sauber
+   einen frischen Abruf, ohne den alten Eintrag manuell loeschen zu muessen. */
+var CACHE_KEY='kk_official_gis_capabilities_cache_v2'; // kk_-Praefix -> vom Backup erfasst
 var CACHE_TTL_MS=24*3600*1000; // Capabilities aendern sich selten - nicht bei jedem Seitenaufruf neu abfragen
 
+/* FIX (nach Live-Test): "ALKIS verbindet sich, findet aber keinen Layer" hatte
+   zwei Ursachen. (1) wms-capabilities.js parste verschachtelte Layer-Baeume
+   falsch (siehe dortiger Kommentar/Fix) - behoben. (2) Selbst mit korrekt
+   ausgelesenen Layern kann ein einzelner Hinweis-Regex mehrdeutig sein: ein
+   INSPIRE-Cadastral-Parcels-Dienst liefert typischerweise MEHRERE passende
+   Layer (CP.CadastralParcel = Flurstuecke, CP.CadastralBoundary = Grenzen,
+   CP.CadastralZoning = Gemarkungen/Fluren) - "cadastral" trifft auf alle drei
+   zu. Statt "erster Treffer gewinnt" wird jetzt jeder Layer bewertet
+   (strongHints/weakHints/negativeHints), damit der EINZELNE, tatsaechlich
+   fuer Flurstuecke gemeinte Layer gewinnt statt zufaellig z.B. die Grenzen. */
 var SERVICES=[
   {key:'boris',label:'BORIS Hessen 2026 (Bodenrichtwerte)',color:'#8b5cf6',
-   layerNameHint:/bodenrichtwert|boris|brw/i,
+   strongHints:[/bodenrichtwert/i,/\bbrw\b/i,/\bbrz\b/i],weakHints:[/boris/i],negativeHints:[],
    licenseHint:'Datenlizenz Deutschland - Zero - Version 2.0 (laut Metadaten, vor Produktivnutzung am Dienst selbst zu bestaetigen)'},
   {key:'alkis',label:'Flurstuecke / ALKIS (INSPIRE-WMS Hessen)',color:'#0d6efd',
-   layerNameHint:/flurst|alkis|grundst|cadastral|parcel/i,
+   strongHints:[/flurst(u|ü)ck/i,/cadastral\s*parcel/i],
+   weakHints:[/\bparcel\b/i,/alkis/i,/grundst(u|ü)ck/i,/cadastr/i],
+   negativeHints:[/grenze/i,/boundary/i,/zoning/i,/gemarkung/i,/\bflur(en)?\b/i],
    licenseHint:'Kostenfrei laut Paragraph 24 HVGG (vor Produktivnutzung am Dienst selbst zu bestaetigen)'}
 ];
+var AMBIGUITY_MARGIN=6; // Punkteabstand, ab dem der Spitzenreiter als eindeutig gilt
 
-var state={}; // key -> {active,status,layerName,title,error,lastChecked,attribution}
-SERVICES.forEach(function(s){state[s.key]={active:false,status:'off',layerName:'',title:'',error:'',lastChecked:'',attribution:''}});
+var state={}; // key -> {active,status,layerName,title,error,lastChecked,candidates,ambiguous}
+SERVICES.forEach(function(s){state[s.key]={active:false,status:'off',layerName:'',title:'',error:'',lastChecked:'',attribution:'',candidates:[],ambiguous:false}});
 
 function readCache(){try{return JSON.parse(localStorage.getItem(CACHE_KEY)||'{}')}catch(e){return {}}}
 function writeCache(obj){try{localStorage.setItem(CACHE_KEY,JSON.stringify(obj))}catch(e){}}
 
-function pickLayer(service,layers){
-  if(!layers||!layers.length)return null;
-  var hint=service.layerNameHint;
-  var match=layers.find(function(l){return hint.test(l.name)||hint.test(l.title)||hint.test(l.abstract||'')});
-  return match||layers[0];
+/* Bewertet einen einzelnen Layer fuer einen Dienst - hoeher = passender.
+   queryable- und Blatt-Layer werden leicht bevorzugt (Einzel-Layer statt
+   Gruppen-/Container-Layer als Standardauswahl), das ist aber nur ein
+   Tie-Breaker, keine harte Regel (Master-PRD erlaubt auch Nicht-Blatt-Layer). */
+function scoreLayer(service,layer){
+  var text=[layer.name,layer.title,layer.abstract||''].join(' ').toLowerCase();
+  var score=0;
+  (service.strongHints||[]).forEach(function(re){if(re.test(text))score+=50});
+  (service.weakHints||[]).forEach(function(re){if(re.test(text))score+=15});
+  (service.negativeHints||[]).forEach(function(re){if(re.test(text))score-=40});
+  if(layer.queryable)score+=5;
+  if(!layer.hasChildren)score+=3;
+  return score;
+}
+
+/* Waehlt automatisch, wenn der Spitzenreiter eindeutig ist. Bei echter
+   Mehrdeutigkeit (mehrere Layer nah beieinander mit positivem Score) wird
+   NICHT geraten, sondern eine kleine Auswahl fuer eine manuelle Bestaetigung
+   zurueckgegeben (Master-PRD: "Nutzer soll keine Layernamen kennen muessen" ->
+   Anzeige ueber Title, nicht ueber den technischen Name). */
+function rankLayers(service,layers){
+  if(!layers||!layers.length)return {chosen:null,ambiguous:false,candidates:[]};
+  var scored=layers.map(function(l){return Object.assign({},l,{score:scoreLayer(service,l)})}).sort(function(a,b){return b.score-a.score});
+  var top=scored[0];
+  if(top.score<=0)return {chosen:null,ambiguous:false,candidates:scored.slice(0,6)};
+  var second=scored[1];
+  var ambiguous=!!(second&&second.score>0&&(top.score-second.score)<AMBIGUITY_MARGIN);
+  var candidates=scored.filter(function(l){return l.score>0}).slice(0,6);
+  return {chosen:top,ambiguous:ambiguous,candidates:candidates};
 }
 
 /* Ruft die serverseitige GetCapabilities-Proxy-Function auf und waehlt daraus
@@ -15208,11 +15252,12 @@ async function discover(service,force){
       cache[service.key]=errResult;writeCache(cache);
       return errResult;
     }
-    var chosen=pickLayer(service,data.layers);
+    var ranked=rankLayers(service,data.layers);
     var okResult={
-      status:chosen?'live':'live_no_layers_found',
-      layerName:chosen?chosen.name:'',title:chosen?(chosen.title||chosen.name):'',
-      layerCount:data.layerCount,baseUrl:data.baseUrl,licenseHint:data.licenseHint,
+      status:ranked.chosen?'live':'live_no_layers_found',
+      layerName:ranked.chosen?ranked.chosen.name:'',title:ranked.chosen?(ranked.chosen.title||ranked.chosen.name):'',
+      ambiguous:ranked.ambiguous,candidates:ranked.candidates,
+      layerCount:data.layerCount,allLayers:data.layers,baseUrl:data.baseUrl,licenseHint:data.licenseHint,
       fetchedAt:data.fetchedAt||new Date().toISOString()
     };
     cache[service.key]=okResult;writeCache(cache);
@@ -15234,6 +15279,12 @@ function statusLabel(status){
   return {live:'Live verbunden',loading:'Wird geprüft…',off:'Ausgeblendet',blocked:'Nicht erreichbar',live_no_layers_found:'Verbunden, kein passender Layer gefunden'}[status]||status;
 }
 
+/* Master-Prompt: "Der Nutzer soll keinerlei Layernamen kennen muessen" - die
+   Auswahl zeigt ausschliesslich den menschenlesbaren Title (Fallback: Name nur
+   wenn kein Title geliefert wurde), niemals den rohen technischen Layer-Code
+   als einzige Bezeichnung. */
+function candidateLabel(c){return c.title||c.name}
+
 function renderStatus(){
   var host=document.getElementById('kkofficial-status');
   if(!host)return;
@@ -15241,13 +15292,31 @@ function renderStatus(){
     var st=state[s.key];
     var line='<div class="kkofficial-source-line"><b>'+esc(s.label)+'</b>'+
       '<span class="kkofficial-badge '+statusBadgeClass(st.active?st.status:'off')+'">'+esc(st.active?statusLabel(st.status):'Ausgeblendet')+'</span>';
-    if(st.active&&st.layerName)line+='<span>Layer: '+esc(st.title||st.layerName)+'</span>';
+    if(st.active&&st.layerName&&!st.ambiguous)line+='<span>Layer: '+esc(st.title||st.layerName)+'</span>';
     if(st.active&&st.lastChecked)line+='<span>Abgerufen: '+esc(new Date(st.lastChecked).toLocaleString('de-DE'))+'</span>';
     if(st.active)line+='<span>'+esc(s.licenseHint)+'</span>';
     if(st.active&&st.error)line+='<span class="kkofficial-badge blocked">'+esc(st.error)+(st.message?': '+esc(st.message):'')+'</span>';
     line+='</div>';
+    /* Mehrdeutige Layer-Erkennung: mehrere Kandidaten liegen nah beieinander -
+       statt zu raten, eine kleine, verstaendliche Auswahl anbieten. Vorbelegt
+       mit dem besten Treffer, ein einfacher Klick auf "Übernehmen" reicht also
+       auch ohne dass der Nutzer irgendeinen Layernamen kennen muss. */
+    if(st.active&&st.ambiguous&&st.candidates&&st.candidates.length>1){
+      line+='<div class="kkofficial-picker"><label>Mehrere passende Ebenen gefunden - bitte bestätigen: '+
+        '<select data-kkofficial-picker="'+esc(s.key)+'">'+
+        st.candidates.map(function(c){return '<option value="'+esc(c.name)+'"'+(c.name===st.layerName?' selected':'')+'>'+esc(candidateLabel(c))+'</option>'}).join('')+
+        '</select></label>'+
+        '<button type="button" class="kkgeo-layer-only" data-kkofficial-confirm="'+esc(s.key)+'">Übernehmen</button></div>';
+    }
     return line;
   }).join('');
+  Array.prototype.forEach.call(host.querySelectorAll('[data-kkofficial-confirm]'),function(btn){
+    btn.addEventListener('click',function(){
+      var key=btn.dataset.kkofficialConfirm;
+      var select=host.querySelector('[data-kkofficial-picker="'+key+'"]');
+      if(select)selectLayer(key,select.value);
+    });
+  });
 }
 
 function renderPanel(){
@@ -15266,6 +15335,29 @@ function renderPanel(){
   renderStatus();
 }
 
+function applyOverlay(key,layerName){
+  var adapter=window.KK_REALMAP&&window.KK_REALMAP.getAdapter?window.KK_REALMAP.getAdapter():null;
+  var st=state[key];
+  if(!adapter||!layerName||!st.baseUrl)return;
+  adapter.setOfficialOverlay(key,{url:st.baseUrl,layers:layerName,opacity:0.55,attribution:st.attribution||''});
+}
+
+/* Manuelle Bestaetigung bei Mehrdeutigkeit (siehe rankLayers) - der Nutzer waehlt
+   ueber den lesbaren Titel in der Auswahlbox, nicht ueber den rohen Layernamen
+   im Code. Nach Bestaetigung merkt sich der Cache diese Wahl wie einen normalen
+   eindeutigen Treffer (kein erneutes Nachfragen bei jedem Toggle). */
+function selectLayer(key,layerName){
+  var st=state[key];
+  var chosen=(st.candidates||[]).find(function(c){return c.name===layerName});
+  st.layerName=layerName;
+  st.title=chosen?candidateLabel(chosen):layerName;
+  st.ambiguous=false;
+  var cache=readCache();
+  if(cache[key]){cache[key].layerName=layerName;cache[key].title=st.title;cache[key].ambiguous=false;writeCache(cache)}
+  renderStatus();
+  applyOverlay(key,layerName);
+}
+
 async function toggleLayer(key,on){
   var service=SERVICES.find(function(s){return s.key===key});
   if(!service)return;
@@ -15282,14 +15374,43 @@ async function toggleLayer(key,on){
   state[key].title=result.title||'';
   state[key].error=result.error||'';
   state[key].message=result.message||'';
+  state[key].ambiguous=!!result.ambiguous;
+  state[key].candidates=result.candidates||[];
+  state[key].baseUrl=result.baseUrl||'';
+  state[key].attribution=service.label+' &middot; '+(result.licenseHint||'');
   state[key].lastChecked=result.fetchedAt||new Date().toISOString();
   renderStatus();
-  if(result.status==='live'&&result.layerName&&adapter){
-    adapter.setOfficialOverlay(key,{
-      url:result.baseUrl,layers:result.layerName,opacity:0.55,
-      attribution:service.label+' &middot; '+(result.licenseHint||'')
-    });
+  if(result.status==='live'&&result.layerName&&!result.ambiguous){
+    applyOverlay(key,result.layerName);
   }
+}
+
+/* Freundliche Beschriftung bekannter Feldnamen fuer die GetFeatureInfo-Popups
+   (Master-Prompt: Gemarkung/Flur/Flurstuecksnummer/amtliche Flaeche fuer ALKIS,
+   Bodenrichtwert/Stichtag/Nutzungsart/Entwicklungszustand fuer BORIS). Deckt
+   sowohl englische INSPIRE-Attributnamen als auch uebliche deutsche ALKIS-/BORIS-
+   WMS-Konventionen ab, da die exakten Feldnamen ohne Live-Zugriff nicht
+   verifizierbar waren (siehe ADR-0002). Unbekannte Felder werden weiterhin mit
+   ihrem rohen Namen gezeigt statt verschwiegen (Anhang C9: "nur gelieferte
+   Attribute", nichts wird unterdrueckt oder erfunden). */
+var FIELD_LABELS=[
+  [/^(amtliche[_ ]?flaeche|official.?area|area.?value|flaeche)$/i,'Amtliche Fläche (m²)'],
+  [/^(gemarkung|cadastral.?zoning|zoning)$/i,'Gemarkung'],
+  [/^(flur)$/i,'Flur'],
+  [/^(flurstuecksnummer|flurstueck.?nr|parcel.?number|label|zaehler.?nenner)$/i,'Flurstücksnummer'],
+  [/^(flurstueckskennzeichen|national.?cadastral.?reference|inspire.?id)$/i,'Flurstückskennzeichen'],
+  [/^(gemeinde|municipality)$/i,'Gemeinde'],
+  [/^(bodenrichtwert|brw|value.?eur.?m2)$/i,'Bodenrichtwert (€/m²)'],
+  [/^(stichtag|reference.?date|wertermittlungsstichtag)$/i,'Stichtag'],
+  [/^(nutzung|nutzungsart|usage.?type)$/i,'Nutzungsart'],
+  [/^(entwicklungszustand|development.?status)$/i,'Entwicklungszustand'],
+  [/^(gfz)$/i,'Geschossflächenzahl (GFZ)'],
+  [/^(grz)$/i,'Grundflächenzahl (GRZ)'],
+  [/^(gutachterausschuss)$/i,'Gutachterausschuss']
+];
+function friendlyFieldLabel(key){
+  var hit=FIELD_LABELS.find(function(p){return p[0].test(String(key||'').trim())});
+  return hit?hit[1]:key;
 }
 
 /* GetFeatureInfo bei Kartenklick, aber NUR wenn mindestens ein amtlicher Layer
@@ -15321,9 +15442,18 @@ async function handleMapClick(latlng){
     panel.innerHTML='<div class="kkgeo-empty">Keine amtlichen Objektinformationen an dieser Position (oder Dienst nicht erreichbar).</div>';
     return;
   }
+  /* Anhang C3/C9 + Datenschutzregeln: Flurstuecksdaten sind amtliche Sachdaten,
+     KEINE Eigentuemerinformationen. ALKIS-WMS-Dienste liefern ueblicherweise
+     ohnehin keine Eigentuemerdaten (die liegen nur im geschuetzten Kataster-
+     Auszug), aber zur Sicherheit werden Felder mit eindeutigem Eigentuemer-
+     Bezug defensiv aus der Anzeige gefiltert, falls ein Dienst doch mehr
+     zurueckgeben sollte als erwartet - nie stillschweigend anzeigen. */
+  var OWNER_FIELD_RE=/eigentuemer|eigentümer|owner|besitzer/i;
   panel.innerHTML=results.map(function(r){
-    var rows=(r.data.features[0]&&Object.keys(r.data.features[0])||[]).map(function(k){
-      return '<div class="kkgeo-popup-field"><span>'+esc(k)+'</span><b>'+esc(r.data.features[0][k])+'</b></div>';
+    var feature=r.data.features[0]||{};
+    var keys=Object.keys(feature).filter(function(k){return !OWNER_FIELD_RE.test(k)});
+    var rows=keys.map(function(k){
+      return '<div class="kkgeo-popup-field"><span>'+esc(friendlyFieldLabel(k))+'</span><b>'+esc(feature[k])+'</b></div>';
     }).join('');
     return '<div class="kkgeo-popup-type">'+esc(r.service.label)+'</div>'+
       (rows||'<div class="kkgeo-empty">Dienst hat geantwortet, aber keine Attribute geliefert.</div>')+

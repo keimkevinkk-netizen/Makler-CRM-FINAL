@@ -48,31 +48,49 @@ function jsonResponse(statusCode, body) {
   };
 }
 
-// Sehr einfacher, abhaengigkeitsfreier XML-Layer-Extraktor. Kein vollstaendiger
-// XML-Parser (bewusst keine neue npm-Abhaengigkeit fuer eine einzelne Function) -
-// deckt aber die WMS-Capabilities-Grundstruktur <Layer><Name>/<Title>/queryable ab.
+/* Stack-basierter, abhaengigkeitsfreier WMS-Capabilities-Layer-Extraktor (bewusst
+   keine neue npm-Abhaengigkeit fuer eine einzelne Function).
+   FIX (nach echtem Live-Test gegen den ALKIS-INSPIRE-WMS): die fruehere flache
+   Regex-Version ("body enthaelt kein <Layer> mehr") ist bei jeder verschachtelten
+   Layer-Hierarchie falsch - WMS-Capabilities-Baeume sind bei INSPIRE-Diensten
+   praktisch immer mehrstufig verschachtelt (Theme > Gruppe > Einzel-Layer), und
+   ein non-greedy Regex-Match auf <Layer>...</Layer> matcht bei Verschachtelung
+   nur bis zum ERSTEN inneren </Layer>, nicht bis zum tatsaechlich zugehoerigen
+   schliessenden Tag - dadurch wurden bei ALKIS praktisch alle echten Layer
+   verworfen (verbunden, aber "kein passender Layer gefunden").
+   Ausserdem ist es laut WMS-Spezifikation zulaessig, dass auch NICHT-Blatt-Layer
+   (mit eigenen Kindern) einen eigenen <Name> tragen und direkt anfragbar sind -
+   das wurde vorher faelschlich komplett ausgeschlossen. Jetzt: echter
+   Tag-Stack, jede <Layer>-Ebene bekommt ihren eigenen Namen/Titel/Abstract
+   zugeordnet, unabhaengig von Verschachtelungstiefe; hasChildren wird
+   mitgefuehrt, damit der Client Gruppen- von Einzel-Layern unterscheiden kann. */
 function extractLayers(xml) {
   var layers = [];
-  var layerBlockRe = /<Layer\b([^>]*)>([\s\S]*?)<\/Layer>/gi;
-  var match;
-  while ((match = layerBlockRe.exec(xml)) !== null) {
-    var attrs = match[1] || '';
-    var body = match[2] || '';
-    // Nur Blaetter (kein verschachteltes <Layer> direkt darin) zaehlen als konkrete Layer,
-    // um Gruppen-/Container-Layer nicht als eigenstaendige waehlbare Ebene zu listen.
-    if (/<Layer\b/i.test(body)) continue;
-    var nameMatch = body.match(/<Name>([^<]*)<\/Name>/i);
-    var titleMatch = body.match(/<Title>([^<]*)<\/Title>/i);
-    var abstractMatch = body.match(/<Abstract>([^<]*)<\/Abstract>/i);
-    var queryable = /queryable\s*=\s*"1"/i.test(attrs);
-    if (nameMatch) {
-      layers.push({
-        name: nameMatch[1].trim(),
-        title: titleMatch ? titleMatch[1].trim() : '',
-        abstract: abstractMatch ? abstractMatch[1].trim() : '',
-        queryable: queryable
-      });
+  var stack = [];
+  var tokenRe = /<Layer\b([^>]*)>|<\/Layer>|<Name>([^<]*)<\/Name>|<Title>([^<]*)<\/Title>|<Abstract>([^<]*)<\/Abstract>/g;
+  var m;
+  while ((m = tokenRe.exec(xml)) !== null) {
+    var full = m[0];
+    if (full === '</Layer>') {
+      var frame = stack.pop();
+      if (frame && frame.name) {
+        layers.push({
+          name: frame.name, title: frame.title || '', abstract: frame.abstract || '',
+          queryable: frame.queryable, hasChildren: frame.hasChildren, depth: stack.length
+        });
+      }
+      if (stack.length) stack[stack.length - 1].hasChildren = true;
+      continue;
     }
+    if (full.charAt(1) === 'L') { // "<Layer ...>"
+      stack.push({ name: '', title: '', abstract: '', queryable: /queryable\s*=\s*"1"/i.test(m[1] || ''), hasChildren: false });
+      continue;
+    }
+    if (!stack.length) continue; // Name/Title/Abstract ausserhalb jeder <Layer> (z.B. <Service>) - nicht relevant
+    var top = stack[stack.length - 1];
+    if (full.indexOf('<Name>') === 0) { if (!top.name) top.name = (m[2] || '').trim(); }
+    else if (full.indexOf('<Title>') === 0) { if (!top.title) top.title = (m[3] || '').trim(); }
+    else if (full.indexOf('<Abstract>') === 0) { if (!top.abstract) top.abstract = (m[4] || '').trim(); }
   }
   return layers;
 }
@@ -84,6 +102,10 @@ function extractCrs(xml) {
   while ((m = re.exec(xml)) !== null) set[m[1].trim()] = true;
   return Object.keys(set).slice(0, 30);
 }
+
+// Fuer Node-Unit-Tests ohne Netzwerkzugriff exportiert (Netlify ruft nur exports.handler auf).
+exports.extractLayers = extractLayers;
+exports.extractCrs = extractCrs;
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'GET') return jsonResponse(405, { error: 'method_not_allowed' });
