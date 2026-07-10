@@ -1118,6 +1118,15 @@ body.kk-v30-shell-ready #kk-app-shell button.kkh-call-hero-stat{
   background:var(--v30-surface-2)!important;color:var(--v30-ink)!important;font-weight:400!important
 }
 body.kk-v30-shell-ready #kk-app-shell button.kkh-call-hero-stat:hover{background:#fff!important;border-color:var(--accent)!important}
+/* Derselbe Spezifitäts-Bug bei .kkref20-name-btn (Tippgeber-Name als reiner
+   Textlink gedacht) — wurde als dunkles Badge/Button-Pill gerendert statt als
+   unterstrichener Text, weil die App-weite Button-Regel ohne eigenes
+   !important gewann. */
+body.kk-v30-shell-ready #kk-app-shell button.kkref20-name-btn{
+  background:none!important;color:var(--v30-ink)!important;font-weight:900!important;
+  border-radius:0!important;text-decoration:underline!important;padding:0!important;min-height:auto!important
+}
+body.kk-v30-shell-ready #kk-app-shell button.kkref20-name-btn:hover{color:var(--accent)!important}
 
 /* Heute nur visuell beruhigen; inhaltlicher Umbau folgt in V30.3 */
 body.kk-v30-shell-ready #kk-heute-v27{background:transparent!important}
