@@ -4327,6 +4327,209 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
   </div>
 </section>
 
+<!-- V31 Marktmonitor-Rebuild Teil 2 (Marktbeobachtungen/Fremdangebote/Vergleichsobjekte):
+     bewusst ein EIGENES, klar benanntes Modul mit eigenem Storage-Key
+     (kk_market_observations_v1) statt einer Erweiterung der bestehenden
+     "Marktmonitor für Akquise-Anlässe"-Sektion oben. Grund: der Auftrag verlangt
+     ausdruecklich technische UND fachliche Trennung von eigenen CRM-Objekten/Leads/
+     Verkaufsauftraegen, plus eine "deutlich andere Bezeichnung" - eine Erweiterung
+     der bestehenden, funktional anders gelagerten Chancenmaschine (Beobachtung ->
+     Akquise-Anlass) haette diese Trennung verwischt. Erscheint NICHT als Standard-
+     Kartenebene (kein Eintrag in LAYER_DEFS der Hauptkarte) und schreibt nie in
+     kk_crm_*/kk_sales_pipeline/kk_followups. -->
+<section class="kkmo-section" id="kk-market-observations" aria-labelledby="kkmo-title">
+  <div class="kkmo-shell">
+    <div class="kkmo-head">
+      <div>
+        <span class="kkmo-kicker">Marktbeobachtungen · Fremdangebote &amp; Vergleichsobjekte</span>
+        <h2 id="kkmo-title">Eigene Vergleichsdatenbank</h2>
+        <p>Manuell erfasste Fremdangebote, historische Angebote und bekannte Verkäufe für die Marktpreis-Auswertung. Vollständig getrennt von deinen eigenen CRM-Objekten, Leads und Verkaufsaufträgen — erscheint nicht in deiner operativen Pipeline und nicht standardmäßig als Marker auf der Hauptkarte.</p>
+      </div>
+      <div class="kkmo-actions">
+        <span class="kkmo-updated" id="kkmo-updated">0 Einträge</span>
+        <button class="kkmo-btn light" id="kkmo-export-csv" type="button">CSV exportieren</button>
+        <button class="kkmo-btn light" id="kkmo-import-csv-btn" type="button">CSV importieren</button>
+        <input type="file" id="kkmo-import-file" accept=".csv" hidden>
+      </div>
+    </div>
+
+    <form class="kkmo-card kkmo-quickform" id="kkmo-quickform" autocomplete="off">
+      <h3>Schnellerfassung</h3>
+      <p class="kkmo-hint">Nur die markierten Felder (*) sind Pflicht. Preis/m² wird automatisch berechnet, sobald Preis und Fläche vorliegen.</p>
+      <div class="kkmo-row four">
+        <label>Ort*<select name="city" id="kkmoCity" required>
+          <option value="">Bitte wählen</option>
+          <option>Bruchköbel</option><option>Hanau</option><option>Schöneck</option><option>Nidderau</option>
+          <option>Erlensee</option><option>Langenselbold</option><option>Maintal</option><option>Neuberg</option>
+          <option>Hammersbach</option><option>Rodenbach</option><option>Freigericht</option><option>Gelnhausen</option>
+        </select></label>
+        <label>Ortsteil<input list="kkmoDistrictList" name="district" id="kkmoDistrict" placeholder="optional, für Statistik empfohlen"><datalist id="kkmoDistrictList"></datalist></label>
+        <label>Objekttyp*<select name="propertyType" id="kkmoType" required></select></label>
+        <label>Kauf/Miete*<select name="dealType" id="kkmoDeal" required><option value="kauf">Kauf</option><option value="miete">Miete</option></select></label>
+      </div>
+      <div class="kkmo-row four">
+        <label>Preis (€)*<input type="number" min="0" name="price" id="kkmoPrice" required></label>
+        <label>Wohn-/Grundstücksfläche (m²)*<input type="number" min="0" name="livingArea" id="kkmoArea" required></label>
+        <label>Preis/m²<output id="kkmoPricePerSqm">–</output></label>
+        <label>Preisart<select name="priceType" id="kkmoPriceType"></select></label>
+      </div>
+      <div class="kkmo-row four">
+        <label>Quelle*<select name="source" id="kkmoSource" required>
+          <option value="">Bitte wählen</option>
+          <option>ImmoScout24</option><option>Immowelt</option><option>Kleinanzeigen</option><option>Immonet</option>
+          <option>Bank/Sparkasse</option><option>Anderer Makler</option><option>Bauträger</option><option>Privatverkäufer</option><option>Sonstige</option>
+        </select></label>
+        <label>Erfassungsdatum*<input type="date" name="capturedAt" id="kkmoCapturedAt" required></label>
+        <label>Inseratslink<input type="url" name="listingUrl" id="kkmoListingUrl" placeholder="https:// (optional)"></label>
+        <label>Status<select name="listingStatus" id="kkmoStatus"></select></label>
+      </div>
+      <div class="kkmo-more-fields" id="kkmo-more-fields" hidden>
+        <div class="kkmo-row four">
+          <label>Kategorie<select name="category" id="kkmoCategory"></select></label>
+          <label>Bezeichnung<input type="text" name="designation" id="kkmoDesignation" placeholder="z. B. EFH Roßdorf, Ruhige Lage"></label>
+          <label>Straße/Hausnummer<input type="text" name="street" id="kkmoStreet" placeholder="falls bekannt"></label>
+          <label>PLZ<input type="text" name="postalCode" id="kkmoPostal"></label>
+        </div>
+        <div class="kkmo-row four">
+          <label>Anbieter<input type="text" name="provider" id="kkmoProvider" placeholder="Name Makler/Bank/Bauträger"></label>
+          <label>Ursprünglicher Preis (€)<input type="number" min="0" name="originalPrice" id="kkmoOriginalPrice"></label>
+          <label>Baujahr<input type="number" name="buildYear" id="kkmoBuildYear"></label>
+          <label>Zimmer<input type="number" min="0" step="0.5" name="rooms" id="kkmoRooms"></label>
+        </div>
+        <div class="kkmo-row four">
+          <label>Zustand<input type="text" name="condition" id="kkmoCondition" placeholder="z. B. saniert, renovierungsbedürftig"></label>
+          <label>Ausstattung<input type="text" name="fittingsQuality" id="kkmoFittings" placeholder="z. B. gehoben, einfach"></label>
+          <label>Vermietet/Leer<select name="occupancy" id="kkmoOccupancy"><option value="unknown">Unbekannt</option><option value="vermietet">Vermietet</option><option value="leer">Leer</option></select></label>
+          <label>Nur ungefähre Lage bekannt<select name="approxOnly" id="kkmoApprox"><option value="1">Ja</option><option value="0">Nein, genaue Adresse</option></select></label>
+        </div>
+        <label class="kkmo-note-field">Notiz<textarea name="comment" id="kkmoComment" placeholder="Eigene Einschätzung, Auffälligkeiten"></textarea></label>
+      </div>
+      <div class="kkmo-row-actions">
+        <button type="submit" class="kkmo-btn" id="kkmo-submit-btn">Erfassen</button>
+        <button type="button" class="kkmo-btn light" id="kkmo-more-fields-toggle">Weitere Felder</button>
+        <span id="kkmo-duplicate-warning" class="kkmo-duplicate-warning" hidden></span>
+      </div>
+    </form>
+
+    <div class="kkmo-card">
+      <div class="kkmo-list-head">
+        <h3>Vergleichsdatenbank</h3>
+        <span id="kkmo-list-count">0 Einträge</span>
+      </div>
+      <div class="kkmo-filters" id="kkmo-filters">
+        <input type="search" id="kkmoFilterSearch" placeholder="Suche: Ort, Ortsteil, Bezeichnung, Anbieter">
+        <select id="kkmoFilterCity"><option value="">Alle Orte</option></select>
+        <select id="kkmoFilterType"><option value="">Alle Typen</option></select>
+        <select id="kkmoFilterDeal"><option value="">Kauf/Miete</option><option value="kauf">Kauf</option><option value="miete">Miete</option></select>
+        <select id="kkmoFilterStatus"><option value="">Alle Status</option></select>
+        <select id="kkmoSort">
+          <option value="newest">Neueste zuerst</option>
+          <option value="price_desc">Preis absteigend</option>
+          <option value="price_asc">Preis aufsteigend</option>
+          <option value="ppsm_desc">Preis/m² absteigend</option>
+          <option value="ppsm_asc">Preis/m² aufsteigend</option>
+          <option value="reduction">Größte Reduzierung zuerst</option>
+          <option value="quality">Höchste Datenqualität zuerst</option>
+        </select>
+      </div>
+      <div class="kkmo-list" id="kkmo-list"></div>
+    </div>
+
+    <div class="kkmo-card" id="kkmo-calculator">
+      <h3>Immobilienpreis-Kalkulator</h3>
+      <p class="kkmo-hint">Berechnet Median, Mittelwert und einen zeit-/lagegewichteten Vergleichswert aus deiner eigenen Vergleichsdatenbank. Ausreißer werden erkannt und ausgewiesen, nicht stillschweigend eingerechnet.</p>
+      <div class="kkmo-calc-controls">
+        <label>Ort<select id="kkmoCalcCity"><option value="">Main-Kinzig-Kreis gesamt</option>
+          <option>Bruchköbel</option><option>Hanau</option><option>Schöneck</option><option>Nidderau</option>
+          <option>Erlensee</option><option>Langenselbold</option><option>Maintal</option><option>Neuberg</option>
+          <option>Hammersbach</option><option>Rodenbach</option><option>Freigericht</option><option>Gelnhausen</option>
+        </select></label>
+        <label>Ortsteil<input list="kkmoDistrictList" id="kkmoCalcDistrict" placeholder="optional"></label>
+        <label>Objekttyp<select id="kkmoCalcType"><option value="">Alle Typen</option></select></label>
+        <label>Kauf/Miete<select id="kkmoCalcDeal"><option value="kauf">Kauf</option><option value="miete">Miete</option></select></label>
+        <label>Zeitraum<select id="kkmoCalcTimeframe">
+          <option value="3">3 Monate</option><option value="6">6 Monate</option><option value="12" selected>12 Monate</option>
+          <option value="24">24 Monate</option><option value="all">Gesamter Verlauf</option>
+        </select></label>
+        <button type="button" class="kkmo-btn" id="kkmo-calc-run">Berechnen</button>
+      </div>
+      <div class="kkmo-calc-result" id="kkmo-calc-result"><p class="kkmo-empty">Noch keine Berechnung durchgeführt.</p></div>
+    </div>
+
+    <p class="kkmo-source-note">Marktbeobachtungen fließen nicht automatisch in deine CRM-Pipeline, Leads oder Follow-ups ein und erscheinen nicht als Standard-Kartenebene. Sie speisen ausschließlich die Orts-/Preisauswertung und den Kalkulator hier oben. Jede Berechnung zeigt offen, welche Vergleichsobjekte, Gewichtungen und Ausreißer zugrunde liegen — keine unbegründeten Zahlen.</p>
+  </div>
+</section>
+
+<style id="kk-market-observations-css">
+.kkmo-section{background:var(--v30-canvas,#f6f6f5);border-bottom:1px solid var(--v30-border,#e3e5e8)}
+.kkmo-shell{max-width:1180px;margin:0 auto;padding:20px 22px 8px;display:flex;flex-direction:column;gap:16px}
+.kkmo-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+.kkmo-kicker{display:inline-flex;color:var(--accent,#b0431f);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.kkmo-head h2{font-family:Inter,system-ui,sans-serif;color:var(--v30-ink,#141a21);font-size:clamp(20px,2.4vw,26px);margin:0 0 6px;letter-spacing:-.02em}
+.kkmo-head p{max-width:680px;color:var(--v30-muted,#5b6472);margin:0;font-size:13px;line-height:1.55}
+.kkmo-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.kkmo-updated{font-family:ui-monospace,monospace;font-size:11px;color:var(--v30-muted,#5b6472);white-space:nowrap}
+.kkmo-btn{border:1px solid var(--v30-border,#e3e5e8);border-radius:10px;background:var(--v30-blue,#182c46);color:#fff;font:inherit;font-size:12.5px;font-weight:750;padding:9px 15px;cursor:pointer;min-height:38px}
+.kkmo-btn.light{background:#fff;color:var(--v30-ink,#141a21)}
+.kkmo-btn.light:hover{background:var(--v30-surface-2,#f1f2f4)}
+.kkmo-card{border:1px solid var(--v30-border,#e3e5e8);border-radius:16px;background:#fff;padding:16px 18px}
+.kkmo-card h3{margin:0 0 4px;font-size:14.5px;font-weight:850;color:var(--v30-ink,#141a21)}
+.kkmo-hint{margin:0 0 10px;font-size:11.5px;color:var(--v30-muted,#5b6472)}
+.kkmo-row{display:grid;gap:10px;margin-bottom:10px}
+.kkmo-row.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.kkmo-row label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:750;color:var(--v30-muted,#5b6472);text-transform:uppercase;letter-spacing:.03em}
+.kkmo-row input,.kkmo-row select,.kkmo-row output{font:inherit;font-size:13px;font-weight:600;text-transform:none;letter-spacing:normal;color:var(--v30-ink,#141a21);border:1px solid var(--v30-border,#e3e5e8);border-radius:9px;padding:8px 10px;background:#fff;min-height:38px}
+.kkmo-row output{background:var(--v30-surface-2,#f1f2f4);display:flex;align-items:center}
+.kkmo-note-field{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:750;color:var(--v30-muted,#5b6472);text-transform:uppercase;margin-bottom:6px}
+.kkmo-note-field textarea{font:inherit;font-size:13px;font-weight:400;text-transform:none;color:var(--v30-ink,#141a21);border:1px solid var(--v30-border,#e3e5e8);border-radius:9px;padding:8px 10px;min-height:60px;resize:vertical}
+.kkmo-row-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px}
+.kkmo-duplicate-warning{font-size:12px;font-weight:750;color:#8a4b00;background:#fff4ed;border:1px solid #f4a460;border-radius:8px;padding:6px 10px}
+.kkmo-list-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.kkmo-list-head span{font-size:11.5px;color:var(--v30-muted,#5b6472);font-weight:700}
+.kkmo-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.kkmo-filters input,.kkmo-filters select{font:inherit;font-size:12.5px;border:1px solid var(--v30-border,#e3e5e8);border-radius:9px;padding:7px 10px;background:#fff;min-height:36px}
+.kkmo-filters input{flex:1 1 220px}
+/* Gleiches wiederkehrendes Spezifitaets-Problem (fuenfte Instanz diese Sitzung): die
+   App-weite Regel [data-app-panel] :is(input,select,textarea){width:100%!important}
+   erfasst auch diese Filterleiste und macht aus einer Reihe kompakter Selects eine
+   Spalte voller Vollbreiten-Felder. Gezielt mit !important zurueckgesetzt, analog zu
+   .kkgeo-layer-check input weiter oben in dieser Datei. */
+body.kk-v30-shell-ready [data-app-panel] .kkmo-filters select,
+body.kk-v30-shell-ready [data-app-panel] .kkmo-filters input{width:auto!important;flex:1 1 180px!important}
+.kkmo-list{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto}
+.kkmo-row-card{border:1px solid var(--v30-border,#e3e5e8);border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;gap:6px}
+.kkmo-row-card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.kkmo-row-card-head b{font-size:13.5px;color:var(--v30-ink,#141a21)}
+.kkmo-row-card-head .kkmo-price{font-size:15px;font-weight:900;color:var(--v30-blue,#182c46)}
+.kkmo-row-card-meta{font-size:11.5px;color:var(--v30-muted,#5b6472);display:flex;gap:10px;flex-wrap:wrap}
+.kkmo-quality-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px}
+.kkmo-quality-badge.sehr_hoch{background:#e4f3e8;color:#1c6b34}
+.kkmo-quality-badge.hoch{background:#eaf3e2;color:#3f7a26}
+.kkmo-quality-badge.mittel{background:#faf1de;color:#8a6412}
+.kkmo-quality-badge.niedrig{background:#fbe9df;color:#a1481c}
+.kkmo-quality-badge.unzureichend{background:#fbe3e0;color:#a32c1e}
+.kkmo-row-card-actions{display:flex;gap:8px;flex-wrap:wrap}
+/* Sechste Instanz desselben Spezifitaets-Musters diese Sitzung: #kk-app-shell
+   button{background/color!important} erfasst auch diese Text-Link-Buttons. */
+body.kk-v30-shell-ready #kk-app-shell .kkmo-row-card-actions button{border:0!important;background:none!important;color:var(--v30-blue,#182c46)!important;font:inherit;font-size:11.5px;font-weight:750;cursor:pointer;text-decoration:underline;padding:0!important;min-height:0!important}
+.kkmo-row-card-history{font-size:11px;color:var(--v30-muted,#5b6472)}
+.kkmo-empty{color:var(--v30-muted,#5b6472);font-size:12.5px;padding:14px 0;text-align:center}
+.kkmo-calc-controls{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:10px 0}
+.kkmo-calc-controls label{display:flex;flex-direction:column;gap:4px;font-size:10.5px;font-weight:750;color:var(--v30-muted,#5b6472);text-transform:uppercase}
+.kkmo-calc-controls input,.kkmo-calc-controls select{font:inherit;font-size:12.5px;font-weight:600;text-transform:none;border:1px solid var(--v30-border,#e3e5e8);border-radius:9px;padding:7px 9px;min-height:36px}
+.kkmo-calc-result{margin-top:8px}
+.kkmo-calc-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px}
+.kkmo-calc-stats div{background:var(--v30-surface-2,#f1f2f4);border-radius:10px;padding:9px 11px}
+.kkmo-calc-stats span{display:block;font-size:10px;color:var(--v30-muted,#5b6472);font-weight:700;text-transform:uppercase}
+.kkmo-calc-stats b{font-size:15px;color:var(--v30-ink,#141a21)}
+.kkmo-calc-transparency{font-size:11.5px;color:var(--v30-muted,#5b6472);line-height:1.6;border-top:1px solid #eef1f5;padding-top:10px}
+.kkmo-calc-transparency b{color:var(--v30-ink,#141a21)}
+.kkmo-calc-outliers{margin-top:6px;color:#a1481c}
+.kkmo-source-note{max-width:760px;margin:0;font-size:11px;color:#8b93a0;line-height:1.5}
+@media (max-width:900px){.kkmo-row.four{grid-template-columns:1fr 1fr}.kkmo-calc-controls{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.kkmo-shell{padding:14px 14px 6px}.kkmo-row.four{grid-template-columns:1fr}.kkmo-calc-controls{grid-template-columns:1fr}.kkmo-filters{flex-direction:column}.kkmo-filters input,.kkmo-filters select{width:100%}}
+</style>
+
 <!-- V31 Marktmonitor-Rebuild (PRD Teil 4 / .claude/rules/market.md: "Kein zweiter
      Kartenstack parallel sichtbar"): die alte Schema-Kartenansicht (handgezeichnete
      SVG-Formen statt echter Geografie) ist jetzt vollstaendig unsichtbar und ueber
@@ -4615,6 +4818,9 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
 .kkgeo-detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .kkgeo-detail-actions button{border:1px solid var(--v30-border,#e3e5e8);background:#fff;color:var(--v30-blue,#182c46);border-radius:9px;font:inherit;font-size:12px;font-weight:750;padding:7px 12px;cursor:pointer}
 .kkgeo-detail-actions button:hover{background:var(--v30-surface-2,#f1f2f4)}
+.kkgeo-detail-comparables{margin-top:12px;padding-top:12px;border-top:1px dashed var(--v30-border,#e3e5e8)}
+.kkgeo-detail-comparables b{font-size:12px;color:var(--v30-ink,#141a21)}
+.kkgeo-empty-inline{margin:6px 0 0;font-size:11px;color:var(--v30-muted,#5b6472);line-height:1.5}
 .kkgeo-results-wrap{margin-top:16px}
 .kkgeo-results-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
 .kkgeo-results-head h3{margin:0;font-size:13px;font-weight:850;color:var(--v30-ink,#141a21)}
@@ -14141,6 +14347,25 @@ function renderDetailPanel(){
       '<button type="button" data-kkgeo-detail-action="followups">Follow-ups öffnen</button>'+
       '<button type="button" data-kkgeo-detail-action="pipeline">Pipeline im Gebiet öffnen</button>'+
     '</div>'+
+    renderComparablesBlock(data.name||key)+
+  '</div>';
+}
+/* Marktbeobachtungen-Modul Teil 2, Punkt 13: Ortsauswahl auf der Karte zeigt zusaetzlich
+   die aggregierten Erkenntnisse aus der eigenen Vergleichsdatenbank (KK_MARKET_OBS) -
+   getrennt ausgewiesen, nie mit den operativen CRM-Zahlen oben vermischt. Rein additiv;
+   erscheint nur, wenn das Modul geladen ist und tatsaechlich Daten fuer den Ort vorliegen. */
+function renderComparablesBlock(cityName){
+  if(!window.KK_MARKET_OBS||!cityName)return '';
+  var stats=window.KK_MARKET_OBS.computeStats({city:cityName,timeframeMonths:'12'});
+  if(!stats.sampleSize)return '<div class="kkgeo-detail-comparables"><b>Vergleichsdatenbank (Marktbeobachtungen)</b><p class="kkgeo-empty-inline">Keine eigenen Vergleichsobjekte für '+esc(cityName)+' erfasst.</p></div>';
+  return '<div class="kkgeo-detail-comparables"><b>Vergleichsdatenbank (Marktbeobachtungen) · '+esc(cityName)+'</b>'+
+    '<div class="kkgeo-detail-stats">'+
+      detailStat('Vergleichsobjekte',stats.sampleSize+' (von '+stats.totalConsidered+')')+
+      detailStat('Median',stats.median.toLocaleString('de-DE')+' €/m²')+
+      detailStat('Gewichteter Wert',stats.weightedMean!=null?stats.weightedMean.toLocaleString('de-DE')+' €/m²':'—')+
+      detailStat('Datenqualität',stats.avgDataQuality+' %')+
+    '</div>'+
+    '<p class="kkgeo-empty-inline">Zeitraum: 12 Monate, ältere Daten geringer gewichtet.'+(stats.usedDistrictFallback?' Ortsteil-genaue Daten knapp — Nachbargebiete ergänzend einbezogen.':'')+' Fließt nicht in CRM-Kennzahlen oben ein.</p>'+
   '</div>';
 }
 function renderResultsList(markers){
@@ -14402,6 +14627,555 @@ function boot(){
 
 window.KK_REALMAP={version:'31.0',init:init,render:render,getMarkers:buildTownMarkers,getDensityMarkers:buildDensityMarkers,townCoords:TOWN_COORDS,setMetric:function(k){selectedMetric=k;renderMetricFilters();renderNow()},toggleHeat:function(v){heatOn=v==null?!heatOn:!!v;renderNow()},toggleDensity:function(v){densityOn=v==null?!densityOn:!!v;renderNow()},getActiveLayers:function(){return activeLayers.slice()},setActiveLayers:function(list){activeLayers=Array.isArray(list)?list:[];writeActiveLayers(activeLayers);renderNow()},getLayerDefs:function(){return LAYER_DEFS.map(function(d){return {key:d.key,label:d.label,color:d.color}})},getUnmapped:function(){return unmappedRecords.slice()},buildRecordMarkers:buildRecordMarkers};
 if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('realmap-v31',boot,{priority:79});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+
+<!-- V31 Marktmonitor-Rebuild Teil 2 (Marktbeobachtungen/Fremdangebote/Vergleichsobjekte,
+     Auftragspunkte 1-19): reine Datenschicht, unabhaengig von jeder CRM-/Pipeline-/
+     Kartenlogik. Eigener Storage-Key kk_market_observations_v1 (kk_-Praefix, wird vom
+     automatischen Backup erfasst). Schreibt NIE in kk_crm_*, kk_sales_pipeline oder
+     kk_followups und wird von keiner LAYER_DEFS-Kartenebene gelesen (Punkt 1/12: nicht
+     Teil der operativen Pipeline, nicht Standard-Kartenmarker). -->
+<script id="kk-market-observations-data-v1-js">
+(function(){
+'use strict';
+var U=window.KK_UTIL||{};
+var esc=typeof U.esc==='function'?U.esc:function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var uid=typeof U.uid==='function'?U.uid:function(p){return p+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)};
+var STORAGE_KEY='kk_market_observations_v1';
+
+function readAll(){var raw=U.readJSON?U.readJSON(STORAGE_KEY,[]):[];return Array.isArray(raw)?raw:[]}
+function writeAll(list){if(U.writeJSON)U.writeJSON(STORAGE_KEY,list)}
+function norm(s){return String(s||'').trim().toLowerCase()}
+function num(v){if(v==null||v==='')return null;var n=Number(String(v).replace(',','.'));return isFinite(n)?n:null}
+
+var PROPERTY_TYPES=['ETW','EFH','DHH','RH','MFH','Grundstück','Mietwohnung','Gewerbe','Sonstige'];
+var PRICE_TYPES={current_asking:'Aktuelles Angebot',original_asking:'Ursprüngliches Angebot',reduced_asking:'Reduziertes Angebot',
+  known_sale:'Bekannter Verkaufspreis',estimated_sale:'Geschätzter Verkaufspreis',actual_transaction:'Tatsächlicher Transaktionspreis',unknown:'Unbekannt'};
+var LISTING_STATUS={active:'Aktiv',reduced:'Reduziert',removed:'Entfernt',presumably_sold:'Vermutlich verkauft',presumably_rented:'Vermutlich vermietet',relisted:'Erneut inseriert',unknown:'Unbekannt'};
+var CATEGORIES={foreign_listing:'Fremdangebot',historic_listing:'Historisches Angebot',known_sale:'Bekannter Verkauf',transaction_price:'Tatsächliche Transaktion',manual_comparison:'Manueller Vergleichseintrag',other:'Sonstige Marktbeobachtung'};
+var QUALITY_LABEL={sehr_hoch:'Sehr hoch',hoch:'Hoch',mittel:'Mittel',niedrig:'Niedrig',unzureichend:'Unzureichend'};
+var HISTORY_EVENT_LABEL={erstmals_erfasst:'Erstmals erfasst',preis_geaendert:'Preis geändert',preis_reduziert:'Preis reduziert',preis_erhoeht:'Preis erhöht',
+  weiterhin_aktiv:'Weiterhin aktiv',entfernt:'Entfernt',vermutlich_verkauft:'Vermutlich verkauft',vermutlich_vermietet:'Vermutlich vermietet',
+  erneut_inseriert:'Erneut inseriert',verkaufspreis_bekannt:'Verkaufspreis bekannt geworden',status_unbekannt:'Status unbekannt'};
+
+function emptyObservation(){
+  return {id:uid('mktobs'),category:'foreign_listing',designation:'',capturedAt:U.todayISO?U.todayISO():new Date().toISOString().slice(0,10),
+    publishedAt:'',source:'',provider:'',providerType:'',listingUrl:'',listingNumber:'',comment:'',listingStatus:'active',
+    location:{postalCode:'',city:'',district:'',street:'',houseNumber:'',approxOnly:true,microLocation:'',noise:'',distanceNote:''},
+    propertyType:'ETW',dealType:'kauf',priceType:'current_asking',
+    price:null,originalPrice:null,livingArea:null,plotArea:null,usableArea:null,
+    rooms:null,bedrooms:null,bathrooms:null,buildYear:null,floor:'',hasElevator:false,hasBalcony:false,hasTerrace:false,hasGarden:false,hasGarage:false,hasParking:false,hasCellar:false,
+    energyClass:'',heatingType:'',energyConsumption:null,serviceCharge:null,groundLease:false,occupancy:'unknown',condition:'',fittingsQuality:'',modernizationState:'',renovationNeedEstimate:'',
+    history:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+}
+
+function pricePerSqm(o){var area=o.livingArea||o.plotArea;if(!o.price||!area||area<=0)return null;return Math.round((o.price/area)*100)/100}
+function plotPricePerSqm(o){if(!o.price||!o.plotArea||o.plotArea<=0)return null;return Math.round((o.price/o.plotArea)*100)/100}
+function rentPerSqm(o){if(o.dealType!=='miete'||!o.price||!o.livingArea)return null;return Math.round((o.price/o.livingArea)*100)/100}
+function priceChangePct(o){if(!o.originalPrice||!o.price||o.originalPrice<=0)return null;return Math.round(((o.price-o.originalPrice)/o.originalPrice)*1000)/10}
+function listingAgeDays(o){var t=Date.parse(o.capturedAt);if(!isFinite(t))return null;return Math.max(0,Math.floor((Date.now()-t)/86400000))}
+
+/* Datenqualitaets-Score (Punkt 15): gewichtete Praesenz-Pruefung realer Felder,
+   keine erfundene Genauigkeit vortaeuschen - reine Vollstaendigkeitsmessung. */
+function dataQualityScore(o){
+  var points=0,total=0;
+  function check(cond,weight){total+=weight;if(cond)points+=weight}
+  var loc=o.location||{};
+  check(!!loc.district,15); check(!!loc.city,10); check(!!loc.street,8);
+  check(o.livingArea!=null||o.plotArea!=null,12); check(o.buildYear!=null,8);
+  check(!!o.condition,8); check(!!o.fittingsQuality,6); check(!!o.source,8);
+  check(!!o.listingUrl,6); check(!!o.capturedAt,8); check((o.history||[]).length>0,5);
+  check(o.priceType==='actual_transaction'||o.priceType==='known_sale',10); check(o.price!=null,6);
+  var pct=total?Math.round(points/total*100):0;
+  var tier=pct>=85?'sehr_hoch':pct>=65?'hoch':pct>=45?'mittel':pct>=25?'niedrig':'unzureichend';
+  return {score:pct,tier:tier};
+}
+function computeDerived(o){
+  return {pricePerSqmLiving:pricePerSqm(o),plotPricePerSqm:plotPricePerSqm(o),rentPerSqm:rentPerSqm(o),
+    priceChangePct:priceChangePct(o),listingAgeDays:listingAgeDays(o),quality:dataQualityScore(o)};
+}
+
+/* Duplikaterkennung (Punkt 7): mehrstufig - exakte Kennung (Link/Anbieter+Nummer)
+   zuerst, danach eine engere Kombination aus Adresse/Typ bzw. Ortsteil+Typ+aehnlicher
+   Flaeche/Preis. Erzeugt nie automatisch einen zweiten Datensatz - der Aufrufer
+   entscheidet (Update/History-Eintrag/separat speichern). */
+function findDuplicates(candidate,all){
+  return (all||readAll()).filter(function(o){
+    if(candidate.id&&o.id===candidate.id)return false;
+    if(candidate.listingUrl&&norm(o.listingUrl)===norm(candidate.listingUrl))return true;
+    if(candidate.listingNumber&&candidate.provider&&norm(o.listingNumber)===norm(candidate.listingNumber)&&norm(o.provider)===norm(candidate.provider))return true;
+    var cl=candidate.location||{},ol=o.location||{};
+    var sameStreet=cl.street&&norm(ol.street)===norm(cl.street)&&norm(ol.houseNumber||'')===norm(cl.houseNumber||'');
+    var sameDistrict=ol.district&&norm(ol.district)===norm(cl.district);
+    var sameType=o.propertyType===candidate.propertyType;
+    var areaClose=(function(){var a=candidate.livingArea||candidate.plotArea,b=o.livingArea||o.plotArea;if(!a||!b)return false;return Math.abs(a-b)/Math.max(a,b)<0.08})();
+    var priceClose=(function(){if(!candidate.price||!o.price)return false;return Math.abs(candidate.price-o.price)/Math.max(candidate.price,o.price)<0.15})();
+    if(sameStreet&&sameType)return true;
+    if(sameDistrict&&sameType&&areaClose&&priceClose)return true;
+    return false;
+  });
+}
+
+function list(){return readAll()}
+function get(id){return readAll().find(function(o){return o.id===id})}
+/* Preis-/Statusverlauf (Punkt 6): bei Preisaenderung wird NIE ein zweiter Datensatz
+   angelegt, sondern ein datierter History-Eintrag an den bestehenden angehaengt. */
+function save(data){
+  var all=readAll();
+  var incoming=Object.assign(emptyObservation(),data,{location:Object.assign(emptyObservation().location,data.location||{})});
+  incoming.updatedAt=new Date().toISOString();
+  var idx=all.findIndex(function(o){return o.id===incoming.id});
+  if(idx>-1){
+    var prev=all[idx];
+    var event='weiterhin_aktiv';
+    if(prev.price!==incoming.price&&incoming.price!=null)event=incoming.price<prev.price?'preis_reduziert':'preis_erhoeht';
+    else if(prev.listingStatus!==incoming.listingStatus)event=incoming.listingStatus==='removed'?'entfernt':(incoming.listingStatus==='presumably_sold'?'vermutlich_verkauft':(incoming.listingStatus==='presumably_rented'?'vermutlich_vermietet':(incoming.listingStatus==='relisted'?'erneut_inseriert':'weiterhin_aktiv')));
+    incoming.history=(prev.history||[]).concat(event!=='weiterhin_aktiv'||prev.price!==incoming.price?[{date:new Date().toISOString(),event:event,price:incoming.price}]:[]);
+    incoming.createdAt=prev.createdAt;
+    all[idx]=incoming;
+  }else{
+    incoming.history=[{date:new Date().toISOString(),event:'erstmals_erfasst',price:incoming.price}];
+    all.push(incoming);
+  }
+  writeAll(all);
+  return incoming;
+}
+function appendHistory(id,event,note){
+  var all=readAll(),idx=all.findIndex(function(o){return o.id===id});
+  if(idx<0)return null;
+  all[idx].history=(all[idx].history||[]).concat([{date:new Date().toISOString(),event:event,price:all[idx].price,note:note||''}]);
+  all[idx].updatedAt=new Date().toISOString();
+  writeAll(all);
+  return all[idx];
+}
+function remove(id){writeAll(readAll().filter(function(o){return o.id!==id}))}
+
+function median(nums){var s=nums.slice().sort(function(a,b){return a-b}),n=s.length;if(!n)return null;var mid=Math.floor(n/2);return n%2?s[mid]:(s[mid-1]+s[mid])/2}
+function mean(nums){if(!nums.length)return null;return nums.reduce(function(a,b){return a+b},0)/nums.length}
+function quartile(nums,q){var s=nums.slice().sort(function(a,b){return a-b}),pos=(s.length-1)*q,base=Math.floor(pos),rest=pos-base;return s[base+1]!==undefined?s[base]+rest*(s[base+1]-s[base]):s[base]}
+function stddev(nums){if(nums.length<2)return null;var m=mean(nums);return Math.sqrt(nums.reduce(function(a,b){return a+Math.pow(b-m,2)},0)/(nums.length-1))}
+
+/* Zeitgewichtung (Punkt 10): aeltere Daten werden nie geloescht, fliessen aber mit
+   sinkendem Gewicht in aktuelle Preisberechnungen ein. Gebietsgewichtung (Punkt 11):
+   exakter Ortsteil zaehlt voll, nur gleiche Stadt/Nachbarort deutlich weniger -
+   und wird als Fallback transparent ausgewiesen, nicht verschwiegen. */
+function timeWeight(o,timeframeMonths){
+  var days=listingAgeDays(o);if(days==null)return 0.4;
+  var months=days/30;
+  if(timeframeMonths==='all')return Math.max(0.15,1-months/60);
+  var tf=Number(timeframeMonths)||12;
+  if(months>tf*2)return 0.05;
+  if(months>tf)return Math.max(0.1,0.4-((months-tf)/tf)*0.3);
+  return Math.max(0.3,1-(months/tf)*0.6);
+}
+function districtWeight(o,targetDistrict,targetCity){
+  var loc=o.location||{};
+  if(targetDistrict&&norm(loc.district)===norm(targetDistrict))return 1;
+  if(targetCity&&norm(loc.city)===norm(targetCity))return targetDistrict?0.55:1;
+  return 0.3;
+}
+
+/* Preiskalkulator (Punkte 8/9/10/11/16): liefert IMMER die volle Nachvollziehbarkeit
+   mit (verwendete Vergleichsobjekte, Gewichte, erkannte Ausreisser, Datengrundlage,
+   Zeitraum, Fallback-Hinweis) statt nur einer nackten Zahl. */
+function computeStats(options){
+  options=options||{};
+  var all=readAll().filter(function(o){return o.price!=null&&(o.livingArea||o.plotArea)});
+  if(options.propertyType)all=all.filter(function(o){return o.propertyType===options.propertyType});
+  if(options.dealType)all=all.filter(function(o){return o.dealType===options.dealType});
+  var targetDistrict=options.district||'',targetCity=options.city||'';
+  var scoped=all.filter(function(o){
+    var loc=o.location||{};
+    if(targetDistrict)return norm(loc.district)===norm(targetDistrict)||(targetCity&&norm(loc.city)===norm(targetCity));
+    if(targetCity)return norm(loc.city)===norm(targetCity);
+    return true;
+  });
+  var districtHits=targetDistrict?scoped.filter(function(o){return norm((o.location||{}).district)===norm(targetDistrict)}).length:scoped.length;
+  var usedFallback=!!(targetDistrict&&districtHits<5&&scoped.length>districtHits);
+  var entries=scoped.map(function(o){
+    return {record:o,value:pricePerSqm(o),timeWeight:timeWeight(o,options.timeframeMonths||'12'),districtWeight:districtWeight(o,targetDistrict,targetCity)};
+  }).filter(function(e){return e.value!=null&&e.value>0});
+  if(!entries.length)return {sampleSize:0,totalConsidered:0,message:'Keine Vergleichsdaten für diese Auswahl vorhanden.'};
+
+  var values=entries.map(function(e){return e.value});
+  var q1=quartile(values,0.25),q3=quartile(values,0.75),iqr=q3-q1;
+  var lowerFence=q1-1.5*iqr,upperFence=q3+1.5*iqr;
+  entries.forEach(function(e){e.isOutlier=iqr>0&&(e.value<lowerFence||e.value>upperFence)});
+  var core=entries.filter(function(e){return !e.isOutlier});
+  var coreValues=core.map(function(e){return e.value});
+  var totalWeight=core.reduce(function(s,e){return s+e.timeWeight*e.districtWeight},0);
+  var weightedMean=totalWeight?core.reduce(function(s,e){return s+e.value*e.timeWeight*e.districtWeight},0)/totalWeight:null;
+  var priceTypeCounts={};
+  entries.forEach(function(e){priceTypeCounts[e.record.priceType]=(priceTypeCounts[e.record.priceType]||0)+1});
+  var districtsUsed=Array.from(new Set(entries.map(function(e){return (e.record.location||{}).district||(e.record.location||{}).city||'Unbekannt'})));
+  var avgQuality=Math.round(core.reduce(function(s,e){return s+dataQualityScore(e.record).score},0)/(core.length||1));
+
+  return {
+    sampleSize:core.length,totalConsidered:entries.length,
+    outliers:entries.filter(function(e){return e.isOutlier}).map(function(e){return {id:e.record.id,designation:e.record.designation,value:e.value}}),
+    median:median(coreValues),mean:mean(coreValues)!=null?Math.round(mean(coreValues)*100)/100:null,
+    weightedMean:weightedMean!=null?Math.round(weightedMean*100)/100:null,
+    q1:Math.round(q1*100)/100,q3:Math.round(q3*100)/100,
+    min:coreValues.length?Math.min.apply(Math,coreValues):null,max:coreValues.length?Math.max.apply(Math,coreValues):null,
+    stddev:(function(){var s=stddev(coreValues);return s!=null?Math.round(s*100)/100:null})(),
+    usedDistrictFallback:usedFallback,districtsUsed:districtsUsed,priceTypeCounts:priceTypeCounts,avgDataQuality:avgQuality,
+    timeframeMonths:options.timeframeMonths||'12',
+    comparables:core.map(function(e){return {id:e.record.id,designation:e.record.designation,value:e.value,weight:Math.round(e.timeWeight*e.districtWeight*100)/100,priceType:e.record.priceType}})
+  };
+}
+
+/* CSV Import/Export (Punkt 17): einfache, robuste Quote-Behandlung; Import validiert
+   Pflichtfelder und laeuft durch dieselbe Duplikaterkennung wie die manuelle Erfassung. */
+var CSV_FIELDS=['id','category','designation','capturedAt','publishedAt','source','provider','providerType','listingUrl','listingNumber','listingStatus',
+  'city','district','street','houseNumber','postalCode','approxOnly','propertyType','dealType','priceType','price','originalPrice','livingArea','plotArea',
+  'buildYear','condition','fittingsQuality','occupancy','comment'];
+function toCsvValue(v){var s=v==null?'':String(v);return /[",\n;]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+function exportCsv(){
+  var rows=readAll().map(function(o){
+    var loc=o.location||{};
+    return CSV_FIELDS.map(function(f){
+      if(f==='city')return toCsvValue(loc.city);
+      if(f==='district')return toCsvValue(loc.district);
+      if(f==='street')return toCsvValue(loc.street);
+      if(f==='houseNumber')return toCsvValue(loc.houseNumber);
+      if(f==='postalCode')return toCsvValue(loc.postalCode);
+      if(f==='approxOnly')return toCsvValue(loc.approxOnly?'1':'0');
+      return toCsvValue(o[f]);
+    }).join(';');
+  });
+  return CSV_FIELDS.join(';')+'\n'+rows.join('\n');
+}
+function parseCsvLine(line){
+  var out=[],cur='',inQ=false;
+  for(var i=0;i<line.length;i++){
+    var c=line[i];
+    if(inQ){if(c==='"'){if(line[i+1]==='"'){cur+='"';i++}else inQ=false}else cur+=c}
+    else{if(c==='"')inQ=true;else if(c===';'){out.push(cur);cur=''}else cur+=c}
+  }
+  out.push(cur);
+  return out;
+}
+function importCsv(text){
+  var lines=String(text||'').split(/\r?\n/).filter(function(l){return l.trim()});
+  if(lines.length<2)return {imported:0,skipped:0,duplicates:0,errors:['Keine Datenzeilen gefunden.']};
+  var header=parseCsvLine(lines[0]);
+  var all=readAll();
+  var imported=0,skipped=0,duplicates=0,errors=[];
+  for(var i=1;i<lines.length;i++){
+    var cols=parseCsvLine(lines[i]),row={};
+    header.forEach(function(h,idx){row[h]=cols[idx]});
+    if(!row.city&&!row.district){skipped++;errors.push('Zeile '+(i+1)+': weder Ort noch Ortsteil - übersprungen.');continue}
+    var rec=Object.assign(emptyObservation(),{
+      id:row.id||uid('mktobs'),category:row.category||'foreign_listing',designation:row.designation||'',capturedAt:row.capturedAt||emptyObservation().capturedAt,
+      publishedAt:row.publishedAt||'',source:row.source||'',provider:row.provider||'',providerType:row.providerType||'',listingUrl:row.listingUrl||'',
+      listingNumber:row.listingNumber||'',listingStatus:row.listingStatus||'unknown',propertyType:row.propertyType||'Sonstige',dealType:row.dealType||'kauf',
+      priceType:row.priceType||'unknown',price:num(row.price),originalPrice:num(row.originalPrice),livingArea:num(row.livingArea),plotArea:num(row.plotArea),
+      buildYear:num(row.buildYear),condition:row.condition||'',fittingsQuality:row.fittingsQuality||'',occupancy:row.occupancy||'unknown',comment:row.comment||'',
+      location:{city:row.city||'',district:row.district||'',street:row.street||'',houseNumber:row.houseNumber||'',postalCode:row.postalCode||'',approxOnly:row.approxOnly!=='0',microLocation:'',noise:'',distanceNote:''}
+    });
+    var dupes=findDuplicates(rec,all);
+    if(dupes.length){duplicates++;skipped++;continue}
+    rec.history=[{date:new Date().toISOString(),event:'erstmals_erfasst',price:rec.price,note:'CSV-Import'}];
+    all.push(rec);
+    imported++;
+  }
+  writeAll(all);
+  return {imported:imported,skipped:skipped,duplicates:duplicates,errors:errors};
+}
+
+window.KK_MARKET_OBS={version:'1.0',STORAGE_KEY:STORAGE_KEY,PROPERTY_TYPES:PROPERTY_TYPES,PRICE_TYPES:PRICE_TYPES,LISTING_STATUS:LISTING_STATUS,
+  CATEGORIES:CATEGORIES,QUALITY_LABEL:QUALITY_LABEL,HISTORY_EVENT_LABEL:HISTORY_EVENT_LABEL,
+  emptyObservation:emptyObservation,list:list,get:get,save:save,remove:remove,appendHistory:appendHistory,
+  findDuplicates:findDuplicates,computeDerived:computeDerived,dataQualityScore:dataQualityScore,computeStats:computeStats,
+  exportCsv:exportCsv,importCsv:importCsv};
+})();
+</script>
+
+<!-- V31 Marktmonitor-Rebuild Teil 2: UI-Schicht (Schnellerfassung, Liste/Filter,
+     Preiskalkulator, CSV Import/Export). Liest/schreibt ausschliesslich ueber
+     window.KK_MARKET_OBS - keine eigene Datenhaltung, keine CRM-Schreibzugriffe. -->
+<script id="kk-market-observations-ui-v1-js">
+(function(){
+'use strict';
+var U=window.KK_UTIL||{};
+var esc=typeof U.esc==='function'?U.esc:function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+function M(){return window.KK_MARKET_OBS}
+function $(sel){return document.querySelector(sel)}
+function $all(sel){return Array.prototype.slice.call(document.querySelectorAll(sel))}
+var pendingDuplicate=null;
+
+function fillSelect(sel,map,placeholder){
+  var el=$(sel);if(!el)return;
+  el.innerHTML=(placeholder?'<option value="">'+esc(placeholder)+'</option>':'')+Object.keys(map).map(function(k){return '<option value="'+esc(k)+'">'+esc(map[k])+'</option>'}).join('');
+}
+function fillSelectArr(sel,arr,placeholder){
+  var el=$(sel);if(!el)return;
+  el.innerHTML=(placeholder?'<option value="">'+esc(placeholder)+'</option>':'')+arr.map(function(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>'}).join('');
+}
+function initStaticOptions(){
+  var m=M();if(!m)return;
+  fillSelectArr('#kkmoType',m.PROPERTY_TYPES);
+  fillSelectArr('#kkmoCalcType',m.PROPERTY_TYPES,'Alle Typen');
+  fillSelectArr('#kkmoFilterType',m.PROPERTY_TYPES,'Alle Typen');
+  fillSelect('#kkmoPriceType',m.PRICE_TYPES);
+  fillSelect('#kkmoStatus',m.LISTING_STATUS);
+  fillSelect('#kkmoFilterStatus',m.LISTING_STATUS,'Alle Status');
+  fillSelect('#kkmoCategory',m.CATEGORIES);
+  var cap=$('#kkmoCapturedAt');if(cap&&!cap.value)cap.value=U.todayISO?U.todayISO():new Date().toISOString().slice(0,10);
+  var cities=['Bruchköbel','Hanau','Schöneck','Nidderau','Erlensee','Langenselbold','Maintal','Neuberg','Hammersbach','Rodenbach','Freigericht','Gelnhausen'];
+  fillSelectArr('#kkmoFilterCity',cities,'Alle Orte');
+}
+function refreshDistrictList(city){
+  var host=$('#kkmoDistrictList');if(!host||!window.KK_GEO)return;
+  var key=window.KK_GEO.normalizeTownKey(city);
+  var list=key?window.KK_GEO.ortsteileForTown(key):[];
+  host.innerHTML=list.map(function(o){return '<option value="'+esc(o.name)+'">'}).join('');
+}
+
+function updatePricePerSqmPreview(){
+  var price=Number($('#kkmoPrice')&&$('#kkmoPrice').value),area=Number($('#kkmoArea')&&$('#kkmoArea').value);
+  var out=$('#kkmoPricePerSqm');if(!out)return;
+  out.textContent=(price>0&&area>0)?(Math.round(price/area*100)/100).toLocaleString('de-DE')+' €/m²':'–';
+}
+
+function formToObservation(existingId){
+  var m=M();
+  var o=existingId&&m.get(existingId)?Object.assign({},m.get(existingId)):m.emptyObservation();
+  o.category=$('#kkmoCategory').value||o.category;
+  o.designation=$('#kkmoDesignation').value||'';
+  o.capturedAt=$('#kkmoCapturedAt').value||o.capturedAt;
+  o.source=$('#kkmoSource').value||'';
+  o.provider=$('#kkmoProvider').value||'';
+  o.listingUrl=$('#kkmoListingUrl').value||'';
+  o.listingStatus=$('#kkmoStatus').value||'active';
+  o.propertyType=$('#kkmoType').value||'Sonstige';
+  o.dealType=$('#kkmoDeal').value||'kauf';
+  o.priceType=$('#kkmoPriceType').value||'unknown';
+  o.price=Number($('#kkmoPrice').value)||null;
+  o.originalPrice=$('#kkmoOriginalPrice').value?Number($('#kkmoOriginalPrice').value):null;
+  o.livingArea=Number($('#kkmoArea').value)||null;
+  o.buildYear=$('#kkmoBuildYear').value?Number($('#kkmoBuildYear').value):null;
+  o.rooms=$('#kkmoRooms').value?Number($('#kkmoRooms').value):null;
+  o.condition=$('#kkmoCondition').value||'';
+  o.fittingsQuality=$('#kkmoFittings').value||'';
+  o.occupancy=$('#kkmoOccupancy').value||'unknown';
+  o.comment=$('#kkmoComment').value||'';
+  o.location=Object.assign({},o.location,{
+    city:$('#kkmoCity').value||'', district:$('#kkmoDistrict').value||'',
+    street:$('#kkmoStreet').value||'', postalCode:$('#kkmoPostal').value||'',
+    approxOnly:$('#kkmoApprox').value!=='0'
+  });
+  return o;
+}
+
+function resetForm(){
+  var form=$('#kkmo-quickform');if(form)form.reset();
+  $('#kkmoCapturedAt').value=U.todayISO?U.todayISO():new Date().toISOString().slice(0,10);
+  $('#kkmo-submit-btn').textContent='Erfassen';
+  $('#kkmo-submit-btn').removeAttribute('data-editing-id');
+  updatePricePerSqmPreview();
+  var warn=$('#kkmo-duplicate-warning');if(warn){warn.hidden=true;warn.innerHTML=''}
+  pendingDuplicate=null;
+}
+
+function showDuplicateWarning(dupes,onForce){
+  var warn=$('#kkmo-duplicate-warning');if(!warn)return;
+  warn.hidden=false;
+  warn.innerHTML=dupes.length+' möglich'+(dupes.length===1?'e':'e')+' Dublette'+(dupes.length===1?'':'n')+' gefunden: '+
+    esc(dupes.slice(0,2).map(function(d){return d.designation||d.location&&d.location.street||d.location&&d.location.district||'Eintrag'}).join(', '))+
+    '. <button type="button" id="kkmo-dup-update">Ersten Treffer aktualisieren</button> · <button type="button" id="kkmo-dup-force">Trotzdem separat speichern</button>';
+  var updBtn=$('#kkmo-dup-update'),forceBtn=$('#kkmo-dup-force');
+  if(updBtn)updBtn.addEventListener('click',function(){onForce(dupes[0].id)});
+  if(forceBtn)forceBtn.addEventListener('click',function(){onForce(null)});
+}
+
+function submitForm(e){
+  e.preventDefault();
+  var m=M();if(!m)return;
+  var editingId=$('#kkmo-submit-btn').getAttribute('data-editing-id');
+  var obs=formToObservation(editingId);
+  if(!obs.location.city||!obs.price||!obs.livingArea||!obs.source||!obs.capturedAt){
+    if(window.KK_UTIL&&window.KK_UTIL.toast)window.KK_UTIL.toast('Bitte Pflichtfelder ausfüllen (Ort, Preis, Fläche, Quelle, Datum).');
+    return;
+  }
+  if(editingId){m.save(obs);resetForm();renderAll();return}
+  var dupes=m.findDuplicates(obs,m.list());
+  if(dupes.length&&!pendingDuplicate){
+    pendingDuplicate=obs;
+    showDuplicateWarning(dupes,function(updateId){
+      if(updateId){var merged=Object.assign({},obs,{id:updateId});m.save(merged)}
+      else{m.save(obs)}
+      resetForm();renderAll();
+    });
+    return;
+  }
+  m.save(obs);
+  resetForm();
+  renderAll();
+}
+
+function editObservation(id){
+  var m=M(),o=m.get(id);if(!o)return;
+  $('#kkmoCategory').value=o.category; $('#kkmoDesignation').value=o.designation||'';
+  $('#kkmoCapturedAt').value=o.capturedAt; $('#kkmoSource').value=o.source||'';
+  $('#kkmoProvider').value=o.provider||''; $('#kkmoListingUrl').value=o.listingUrl||'';
+  $('#kkmoStatus').value=o.listingStatus; $('#kkmoType').value=o.propertyType;
+  $('#kkmoDeal').value=o.dealType; $('#kkmoPriceType').value=o.priceType;
+  $('#kkmoPrice').value=o.price||''; $('#kkmoOriginalPrice').value=o.originalPrice||'';
+  $('#kkmoArea').value=o.livingArea||''; $('#kkmoBuildYear').value=o.buildYear||'';
+  $('#kkmoRooms').value=o.rooms||''; $('#kkmoCondition').value=o.condition||'';
+  $('#kkmoFittings').value=o.fittingsQuality||''; $('#kkmoOccupancy').value=o.occupancy||'unknown';
+  $('#kkmoComment').value=o.comment||'';
+  var loc=o.location||{};
+  $('#kkmoCity').value=loc.city||''; refreshDistrictList(loc.city);
+  $('#kkmoDistrict').value=loc.district||''; $('#kkmoStreet').value=loc.street||'';
+  $('#kkmoPostal').value=loc.postalCode||''; $('#kkmoApprox').value=loc.approxOnly===false?'0':'1';
+  $('#kkmo-more-fields').hidden=false;
+  $('#kkmo-submit-btn').textContent='Änderung speichern'; $('#kkmo-submit-btn').setAttribute('data-editing-id',id);
+  updatePricePerSqmPreview();
+  $('#kkmo-quickform').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+var SORTERS={
+  newest:function(a,b){return Date.parse(b.capturedAt||0)-Date.parse(a.capturedAt||0)},
+  price_desc:function(a,b){return (b.price||0)-(a.price||0)},
+  price_asc:function(a,b){return (a.price||0)-(b.price||0)},
+  ppsm_desc:function(a,b){return (M().computeDerived(b).pricePerSqmLiving||0)-(M().computeDerived(a).pricePerSqmLiving||0)},
+  ppsm_asc:function(a,b){return (M().computeDerived(a).pricePerSqmLiving||0)-(M().computeDerived(b).pricePerSqmLiving||0)},
+  reduction:function(a,b){return (M().computeDerived(a).priceChangePct||0)-(M().computeDerived(b).priceChangePct||0)},
+  quality:function(a,b){return M().dataQualityScore(b).score-M().dataQualityScore(a).score}
+};
+
+function renderList(){
+  var m=M();if(!m)return;
+  var all=m.list();
+  var search=($('#kkmoFilterSearch')&&$('#kkmoFilterSearch').value||'').trim().toLowerCase();
+  var city=$('#kkmoFilterCity')&&$('#kkmoFilterCity').value;
+  var type=$('#kkmoFilterType')&&$('#kkmoFilterType').value;
+  var deal=$('#kkmoFilterDeal')&&$('#kkmoFilterDeal').value;
+  var status=$('#kkmoFilterStatus')&&$('#kkmoFilterStatus').value;
+  var sort=($('#kkmoSort')&&$('#kkmoSort').value)||'newest';
+  var filtered=all.filter(function(o){
+    var loc=o.location||{};
+    if(city&&loc.city!==city)return false;
+    if(type&&o.propertyType!==type)return false;
+    if(deal&&o.dealType!==deal)return false;
+    if(status&&o.listingStatus!==status)return false;
+    if(search){
+      var hay=[o.designation,loc.city,loc.district,o.provider,o.source].join(' ').toLowerCase();
+      if(hay.indexOf(search)===-1)return false;
+    }
+    return true;
+  }).sort(SORTERS[sort]||SORTERS.newest);
+
+  var countEl=$('#kkmo-list-count'),updEl=$('#kkmo-updated');
+  if(countEl)countEl.textContent=filtered.length+' von '+all.length+' Einträgen';
+  if(updEl)updEl.textContent=all.length+' Einträge gesamt';
+
+  var host=$('#kkmo-list');if(!host)return;
+  if(!filtered.length){host.innerHTML='<div class="kkmo-empty">Keine Marktbeobachtungen für diesen Filter. Über die Schnellerfassung oben einen neuen Eintrag anlegen.</div>';return}
+  host.innerHTML=filtered.slice(0,200).map(function(o){
+    var d=m.computeDerived(o),loc=o.location||{};
+    var quality=d.quality;
+    var priceLine=(o.price?Number(o.price).toLocaleString('de-DE')+' €':'—')+(d.pricePerSqmLiving?' · '+d.pricePerSqmLiving.toLocaleString('de-DE')+' €/m²':'');
+    var changeLine=d.priceChangePct!=null?(' · '+(d.priceChangePct>0?'+':'')+d.priceChangePct+' % ggü. Erstpreis'):'';
+    var historyLine=(o.history||[]).length>1?('<div class="kkmo-row-card-history">'+o.history.length+' Verlaufseinträge · letzter: '+esc(m.HISTORY_EVENT_LABEL[o.history[o.history.length-1].event]||o.history[o.history.length-1].event)+'</div>'):'';
+    return '<div class="kkmo-row-card" data-kkmo-id="'+esc(o.id)+'">'+
+      '<div class="kkmo-row-card-head"><div><b>'+esc(o.designation||(loc.district||loc.city||'Ohne Bezeichnung'))+'</b> <span class="kkmo-quality-badge '+esc(quality.tier)+'">'+esc(m.QUALITY_LABEL[quality.tier])+' · '+quality.score+'%</span></div><span class="kkmo-price">'+priceLine+changeLine+'</span></div>'+
+      '<div class="kkmo-row-card-meta"><span>'+esc(o.propertyType)+' · '+esc(o.dealType==='miete'?'Miete':'Kauf')+'</span><span>'+esc(loc.district?loc.district+', ':'')+esc(loc.city||'Ohne Ort')+'</span><span>'+esc(m.LISTING_STATUS[o.listingStatus]||o.listingStatus)+'</span><span>'+esc(m.PRICE_TYPES[o.priceType]||o.priceType)+'</span><span>Erfasst '+esc(o.capturedAt)+'</span>'+(loc.approxOnly?'<span>Nur ungefähre Lage</span>':'')+'</div>'+
+      historyLine+
+      '<div class="kkmo-row-card-actions"><button type="button" data-kkmo-edit="'+esc(o.id)+'">Bearbeiten</button><button type="button" data-kkmo-remove="'+esc(o.id)+'">Löschen</button></div>'+
+    '</div>';
+  }).join('');
+}
+
+function runCalculator(){
+  var m=M();if(!m)return;
+  var opts={city:$('#kkmoCalcCity').value||'',district:$('#kkmoCalcDistrict').value||'',propertyType:$('#kkmoCalcType').value||'',dealType:$('#kkmoCalcDeal').value||'kauf',timeframeMonths:$('#kkmoCalcTimeframe').value||'12'};
+  var stats=m.computeStats(opts);
+  var host=$('#kkmo-calc-result');if(!host)return;
+  if(!stats.sampleSize){host.innerHTML='<p class="kkmo-empty">'+esc(stats.message||'Keine Vergleichsdaten für diese Auswahl vorhanden.')+'</p>';return}
+  var unit=opts.dealType==='miete'?'€/m² Miete':'€/m²';
+  host.innerHTML='<div class="kkmo-calc-stats">'+
+    '<div><span>Median</span><b>'+stats.median.toLocaleString('de-DE')+' '+unit+'</b></div>'+
+    '<div><span>Mittelwert</span><b>'+stats.mean.toLocaleString('de-DE')+' '+unit+'</b></div>'+
+    '<div><span>Gewichteter Vergleichswert</span><b>'+(stats.weightedMean!=null?stats.weightedMean.toLocaleString('de-DE')+' '+unit:'—')+'</b></div>'+
+    '<div><span>Unteres Quartil</span><b>'+stats.q1.toLocaleString('de-DE')+' '+unit+'</b></div>'+
+    '<div><span>Oberes Quartil</span><b>'+stats.q3.toLocaleString('de-DE')+' '+unit+'</b></div>'+
+    '<div><span>Spanne</span><b>'+(stats.min||0).toLocaleString('de-DE')+'–'+(stats.max||0).toLocaleString('de-DE')+'</b></div>'+
+  '</div>'+
+  '<div class="kkmo-calc-transparency">'+
+    '<b>'+stats.sampleSize+'</b> Vergleichsobjekte verwendet (von '+stats.totalConsidered+' gefundenen, '+stats.outliers.length+' als Ausreißer ausgeschlossen). '+
+    'Durchschnittliche Datenqualität: '+stats.avgDataQuality+' %. Zeitraum: '+(opts.timeframeMonths==='all'?'gesamter Verlauf':opts.timeframeMonths+' Monate')+', ältere Daten geringer gewichtet. '+
+    (stats.usedDistrictFallback?'Zu wenige Daten im gewählten Ortsteil — Werte aus '+esc(stats.districtsUsed.join(', '))+' ergänzend einbezogen (deutlich geringer gewichtet). ':'')+
+    'Preisarten der Vergleichsobjekte: '+Object.keys(stats.priceTypeCounts).map(function(k){return (m.PRICE_TYPES[k]||k)+' ('+stats.priceTypeCounts[k]+')'}).join(', ')+'.'+
+    (stats.outliers.length?('<div class="kkmo-calc-outliers">Ausgeschlossene Ausreißer: '+stats.outliers.map(function(o){return esc(o.designation||'Eintrag')+' ('+o.value.toLocaleString('de-DE')+' '+unit+')'}).join(', ')+'</div>'):'')+
+  '</div>';
+}
+
+function downloadCsv(){
+  var csv=M().exportCsv();
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='marktbeobachtungen-'+(U.todayISO?U.todayISO():new Date().toISOString().slice(0,10))+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+}
+
+function renderAll(){renderList()}
+
+function bind(){
+  initStaticOptions();
+  var form=$('#kkmo-quickform');
+  if(form)form.addEventListener('submit',submitForm);
+  var priceEl=$('#kkmoPrice'),areaEl=$('#kkmoArea');
+  if(priceEl)priceEl.addEventListener('input',updatePricePerSqmPreview);
+  if(areaEl)areaEl.addEventListener('input',updatePricePerSqmPreview);
+  var cityEl=$('#kkmoCity');
+  if(cityEl)cityEl.addEventListener('change',function(){refreshDistrictList(cityEl.value)});
+  var moreBtn=$('#kkmo-more-fields-toggle');
+  if(moreBtn)moreBtn.addEventListener('click',function(){var mf=$('#kkmo-more-fields');if(mf){mf.hidden=!mf.hidden;moreBtn.textContent=mf.hidden?'Weitere Felder':'Weniger Felder'}});
+  ['#kkmoFilterSearch','#kkmoFilterCity','#kkmoFilterType','#kkmoFilterDeal','#kkmoFilterStatus','#kkmoSort'].forEach(function(sel){
+    var el=$(sel);if(!el)return;
+    el.addEventListener(el.tagName==='SELECT'?'change':'input',renderList);
+  });
+  var listHost=$('#kkmo-list');
+  if(listHost)listHost.addEventListener('click',function(e){
+    var editBtn=e.target.closest('[data-kkmo-edit]');
+    if(editBtn){editObservation(editBtn.getAttribute('data-kkmo-edit'));return}
+    var delBtn=e.target.closest('[data-kkmo-remove]');
+    if(delBtn){if(confirm('Diese Marktbeobachtung wirklich löschen?')){M().remove(delBtn.getAttribute('data-kkmo-remove'));renderAll()}return}
+  });
+  var calcBtn=$('#kkmo-calc-run');
+  if(calcBtn)calcBtn.addEventListener('click',runCalculator);
+  var calcCity=$('#kkmoCalcCity');
+  if(calcCity)calcCity.addEventListener('change',function(){refreshDistrictList(calcCity.value)});
+  var exportBtn=$('#kkmo-export-csv');
+  if(exportBtn)exportBtn.addEventListener('click',downloadCsv);
+  var importBtn=$('#kkmo-import-csv-btn'),importFile=$('#kkmo-import-file');
+  if(importBtn&&importFile)importBtn.addEventListener('click',function(){importFile.click()});
+  if(importFile)importFile.addEventListener('change',function(){
+    var file=importFile.files&&importFile.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(){
+      var res=M().importCsv(String(reader.result||''));
+      if(window.KK_UTIL&&window.KK_UTIL.toast)window.KK_UTIL.toast(res.imported+' importiert, '+res.duplicates+' Dubletten übersprungen, '+res.skipped+' übersprungen gesamt.');
+      renderAll();
+      importFile.value='';
+    };
+    reader.readAsText(file,'utf-8');
+  });
+  window.addEventListener('storage',function(e){if(e&&e.key===M().STORAGE_KEY)renderAll()});
+  document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='marktmonitor')renderAll()});
+  resetForm();
+  renderAll();
+}
+
+window.KK_MARKET_OBS_UI={version:'1.0',refresh:renderAll,editObservation:editObservation,runCalculator:runCalculator};
+if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('market-observations-ui',bind,{priority:80});
+else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>
 
