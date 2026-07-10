@@ -9,3 +9,13 @@
   from = "/api/geocode"
   to = "/.netlify/functions/geocode"
   status = 200
+
+[[redirects]]
+  from = "/api/wms-capabilities"
+  to = "/.netlify/functions/wms-capabilities"
+  status = 200
+
+[[redirects]]
+  from = "/api/wms-feature-info"
+  to = "/.netlify/functions/wms-feature-info"
+  status = 200

@@ -4828,6 +4828,16 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
 .kkgeo-layer-only{flex:0 0 auto;border:1px solid var(--v30-border,#e3e5e8);background:#fff;color:var(--v30-blue,#182c46);border-radius:7px;font:inherit;font-size:10.5px;font-weight:750;padding:4px 7px;cursor:pointer;white-space:nowrap}
 .kkgeo-layer-only:hover{background:var(--v30-surface-2,#f1f2f4)}
 @media (max-width:760px){.kkgeo-layer-grid{grid-template-columns:1fr}}
+/* Master-PRD Band 3: Status-/Quellenzeile je amtlichem Layer - Quelle, Lizenz,
+   Datenstand und Verbindungsstatus muessen laut PRD IMMER sichtbar sein, "Heute
+   abgerufen" != "heute entstandener Wert" (siehe auch .claude/rules/market.md). */
+.kkofficial-status{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.kkofficial-source-line{font-size:11px;color:var(--v30-muted,#5b6472);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.kkofficial-badge{border-radius:999px;padding:2px 8px;font-size:10.5px;font-weight:750;white-space:nowrap}
+.kkofficial-badge.live{background:#e4f5ea;color:#157347}
+.kkofficial-badge.blocked,.kkofficial-badge.error{background:#fdeeee;color:#b0431f}
+.kkofficial-badge.loading{background:#f1f2f4;color:#5b6472}
+.kkofficial-badge.off{background:#f1f2f4;color:#8b93a0}
 /* Reichhaltige, konkrete Popup-Inhalte (Punkt 1): Typ-Kicker + Titel + Feldliste
    statt einer generischen Gattungsbezeichnung. Nur tatsaechlich vorhandene Felder
    werden gerendert (fieldRow() liefert bei leerem Wert nichts). */
@@ -4941,6 +4951,17 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
       <div class="kkgeo-layer-grid" id="kkgeo-layer-grid"></div>
     </div>
 
+    <!-- Master-PRD Band 3: amtliche Layer sind bewusst ein EIGENES Panel, getrennt
+         von den operativen CRM-Datensatz-Ebenen oben - "Amtliche Layer bleiben nur
+         sichtbar, wenn separat aktiviert", nie Teil des operativen Filters. -->
+    <div class="kkgeo-layer-panel" id="kkofficial-panel">
+      <div class="kkgeo-layer-panel-head">
+        <b>Amtliche Layer</b>
+      </div>
+      <div class="kkgeo-layer-grid" id="kkofficial-layer-grid"></div>
+      <div id="kkofficial-status" class="kkofficial-status" aria-live="polite"></div>
+    </div>
+
     <!-- 3. Große reale Main-Kinzig-Kreis-Karte -->
     <div class="kkgeo-offline" id="kkgeo-offline" hidden="" role="status">
       <strong>Kartenkacheln nicht verfügbar.</strong> Vermutlich kein Internetzugriff — Orte, Marker und Daten bleiben trotzdem nutzbar.
@@ -4968,6 +4989,16 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
         <span>Main-Kinzig-Kreis</span>
       </div>
       <div class="kkgeo-district-eval-body" id="kkgeo-district-eval-body"></div>
+    </div>
+
+    <!-- Master-PRD Band 6 §9 / Anhang A7: Datenquellen-Registry als sichtbarer,
+         nachvollziehbarer Admin-Bereich statt verstreuter impliziter Annahmen. -->
+    <div class="kkgeo-district-eval" id="kkdsr-panel">
+      <div class="kkgeo-results-head">
+        <h3>Datenquellen</h3>
+        <span id="kkdsr-count"></span>
+      </div>
+      <div class="kkgeo-district-eval-body" id="kkdsr-body"></div>
     </div>
 
     <!-- 7. Datenqualitäts- und Aktualisierungshinweise -->
@@ -14257,7 +14288,7 @@ function makeHeatLayer(L,points){
 
 /* ---- LeafletMapAdapter: konkrete Implementierung des MapAdapter-Vertrags ---- */
 function LeafletMapAdapterFactory(){
-  var map=null,markerLayer=null,heatLayer=null,ready=false,listeners={},tileOk=0,tileErr=0,markerRegistry={};
+  var map=null,markerLayer=null,heatLayer=null,ready=false,listeners={},tileOk=0,tileErr=0,markerRegistry={},officialLayers={};
   function emit(name,payload){(listeners[name]||[]).forEach(function(fn){try{fn(payload)}catch(e){}})}
 
   var adapter={
@@ -14358,7 +14389,37 @@ function LeafletMapAdapterFactory(){
     },
     on:function(name,handler){(listeners[name]=listeners[name]||[]).push(handler);return function(){listeners[name]=(listeners[name]||[]).filter(function(f){return f!==handler})}},
     invalidateSize:function(){if(map)try{map.invalidateSize()}catch(e){}},
-    destroy:function(){if(map){map.remove();map=null}ready=false;markerLayer=null;heatLayer=null;listeners={}}
+    /* Master-PRD Band 3: amtliche WMS-Overlays (BORIS/ALKIS) laufen als eigene,
+       vom operativen Marker-Layer unabhaengige Ebenen - GetMap-Kacheln direkt vom
+       Client als <img> (kein CORS-Problem, kein Proxy noetig), NUR GetFeatureInfo
+       (siehe getFeatureInfoParams) braucht den serverseitigen Proxy. WMS-Version
+       bewusst fest auf 1.1.1 (Lon/Lat-Achsenreihenfolge in BBOX unabhaengig vom
+       CRS, vermeidet die 1.3.0-Achsenvertauschung bei EPSG:4326). */
+    setOfficialOverlay:function(key,opts){
+      if(!ready||!window.L)return false;
+      if(officialLayers[key])map.removeLayer(officialLayers[key]);
+      var layer=window.L.tileLayer.wms(opts.url,{
+        layers:opts.layers,format:'image/png',transparent:true,version:'1.1.1',
+        opacity:opts.opacity!=null?opts.opacity:0.55,attribution:opts.attribution||''
+      });
+      layer.addTo(map);
+      officialLayers[key]=layer;
+      return true;
+    },
+    removeOfficialOverlay:function(key){
+      if(officialLayers[key]&&map){map.removeLayer(officialLayers[key]);delete officialLayers[key]}
+    },
+    hasOfficialOverlay:function(key){return !!officialLayers[key]},
+    getFeatureInfoParams:function(latlng){
+      if(!ready||!map)return null;
+      var size=map.getSize(),bounds=map.getBounds(),sw=bounds.getSouthWest(),ne=bounds.getNorthEast();
+      var point=map.latLngToContainerPoint(latlng);
+      return {
+        bbox:[sw.lng,sw.lat,ne.lng,ne.lat].join(','),
+        width:size.x,height:size.y,x:Math.round(point.x),y:Math.round(point.y),srs:'EPSG:4326'
+      };
+    },
+    destroy:function(){if(map){map.remove();map=null}ready=false;markerLayer=null;heatLayer=null;officialLayers={};listeners={}}
   };
   return adapter;
 }
@@ -15075,8 +15136,433 @@ function boot(){
   if(active==='marktmonitor')init();
 }
 
-window.KK_REALMAP={version:'31.0',init:init,render:render,getMarkers:buildTownMarkers,getDensityMarkers:buildDensityMarkers,townCoords:TOWN_COORDS,setMetric:function(k){selectedMetric=k;renderMetricFilters();renderNow()},toggleHeat:function(v){heatOn=v==null?!heatOn:!!v;renderNow()},toggleDensity:function(v){densityOn=v==null?!densityOn:!!v;renderNow()},getActiveLayers:function(){return activeLayers.slice()},setActiveLayers:function(list){activeLayers=Array.isArray(list)?list:[];writeActiveLayers(activeLayers);renderNow()},getLayerDefs:function(){return LAYER_DEFS.map(function(d){return {key:d.key,label:d.label,color:d.color}})},getUnmapped:function(){return unmappedRecords.slice()},buildRecordMarkers:buildRecordMarkers};
+window.KK_REALMAP={version:'31.0',init:init,render:render,getMarkers:buildTownMarkers,getDensityMarkers:buildDensityMarkers,townCoords:TOWN_COORDS,setMetric:function(k){selectedMetric=k;renderMetricFilters();renderNow()},toggleHeat:function(v){heatOn=v==null?!heatOn:!!v;renderNow()},toggleDensity:function(v){densityOn=v==null?!densityOn:!!v;renderNow()},getActiveLayers:function(){return activeLayers.slice()},setActiveLayers:function(list){activeLayers=Array.isArray(list)?list:[];writeActiveLayers(activeLayers);renderNow()},getLayerDefs:function(){return LAYER_DEFS.map(function(d){return {key:d.key,label:d.label,color:d.color}})},getUnmapped:function(){return unmappedRecords.slice()},buildRecordMarkers:buildRecordMarkers,
+  /* Master-PRD Band 3: Zugriffspunkt fuer kk-official-gis-v1-js, damit amtliche
+     WMS-Overlays (BORIS/ALKIS) denselben Leaflet-Adapter/dieselbe Karteninstanz
+     nutzen statt eine zweite Karte aufzubauen (Regelverstoss "keine zweite
+     parallele Kartenengine"). Gibt null zurueck, solange die Karte noch nicht
+     initialisiert ist - Aufrufer muss selbst auf Bereitschaft warten/pollen. */
+  getAdapter:function(){return adapter&&adapter.isReady&&adapter.isReady()?adapter:null}};
 if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('realmap-v31',boot,{priority:79});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+
+<!-- Master-PRD (neues Dokument) Band 3/5, Anhang A1/A8: amtliche GIS-Layer
+     (BORIS Hessen Bodenrichtwerte, ALKIS Flurstuecke). Eigenstaendiges Modul,
+     nutzt aber dieselbe Kartenistanz wie kk-realmap-v31-js (window.KK_REALMAP.
+     getAdapter()) - keine zweite Kartenengine. Layernamen werden NICHT
+     hartcodiert, sondern aus der echten, live vom Server gelieferten
+     GetCapabilities-Antwort ausgelesen (siehe netlify/functions/wms-capabilities.js).
+     Status jedes Dienstes ist immer sichtbar (live/blocked/loading/off) - siehe
+     ADR-0002 fuer die Begruendung, warum dieser Code zum Zeitpunkt der Erstellung
+     nicht aus der Entwicklungssandbox heraus live getestet werden konnte. -->
+<script id="kk-official-gis-v1-js">
+(function(){
+'use strict';
+if(window.KK_OFFICIAL_GIS&&window.KK_OFFICIAL_GIS.version==='1.0')return;
+
+var U=window.KK_UTIL||{};
+var esc=typeof U.esc==='function'?U.esc:function(v){return String(v==null?'':v)};
+var CACHE_KEY='kk_official_gis_capabilities_cache_v1'; // kk_-Praefix -> vom Backup erfasst
+var CACHE_TTL_MS=24*3600*1000; // Capabilities aendern sich selten - nicht bei jedem Seitenaufruf neu abfragen
+
+var SERVICES=[
+  {key:'boris',label:'BORIS Hessen 2026 (Bodenrichtwerte)',color:'#8b5cf6',
+   layerNameHint:/bodenrichtwert|boris|brw/i,
+   licenseHint:'Datenlizenz Deutschland - Zero - Version 2.0 (laut Metadaten, vor Produktivnutzung am Dienst selbst zu bestaetigen)'},
+  {key:'alkis',label:'Flurstuecke / ALKIS (INSPIRE-WMS Hessen)',color:'#0d6efd',
+   layerNameHint:/flurst|alkis|grundst|cadastral|parcel/i,
+   licenseHint:'Kostenfrei laut Paragraph 24 HVGG (vor Produktivnutzung am Dienst selbst zu bestaetigen)'}
+];
+
+var state={}; // key -> {active,status,layerName,title,error,lastChecked,attribution}
+SERVICES.forEach(function(s){state[s.key]={active:false,status:'off',layerName:'',title:'',error:'',lastChecked:'',attribution:''}});
+
+function readCache(){try{return JSON.parse(localStorage.getItem(CACHE_KEY)||'{}')}catch(e){return {}}}
+function writeCache(obj){try{localStorage.setItem(CACHE_KEY,JSON.stringify(obj))}catch(e){}}
+
+function pickLayer(service,layers){
+  if(!layers||!layers.length)return null;
+  var hint=service.layerNameHint;
+  var match=layers.find(function(l){return hint.test(l.name)||hint.test(l.title)||hint.test(l.abstract||'')});
+  return match||layers[0];
+}
+
+/* Ruft die serverseitige GetCapabilities-Proxy-Function auf und waehlt daraus
+   automatisch den passenden Layer aus - kein erfundener/geratener Layername
+   (Master-PRD-Regel). Ergebnis wird 24h gecacht, damit nicht bei jedem Tab-
+   Wechsel erneut gegen den amtlichen Dienst gefragt wird. */
+async function discover(service,force){
+  var cache=readCache();
+  var cached=cache[service.key];
+  if(!force&&cached&&cached.fetchedAt&&(Date.now()-Date.parse(cached.fetchedAt))<CACHE_TTL_MS){
+    return cached;
+  }
+  state[service.key].status='loading';
+  renderStatus();
+  try{
+    var res=await fetch('/.netlify/functions/wms-capabilities?service='+encodeURIComponent(service.key));
+    var data=await res.json();
+    if(!res.ok||data.error){
+      var errResult={status:'blocked',error:data.error||('HTTP '+res.status),message:data.message||'',fetchedAt:new Date().toISOString()};
+      cache[service.key]=errResult;writeCache(cache);
+      return errResult;
+    }
+    var chosen=pickLayer(service,data.layers);
+    var okResult={
+      status:chosen?'live':'live_no_layers_found',
+      layerName:chosen?chosen.name:'',title:chosen?(chosen.title||chosen.name):'',
+      layerCount:data.layerCount,baseUrl:data.baseUrl,licenseHint:data.licenseHint,
+      fetchedAt:data.fetchedAt||new Date().toISOString()
+    };
+    cache[service.key]=okResult;writeCache(cache);
+    return okResult;
+  }catch(err){
+    var netErr={status:'blocked',error:'network_error',message:String(err&&err.message||err),fetchedAt:new Date().toISOString()};
+    cache[service.key]=netErr;writeCache(cache);
+    return netErr;
+  }
+}
+
+function statusBadgeClass(status){
+  if(status==='live')return 'live';
+  if(status==='loading')return 'loading';
+  if(status==='off')return 'off';
+  return 'blocked';
+}
+function statusLabel(status){
+  return {live:'Live verbunden',loading:'Wird geprüft…',off:'Ausgeblendet',blocked:'Nicht erreichbar',live_no_layers_found:'Verbunden, kein passender Layer gefunden'}[status]||status;
+}
+
+function renderStatus(){
+  var host=document.getElementById('kkofficial-status');
+  if(!host)return;
+  host.innerHTML=SERVICES.map(function(s){
+    var st=state[s.key];
+    var line='<div class="kkofficial-source-line"><b>'+esc(s.label)+'</b>'+
+      '<span class="kkofficial-badge '+statusBadgeClass(st.active?st.status:'off')+'">'+esc(st.active?statusLabel(st.status):'Ausgeblendet')+'</span>';
+    if(st.active&&st.layerName)line+='<span>Layer: '+esc(st.title||st.layerName)+'</span>';
+    if(st.active&&st.lastChecked)line+='<span>Abgerufen: '+esc(new Date(st.lastChecked).toLocaleString('de-DE'))+'</span>';
+    if(st.active)line+='<span>'+esc(s.licenseHint)+'</span>';
+    if(st.active&&st.error)line+='<span class="kkofficial-badge blocked">'+esc(st.error)+(st.message?': '+esc(st.message):'')+'</span>';
+    line+='</div>';
+    return line;
+  }).join('');
+}
+
+function renderPanel(){
+  var grid=document.getElementById('kkofficial-layer-grid');
+  if(!grid)return;
+  grid.innerHTML=SERVICES.map(function(s){
+    var st=state[s.key];
+    return '<div class="kkgeo-layer-row"><label class="kkgeo-layer-check">'+
+      '<input type="checkbox" data-kkofficial-layer="'+esc(s.key)+'"'+(st.active?' checked':'')+'>'+
+      '<span class="kkgeo-layer-dot" style="background:'+s.color+'"></span>'+
+      '<span class="kkgeo-layer-label">'+esc(s.label)+'</span></label></div>';
+  }).join('');
+  Array.prototype.forEach.call(grid.querySelectorAll('[data-kkofficial-layer]'),function(cb){
+    cb.addEventListener('change',function(){toggleLayer(cb.dataset.kkofficialLayer,cb.checked)});
+  });
+  renderStatus();
+}
+
+async function toggleLayer(key,on){
+  var service=SERVICES.find(function(s){return s.key===key});
+  if(!service)return;
+  state[key].active=on;
+  renderStatus();
+  var adapter=window.KK_REALMAP&&window.KK_REALMAP.getAdapter?window.KK_REALMAP.getAdapter():null;
+  if(!on){
+    if(adapter)adapter.removeOfficialOverlay(key);
+    return;
+  }
+  var result=await discover(service,false);
+  state[key].status=result.status;
+  state[key].layerName=result.layerName||'';
+  state[key].title=result.title||'';
+  state[key].error=result.error||'';
+  state[key].message=result.message||'';
+  state[key].lastChecked=result.fetchedAt||new Date().toISOString();
+  renderStatus();
+  if(result.status==='live'&&result.layerName&&adapter){
+    adapter.setOfficialOverlay(key,{
+      url:result.baseUrl,layers:result.layerName,opacity:0.55,
+      attribution:service.label+' &middot; '+(result.licenseHint||'')
+    });
+  }
+}
+
+/* GetFeatureInfo bei Kartenklick, aber NUR wenn mindestens ein amtlicher Layer
+   aktiv ist (Anhang C9) - operative CRM-Marker-Klicks (markerClick) sind ein
+   eigenes, unabhaengiges Event und bleiben unberuehrt. */
+async function handleMapClick(latlng){
+  var activeServices=SERVICES.filter(function(s){return state[s.key].active&&state[s.key].status==='live'});
+  if(!activeServices.length)return;
+  var adapter=window.KK_REALMAP&&window.KK_REALMAP.getAdapter?window.KK_REALMAP.getAdapter():null;
+  if(!adapter)return;
+  var params=adapter.getFeatureInfoParams(latlng);
+  if(!params)return;
+  var panel=document.getElementById('kkgeo-detail-panel');
+  if(panel)panel.innerHTML='<div class="kkgeo-empty">Amtliche Objektinformation wird abgerufen…</div>';
+  var results=[];
+  for(var i=0;i<activeServices.length;i++){
+    var s=activeServices[i];
+    try{
+      var qs=new URLSearchParams(Object.assign({service:s.key,layer:state[s.key].layerName},params));
+      var res=await fetch('/.netlify/functions/wms-feature-info?'+qs.toString());
+      var data=await res.json();
+      if(res.ok&&data.features&&data.features.length){
+        results.push({service:s,data:data});
+      }
+    }catch(e){/* einzelner Dienstfehler blockiert nicht die anderen */}
+  }
+  if(!panel)return;
+  if(!results.length){
+    panel.innerHTML='<div class="kkgeo-empty">Keine amtlichen Objektinformationen an dieser Position (oder Dienst nicht erreichbar).</div>';
+    return;
+  }
+  panel.innerHTML=results.map(function(r){
+    var rows=(r.data.features[0]&&Object.keys(r.data.features[0])||[]).map(function(k){
+      return '<div class="kkgeo-popup-field"><span>'+esc(k)+'</span><b>'+esc(r.data.features[0][k])+'</b></div>';
+    }).join('');
+    return '<div class="kkgeo-popup-type">'+esc(r.service.label)+'</div>'+
+      (rows||'<div class="kkgeo-empty">Dienst hat geantwortet, aber keine Attribute geliefert.</div>')+
+      '<div class="kkgeo-popup-precision">Nur vom Dienst tatsächlich gelieferte Attribute · '+esc(r.service.licenseHint)+'</div>';
+  }).join('<hr>');
+}
+
+var boundToAdapter=null;
+function ensureClickBinding(){
+  var adapter=window.KK_REALMAP&&window.KK_REALMAP.getAdapter?window.KK_REALMAP.getAdapter():null;
+  if(!adapter||adapter===boundToAdapter)return;
+  boundToAdapter=adapter;
+  adapter.on('mapClick',handleMapClick);
+}
+
+function boot(){
+  renderPanel();
+  ensureClickBinding();
+  // Karte wird asynchron initialisiert (Leaflet-Nachladen) - Adapter ist ggf. erst
+  // nach diesem boot() bereit; kurze Wiederholung statt komplexer Event-Koppelung.
+  var tries=0;
+  var iv=setInterval(function(){
+    tries++;
+    ensureClickBinding();
+    if(boundToAdapter||tries>20)clearInterval(iv);
+  },500);
+}
+
+window.KK_OFFICIAL_GIS={version:'1.0',SERVICES:SERVICES.map(function(s){return s.key}),toggleLayer:toggleLayer,discover:discover,getState:function(){return JSON.parse(JSON.stringify(state))}};
+
+if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('official-gis',boot,{priority:81});
+else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+
+<!-- Master-PRD (neues Dokument) Band 6 Punkt 9, Anhang A7: zentrale, sichtbare
+     Datenquellen-Registry mit den dort geforderten Pflichtfeldern. Rein lesend/
+     deklarativ (keine eigene Datenhaltung ausserhalb dieses Moduls) - "aktivieren/
+     pausieren" bleibt fuer die beiden noch nicht produktiv laufenden Dienste
+     (BORIS/ALKIS) ueber das bereits existierende Layer-Panel (kk-official-gis)
+     gesteuert, um keine zweite, konkurrierende Steuerungsstelle zu schaffen. -->
+<script id="kk-datasource-registry-v1-js">
+(function(){
+'use strict';
+if(window.KK_DATASOURCE_REGISTRY&&window.KK_DATASOURCE_REGISTRY.version==='1.0')return;
+
+var U=window.KK_UTIL||{};
+var esc=typeof U.esc==='function'?U.esc:function(v){return String(v==null?'':v)};
+
+/* Anhang A7 Pflichtfelder je Quelle. contact/last_legal_review sind bewusst leer
+   ('') statt erfunden - Master-PRD-Regel: fehlende Werte nicht kuenstlich ergaenzen. */
+var REGISTRY=[
+  {source_id:'nominatim',name:'Nominatim (OpenStreetMap)',provider:'OpenStreetMap Foundation',category:'Geocoding',
+   geographic_scope:'weltweit',endpoint:'https://nominatim.openstreetmap.org/search',protocol:'HTTPS/REST (serverseitig, ueber netlify/functions/geocode.js)',
+   authentication:'keine (User-Agent + Rate-Limit-Pflicht laut Nutzungsrichtlinie)',
+   terms_url:'https://operations.osmfoundation.org/policies/nominatim/',license_name:'ODbL',license_url:'https://www.openstreetmap.org/copyright',
+   attribution:'© OpenStreetMap-Mitwirkende',storage_allowed:true,caching_allowed:true,redistribution_allowed:false,commercial_use_allowed:true,
+   refresh_interval:'bei Bedarf, max. 1 Anfrage/Sekunde gesamt',rate_limit:'1 Anfrage/Sekunde (App-weit, serverseitig gedrosselt)',
+   contact:'',current_status_static:'live',last_legal_review:'',last_technical_check:'',notes:'Produktiv aktiv seit Marktmonitor-Rebuild.'},
+  {source_id:'osm_tiles',name:'OpenStreetMap Kachel-Basiskarte',provider:'OpenStreetMap Foundation',category:'Basiskarte',
+   geographic_scope:'weltweit',endpoint:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',protocol:'HTTPS Tile (Client-seitig, <img>)',
+   authentication:'keine',terms_url:'https://operations.osmfoundation.org/policies/tiles/',license_name:'ODbL',license_url:'https://www.openstreetmap.org/copyright',
+   attribution:'© OpenStreetMap-Mitwirkende',storage_allowed:false,caching_allowed:true,redistribution_allowed:false,commercial_use_allowed:true,
+   refresh_interval:'pro Kartenansicht',rate_limit:'Tile Usage Policy (kein Bulk-Download)',
+   contact:'',current_status_static:'live',last_legal_review:'',last_technical_check:'',notes:'Basiskarte, produktiv aktiv.'},
+  {source_id:'boris_hessen',name:'BORIS Hessen 2026 (Bodenrichtwerte)',provider:'Hessische Verwaltung fuer Bodenmanagement und Geoinformation',category:'Amtliche Geodaten',
+   geographic_scope:'Hessen',endpoint:'https://www.gds-srv.hessen.de/cgi-bin/lika-services/ogc-free-maps.ows (WMS 1.1.1)',protocol:'OGC WMS (GetMap direkt, GetFeatureInfo ueber netlify/functions/wms-feature-info.js)',
+   authentication:'keine (laut Recherche)',terms_url:'',license_name:'Datenlizenz Deutschland - Zero - Version 2.0 (laut Metadaten, ungeprueft)',license_url:'',
+   attribution:'BORIS Hessen, HVBG',storage_allowed:false,caching_allowed:true,redistribution_allowed:false,commercial_use_allowed:true,
+   refresh_interval:'Bodenrichtwert-Stichtag jaehrlich (naechster Stichtag laut Auftraggeber: 01.01.2026)',rate_limit:'ungeprueft',
+   contact:'',last_legal_review:'',last_technical_check:'',
+   notes:'Endpunkt/Layername per WebSearch recherchiert, NICHT aus dieser Sandbox live verifiziert (kein ausgehender Internetzugriff - siehe ADR-0002). Verbindungsstatus siehe Kartenreiter "Amtliche Layer".'},
+  {source_id:'alkis_hessen',name:'Flurstuecke / ALKIS Hessen (INSPIRE-WMS)',provider:'Hessische Verwaltung fuer Bodenmanagement und Geoinformation',category:'Amtliche Geodaten',
+   geographic_scope:'Hessen',endpoint:'https://www.geoportal.hessen.de/mapbender/php/wms.php?inspire=1&layer_id=55195 (WMS 1.1.1)',protocol:'OGC WMS INSPIRE (GetMap direkt, GetFeatureInfo ueber netlify/functions/wms-feature-info.js)',
+   authentication:'keine (laut Recherche)',terms_url:'',license_name:'Kostenfrei laut Paragraph 24 HVGG (laut Fundstelle, ungeprueft)',license_url:'',
+   attribution:'Land Hessen, HVBG',storage_allowed:false,caching_allowed:true,redistribution_allowed:false,commercial_use_allowed:true,
+   refresh_interval:'ungeprueft',rate_limit:'ungeprueft',
+   contact:'',last_legal_review:'',last_technical_check:'',
+   notes:'Endpunkt per WebSearch recherchiert, NICHT aus dieser Sandbox live verifiziert - siehe ADR-0002. Keine Eigentuemerdaten enthalten/angefragt.'}
+];
+
+function liveStatusFor(sourceId){
+  if(sourceId==='boris_hessen'||sourceId==='alkis_hessen'){
+    var key=sourceId==='boris_hessen'?'boris':'alkis';
+    if(window.KK_OFFICIAL_GIS){
+      var st=window.KK_OFFICIAL_GIS.getState()[key];
+      if(st&&st.active)return st.status;
+      return 'configured_not_connected';
+    }
+    return 'configured_not_connected';
+  }
+  return null;
+}
+
+function statusLabel(status){
+  return {
+    live:'live',live_via_proxy:'live (ueber Proxy)',configured_not_connected:'konfiguriert, nicht verbunden',
+    blocked:'nicht erreichbar',blocked_credentials:'blockiert - Zugangsdaten fehlen',blocked_legal:'blockiert - rechtlich ungeklaert',
+    blocked_provider_decision:'blockiert - Anbieterentscheidung noetig',deprecated:'veraltet'
+  }[status]||status;
+}
+function statusClass(status){
+  if(status==='live'||status==='live_via_proxy')return 'live';
+  if(status==='configured_not_connected')return 'off';
+  return 'blocked';
+}
+
+function render(){
+  var body=document.getElementById('kkdsr-body');
+  var count=document.getElementById('kkdsr-count');
+  if(!body)return;
+  if(count)count.textContent=REGISTRY.length+' Quellen';
+  body.innerHTML='<div style="overflow:auto;border:1px solid var(--v30-border,#e3e5e8);border-radius:12px"><table class="kkcp-table"><thead><tr>'+
+    '<th>Quelle</th><th>Kategorie</th><th>Status</th><th>Lizenz</th><th>Endpunkt</th><th>Hinweis</th></tr></thead><tbody>'+
+    REGISTRY.map(function(r){
+      var status=liveStatusFor(r.source_id)||r.current_status_static||'configured_not_connected';
+      return '<tr><td><b>'+esc(r.name)+'</b><br><small>'+esc(r.provider)+'</small></td>'+
+        '<td>'+esc(r.category)+'<br><small>'+esc(r.geographic_scope)+'</small></td>'+
+        '<td><span class="kkofficial-badge '+statusClass(status)+'">'+esc(statusLabel(status))+'</span></td>'+
+        '<td><small>'+esc(r.license_name)+'</small></td>'+
+        '<td><small>'+esc(r.endpoint)+'</small></td>'+
+        '<td><small>'+esc(r.notes)+'</small></td></tr>';
+    }).join('')+'</tbody></table></div>';
+}
+
+function boot(){
+  render();
+  // Amtliche Layer aendern ihren Status asynchron (Discovery-Fetch) - Registry
+  // soll das nachziehen, ohne eine eigene Kopie des Zustands zu fuehren.
+  setInterval(render,4000);
+}
+
+window.KK_DATASOURCE_REGISTRY={version:'1.0',list:function(){return REGISTRY.slice()},render:render};
+
+if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('datasource-registry',boot,{priority:82});
+else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+
+<!-- Master-PRD (neues Dokument) Band 2 Punkt 7 / Implementierungsplan Phase 2:
+     "Frontend darf nicht direkt ueberall LocalStorage lesen" - Repository-
+     Interfaces + LocalStorageRepository als Uebergang, ApiRepository als
+     spaeteres Ziel.
+
+     WICHTIG (bewusste, dokumentierte Abweichung vom woertlichen "ueberall"):
+     Diese Schicht ist additiv. Sie ersetzt NICHT die bestehenden, bereits
+     getesteten direkten Storage-Zugriffe in kk-crm-pro-os/kkref20/
+     kk-market-observations/kk-valuation-engine - ein Mass-Rewrite aller
+     bestehenden Aufrufer waere ein genau der Art von riskantem grossflaechigem
+     Umbau, den CLAUDE.md und das Master-PRD selbst verbieten ("keine
+     funktionierenden Datenpfade still ueberschreiben", Anhang D8 Recovery-
+     Pflicht: kleine, einzeln testbare Schritte). Stattdessen: EIN zentraler,
+     konsistenter Lesepfad fuer NEUEN Code und zukuenftige Migration, der exakt
+     dieselben Storage-Keys/Formate wie der Bestandscode verwendet - keine
+     zweite Datenwahrheit, kein Datenverlustrisiko. Migration bestehender
+     Aufrufer auf KK_REPO ist eine eigene, spaeter einzeln zu testende Phase. -->
+<script id="kk-repository-layer-v1-js">
+(function(){
+'use strict';
+if(window.KK_REPO&&window.KK_REPO.version==='1.0')return;
+
+var U=window.KK_UTIL||{};
+
+function localStorageRepository(storageKey,opts){
+  opts=opts||{};
+  function readAll(){var raw=U.readJSON?U.readJSON(storageKey,[]):[];return Array.isArray(raw)?raw:[]}
+  function writeAll(list){if(U.writeJSON)U.writeJSON(storageKey,list);try{window.dispatchEvent(new Event('storage'))}catch(e){}}
+  return {
+    backend:'localStorage',storageKey:storageKey,
+    list:function(){return readAll()},
+    get:function(id){return readAll().find(function(x){return x&&x.id===id})||null},
+    save:function(entity){
+      var list=readAll();
+      var idx=list.findIndex(function(x){return x&&x.id===entity.id});
+      var stamped=Object.assign({},entity,{updatedAt:new Date().toISOString()});
+      if(idx>-1)list[idx]=Object.assign({},list[idx],stamped);
+      else{stamped.id=stamped.id||(U.uid?U.uid(opts.idPrefix||'kk'):String(Date.now()));stamped.createdAt=stamped.createdAt||new Date().toISOString();list.push(stamped)}
+      writeAll(list);
+      return idx>-1?list[idx]:list[list.length-1];
+    },
+    remove:function(id){writeAll(readAll().filter(function(x){return !x||x.id!==id}))},
+    count:function(){return readAll().length}
+  };
+}
+
+/* Referrals/MarketObservations haben bereits eigene, gut getestete Fachmodule
+   mit eigener Normalisierung/Dublettenlogik (kkref20/kk-market-observations) -
+   das Repository delegiert an diese, statt eine zweite, abweichende Schreib-
+   logik parallel zu bauen (Regelverstoss "keine zwei abweichenden Wahrheiten"). */
+function delegatingRepository(getModule,storageKeyFallback){
+  return {
+    backend:'localStorage',
+    get storageKey(){var m=getModule();return (m&&m.STORAGE_KEY)||storageKeyFallback},
+    list:function(){var m=getModule();return m&&m.list?m.list():m&&m.items?m.items():[]},
+    get:function(id){var m=getModule();return (m&&m.get)?m.get(id):(this.list().find(function(x){return x&&x.id===id})||null)},
+    /* Reihenfolge bewusst upsert() zuerst: KK_REFERRAL_NETWORK_V1.save() hat
+       Bulk-Listen-Semantik (nimmt ein ganzes Array), keine Einzeldatensatz-
+       Semantik - upsert() ist dort der korrekte Einzeldatensatz-Schreibpfad. */
+    save:function(entity){var m=getModule();if(!m)return null;if(m.upsert)return m.upsert(entity);if(m.save)return m.save(entity);return null},
+    remove:function(id){var m=getModule();if(!m)return;if(m.remove)m.remove(id)},
+    count:function(){return this.list().length}
+  };
+}
+
+var repo={
+  version:'1.0',
+  objects:localStorageRepository('kk_crm_objects',{idPrefix:'obj'}),
+  contacts:localStorageRepository('kk_crm_contacts',{idPrefix:'contact'}),
+  referrals:delegatingRepository(function(){return window.KK_REFERRAL_NETWORK_V1},'kk_referral_network_v1'),
+  marketObservations:delegatingRepository(function(){return window.KK_MARKET_OBS},'kk_market_observations_v1'),
+  /* Bewertungen (Valuations) werden NICHT persistiert gespeichert (bewusste
+     Design-Entscheidung von KK_VALUATION - immer frisch berechnet, nie
+     gecacht, um veraltete/widerspruechliche Berechnungsstaende zu vermeiden,
+     siehe kk-valuation-engine-v1-js). Das Repository bildet das als reine
+     Berechnungsfunktion ab, kein list()/save() - "backend":"computed" macht
+     das fuer Aufrufer explizit sichtbar, statt einen leeren Speicher vorzutaeuschen. */
+  valuations:{
+    backend:'computed',
+    computeForObject:function(o,opts){return window.KK_VALUATION?window.KK_VALUATION.computeForObject(o,opts):{status:'unavailable'}}
+  },
+  geo:{
+    backend:'localStorage-derived',
+    ensureRecordGeo:function(record,legacyFields){return window.KK_GEO?window.KK_GEO.ensureRecordGeo(record,legacyFields):record},
+    resolvePosition:function(record,townKey,seedId){return window.KK_GEO?window.KK_GEO.resolvePosition(record,townKey,seedId):null}
+  },
+  /* Zukuenftiger Adapter-Wechsel (Band 2 §7 "ApiRepository als Ziel"): sobald ein
+     echtes Backend existiert, wird hier NUR die jeweilige Sub-Repository-
+     Implementierung getauscht (z.B. objects:apiRepository('/api/objects')) -
+     alle Aufrufer, die bereits auf KK_REPO umgestellt sind, aendern sich nicht. */
+  info:function(){
+    return {
+      backendsInUse:{objects:'localStorage',contacts:'localStorage',referrals:'localStorage (delegiert an KK_REFERRAL_NETWORK_V1)',marketObservations:'localStorage (delegiert an KK_MARKET_OBS)',valuations:'computed (nicht persistiert)'},
+      targetBackend:'PostgreSQL/PostGIS ueber REST-API (siehe docs/adr/ADR-0001)',
+      migrationStatus:'Repository-Schicht additiv vorhanden; bestehende Fachmodule wurden noch NICHT auf KK_REPO umgestellt (separate, einzeln zu testende Folgephase)'
+    };
+  }
+};
+
+window.KK_REPO=repo;
 })();
 </script>
 
