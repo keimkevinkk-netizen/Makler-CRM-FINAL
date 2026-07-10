@@ -2427,6 +2427,192 @@ else window.addEventListener('load', function(){ setTimeout(selfTest, 3000); });
   window.KK_UTIL=Object.freeze({version:'28.4.0',esc:esc,readJSON:readJSON,writeJSON:writeJSON,uid:uid,todayISO:todayISO,num:num,formatNumber:formatNumber,money:money,qs:qs,qsa:qsa,asArray:asArray,readArray:readArray,toast:toast});
 })();
 </script>
+<script id="kk-geo-v1">
+(function(){
+  'use strict';
+  if(window.KK_GEO&&window.KK_GEO.version==='1.0.0')return;
+  var U=window.KK_UTIL;
+
+  /* ------------------------------------------------------------------
+     V31 Marktmonitor-Rebuild — zentrales Geo-Modul (einmalig, wiederverwendbar
+     fuer Karte, Filter, Preis-Kalkulator, Migration). Siehe docs/prd/04-market-
+     map-platform.md §10 und .claude/rules/market.md: keine amtlichen Grenzen
+     vortaeuschen. Diese Datei enthaelt daher AUSSCHLIESSLICH Ankerpunkte
+     (einzelne Koordinaten), keine Polygone/Grenzlinien. Alle Koordinaten sind
+     Naeherungswerte aus allgemeiner Ortskenntnis, KEINE amtlich vermessenen
+     Werte (identisches, bereits im Projekt etabliertes Muster wie die
+     bestehenden 12 Stadt-Ankerpunkte in KK_REALMAP.townCoords).
+     ------------------------------------------------------------------ */
+
+  var TOWN_ANCHORS={
+    bruchkoebel:[50.2068,8.9187], hanau:[50.1310,8.9160], schoeneck:[50.2280,8.8350],
+    nidderau:[50.2280,8.9350], erlensee:[50.1580,8.9950], langenselbold:[50.1780,9.0500],
+    maintal:[50.1650,8.8350], neuberg:[50.2450,8.9800], hammersbach:[50.2200,9.0300],
+    rodenbach:[50.1350,9.0150], freigericht:[50.1350,9.1050], gelnhausen:[50.2000,9.1850]
+  };
+
+  /* Ortsteil-Registry: reale Namen (vom Nutzer vorgegeben bzw. allgemein bekannte
+     Gliederung dieser Gemeinden), je mit Elternstadt und einem Naeherungs-Ankerpunkt.
+     approx:true kennzeichnet jeden Eintrag durchgaengig als nicht amtlich vermessen. */
+  var ORTSTEILE={
+    bruchkoebel:[
+      {id:'bruchkoebel-kernstadt',name:'Bruchköbel-Kernstadt',anchor:[50.2068,8.9187]},
+      {id:'rossdorf',name:'Roßdorf',anchor:[50.1975,8.9350]},
+      {id:'niederissigheim',name:'Niederissigheim',anchor:[50.2140,8.9430]},
+      {id:'oberissigheim',name:'Oberissigheim',anchor:[50.2200,8.9500]},
+      {id:'butterstadt',name:'Butterstadt',anchor:[50.1920,8.9050]}
+    ],
+    hanau:[
+      {id:'hanau-innenstadt',name:'Innenstadt',anchor:[50.1310,8.9160]},
+      {id:'kesselstadt',name:'Kesselstadt',anchor:[50.1420,8.9280]},
+      {id:'lamboy',name:'Lamboy',anchor:[50.1280,8.9050]},
+      {id:'steinheim',name:'Steinheim',anchor:[50.1180,8.8950]},
+      {id:'klein-auheim',name:'Klein-Auheim',anchor:[50.0980,8.9350]},
+      {id:'grossauheim',name:'Großauheim',anchor:[50.1050,8.9500]},
+      {id:'mittelbuchen',name:'Mittelbuchen',anchor:[50.1550,8.9600]},
+      {id:'wolfgang',name:'Wolfgang',anchor:[50.1500,8.9000]},
+      {id:'hanau-nordwest',name:'Nordwest',anchor:[50.1420,8.8950]},
+      {id:'hanau-suedost',name:'Südost',anchor:[50.1200,8.9350]}
+    ],
+    schoeneck:[
+      {id:'buedesheim',name:'Büdesheim',anchor:[50.2280,8.8350]},
+      {id:'kilianstaedten',name:'Kilianstädten',anchor:[50.2400,8.8500]},
+      {id:'oberdorfelden',name:'Oberdorfelden',anchor:[50.2350,8.8200]}
+    ],
+    nidderau:[
+      {id:'heldenbergen',name:'Heldenbergen',anchor:[50.2280,8.9350]},
+      {id:'windecken',name:'Windecken',anchor:[50.2200,8.9250]},
+      {id:'ostheim',name:'Ostheim',anchor:[50.2150,8.9400]},
+      {id:'eichen',name:'Eichen',anchor:[50.2350,8.9450]},
+      {id:'erbstadt',name:'Erbstadt',anchor:[50.2450,8.9200]}
+    ],
+    erlensee:[
+      {id:'langendiebach',name:'Langendiebach',anchor:[50.1580,8.9950]},
+      {id:'rueckingen',name:'Rückingen',anchor:[50.1450,8.9850]}
+    ],
+    maintal:[
+      {id:'doernigheim',name:'Dörnigheim',anchor:[50.1650,8.8350]},
+      {id:'bischofsheim',name:'Bischofsheim',anchor:[50.1550,8.8150]},
+      {id:'hochstadt',name:'Hochstadt',anchor:[50.1750,8.8300]},
+      {id:'wachenbuchen',name:'Wachenbuchen',anchor:[50.1780,8.8600]}
+    ],
+    langenselbold:[
+      {id:'langenselbold-kernstadt',name:'Kernstadt',anchor:[50.1780,9.0500]}
+    ],
+    neuberg:[
+      {id:'ravolzhausen',name:'Ravolzhausen',anchor:[50.2500,8.9700]},
+      {id:'ruedigheim',name:'Rüdigheim',anchor:[50.2400,8.9900]},
+      {id:'zeilhard',name:'Zeilhard',anchor:[50.2550,8.9950]}
+    ],
+    hammersbach:[
+      {id:'markoebel',name:'Marköbel',anchor:[50.2150,8.9950]},
+      {id:'langen-bergheim',name:'Langen-Bergheim',anchor:[50.2280,9.0150]}
+    ],
+    rodenbach:[
+      {id:'niederrodenbach',name:'Niederrodenbach',anchor:[50.1400,9.0050]},
+      {id:'oberrodenbach',name:'Oberrodenbach',anchor:[50.1300,9.0250]}
+    ],
+    freigericht:[
+      {id:'somborn',name:'Somborn',anchor:[50.1300,9.1250]},
+      {id:'horbach',name:'Horbach',anchor:[50.1200,9.1100]},
+      {id:'neuses',name:'Neuses',anchor:[50.1400,9.0950]},
+      {id:'altenmittlau',name:'Altenmittlau',anchor:[50.1450,9.1200]},
+      {id:'bernbach',name:'Bernbach',anchor:[50.1350,9.1400]}
+    ],
+    gelnhausen:[
+      {id:'gelnhausen-innenstadt',name:'Innenstadt',anchor:[50.2000,9.1850]},
+      {id:'hailer',name:'Hailer',anchor:[50.1850,9.1750]},
+      {id:'meerholz',name:'Meerholz',anchor:[50.1900,9.2050]},
+      {id:'roth',name:'Roth',anchor:[50.2150,9.2000]},
+      {id:'haitz',name:'Haitz',anchor:[50.2050,9.1700]}
+    ]
+  };
+  Object.keys(ORTSTEILE).forEach(function(town){ORTSTEILE[town].forEach(function(o){o.town=town;o.approx=true;o.source='Ortskenntnis, nicht amtlich vermessen'})});
+
+  var GEO_STATUS={
+    EXACT:'exact',           // vollstaendige Adresse erfolgreich geocodiert
+    STREET:'street',         // strassengenau, manuell bestaetigt oder Provider-Ergebnis mit geringerer Praezision
+    DISTRICT:'district',     // nur Ortsteil bekannt -> Ortsteil-Anker + Streuung
+    CITY:'city',             // nur Stadt/Gemeinde bekannt -> Stadt-Anker + Streuung
+    MANUAL:'manual',         // Nutzer hat Position per Klick/Drag selbst gesetzt
+    UNCONFIRMED:'unconfirmed', // automatisch ermittelt, vom Nutzer noch nicht bestaetigt
+    NONE:'none',             // keine geografische Angabe -> kein Marker, Liste "Ohne Kartenposition"
+    FAILED:'failed'          // Geocodierung versucht, aber fehlgeschlagen
+  };
+
+  var VISIBILITY={EXACT:'exact',STREET:'street',DISTRICT:'district',CITY:'city',HIDDEN:'hidden'};
+
+  function emptyAddress(){return {street:'',houseNumber:'',postalCode:'',city:'',district:'',county:'Main-Kinzig-Kreis',state:'Hessen',country:'Deutschland'}}
+  function emptyGeo(){return {latitude:null,longitude:null,accuracy:null,source:'',status:GEO_STATUS.NONE,lastGeocodedAt:'',manuallyAdjusted:false,visibility:VISIBILITY.EXACT}}
+
+  function findOrtsteil(townKey,districtName){
+    var list=ORTSTEILE[townKey]||[];
+    if(!districtName)return null;
+    var norm=String(districtName).trim().toLowerCase();
+    return list.find(function(o){return o.name.toLowerCase()===norm||o.id===norm})||
+      list.find(function(o){return norm.indexOf(o.name.toLowerCase())>-1||o.name.toLowerCase().indexOf(norm)>-1})||null;
+  }
+  function ortsteileForTown(townKey){return (ORTSTEILE[townKey]||[]).slice()}
+  function allOrtsteile(){var out=[];Object.keys(ORTSTEILE).forEach(function(t){ORTSTEILE[t].forEach(function(o){out.push(o)})});return out}
+
+  /* Deterministische, aber optisch verteilte Streuung mehrerer Datensaetze um denselben
+     Anker (Ortsteil ohne genaue Adresse). Kein Zufall bei jedem Render -> Marker springen
+     nicht bei jedem Kartenaufruf. Radius in Metern, grob in Grad umgerechnet. */
+  function seedHash(str){str=String(str||'');var h=0;for(var i=0;i<str.length;i++){h=(h<<5)-h+str.charCodeAt(i);h|=0}return Math.abs(h)}
+  function jitter(anchor,seedStr,radiusMeters){
+    var h=seedHash(seedStr), angle=(h%360)*(Math.PI/180), dist=((h>>3)%100)/100*(radiusMeters||220);
+    var dLat=(dist*Math.cos(angle))/111320, dLng=(dist*Math.sin(angle))/(111320*Math.cos(anchor[0]*Math.PI/180));
+    return [anchor[0]+dLat,anchor[1]+dLng];
+  }
+
+  /* Zentrale Ableitung: aus Adresse/Geo-Feldern eines Datensatzes die beste verfuegbare
+     Kartenposition bestimmen. Gibt null zurueck, wenn wirklich keine geografische Angabe
+     existiert (Punkt 7: "keinen falschen Marker erzeugen"). */
+  function resolvePosition(record,townKey,seedId){
+    var geo=record&&record.geo, addr=record&&record.address;
+    if(geo&&geo.visibility===VISIBILITY.HIDDEN)return null;
+    if(geo&&isFinite(geo.latitude)&&isFinite(geo.longitude)&&(geo.status===GEO_STATUS.EXACT||geo.status===GEO_STATUS.STREET||geo.status===GEO_STATUS.MANUAL||geo.status===GEO_STATUS.UNCONFIRMED)){
+      return {lat:geo.latitude,lng:geo.longitude,precision:geo.status,approx:false};
+    }
+    var district=addr&&addr.district, city=townKey||(addr&&addr.city);
+    var cityKey=normalizeTownKey(city);
+    if(district&&cityKey){
+      var ort=findOrtsteil(cityKey,district);
+      if(ort){var p=jitter(ort.anchor,seedId||record.id||ort.id,180);return {lat:p[0],lng:p[1],precision:GEO_STATUS.DISTRICT,approx:true,ortsteil:ort.name}}
+    }
+    if(cityKey&&TOWN_ANCHORS[cityKey]){
+      var p2=jitter(TOWN_ANCHORS[cityKey],seedId||record.id||cityKey,650);
+      return {lat:p2[0],lng:p2[1],precision:GEO_STATUS.CITY,approx:true};
+    }
+    return null;
+  }
+
+  var TOWN_NAME_MAP={bruchköbel:'bruchkoebel',bruchkobel:'bruchkoebel',hanau:'hanau',schöneck:'schoeneck',schoneck:'schoeneck',
+    nidderau:'nidderau',erlensee:'erlensee',langenselbold:'langenselbold',maintal:'maintal',neuberg:'neuberg',
+    hammersbach:'hammersbach',rodenbach:'rodenbach',freigericht:'freigericht',gelnhausen:'gelnhausen'};
+  function normalizeTownKey(v){
+    if(!v)return '';
+    var s=String(v).trim().toLowerCase();
+    if(TOWN_ANCHORS[s])return s;
+    if(TOWN_NAME_MAP[s])return TOWN_NAME_MAP[s];
+    var hit=Object.keys(TOWN_NAME_MAP).find(function(k){return s.indexOf(k)>-1});
+    return hit?TOWN_NAME_MAP[hit]:'';
+  }
+
+  function qualityLabel(precision){
+    return {exact:'Exakt geocodiert',street:'Straßengenau',district:'Ortsteil (ungefähr)',city:'Ort (ungefähr)',
+      manual:'Manuell gesetzt',unconfirmed:'Automatisch, unbestätigt',none:'Keine Angabe',failed:'Geocodierung fehlgeschlagen'}[precision]||'Unbekannt';
+  }
+
+  window.KK_GEO=Object.freeze({
+    version:'1.0.0',
+    TOWN_ANCHORS:TOWN_ANCHORS, ORTSTEILE:ORTSTEILE, GEO_STATUS:GEO_STATUS, VISIBILITY:VISIBILITY,
+    emptyAddress:emptyAddress, emptyGeo:emptyGeo,
+    findOrtsteil:findOrtsteil, ortsteileForTown:ortsteileForTown, allOrtsteile:allOrtsteile,
+    resolvePosition:resolvePosition, normalizeTownKey:normalizeTownKey, qualityLabel:qualityLabel, jitter:jitter
+  });
+})();
+</script>
 <script id="kk-app-bootstrap-v28-3">
 (function(){
   'use strict';
