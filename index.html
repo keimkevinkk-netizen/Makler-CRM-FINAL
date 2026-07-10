@@ -1127,6 +1127,16 @@ body.kk-v30-shell-ready #kk-app-shell button.kkref20-name-btn{
   border-radius:0!important;text-decoration:underline!important;padding:0!important;min-height:auto!important
 }
 body.kk-v30-shell-ready #kk-app-shell button.kkref20-name-btn:hover{color:var(--accent)!important}
+/* Derselbe Spezifitaets-Bug ein drittes Mal: .kkv30-market-summary-row ist ebenfalls
+   ein <button> und wurde von der App-weiten Button-Regel dunkel eingefaerbt, obwohl
+   sie als ruhige Listenzeile (weiss, dunkler Text) gedacht ist. */
+body.kk-v30-shell-ready #kk-app-shell button.kkv30-market-summary-row{
+  background:#fff!important;color:#172033!important;font-weight:400!important
+}
+body.kk-v30-shell-ready #kk-app-shell button.kkv30-market-summary-row:hover,
+body.kk-v30-shell-ready #kk-app-shell button.kkv30-market-summary-row.is-selected{background:var(--v30-blue-soft,#eef1f5)!important}
+body.kk-v30-shell-ready #kk-app-shell button.kkv30-market-summary-row span{color:#172033!important}
+body.kk-v30-shell-ready #kk-app-shell button.kkv30-market-summary-row b{color:var(--v30-gold,#96721e)!important}
 
 /* Heute nur visuell beruhigen; inhaltlicher Umbau folgt in V30.3 */
 body.kk-v30-shell-ready #kk-heute-v27{background:transparent!important}
@@ -3230,6 +3240,12 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
 #kk-heute-v27 .kkv30-pipeline-stages i{display:block;height:100%;background:var(--v30-violet)}
 #kk-heute-v27 .kkv30-pipeline-footer{display:flex;justify-content:space-between;align-items:center;color:#667085;font-size:9px}
 #kk-heute-v27 .kkv30-pipeline-footer a{color:var(--v30-blue);font-weight:850;text-decoration:none}
+#kk-heute-v27 .kkv30-market-summary-list{display:grid;gap:1px;background:#edf0f4;border:1px solid #edf0f4;border-radius:11px;overflow:hidden}
+#kk-heute-v27 .kkv30-market-summary-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:#fff;border:0;font:inherit;text-align:left;cursor:pointer;width:100%}
+#kk-heute-v27 .kkv30-market-summary-row:hover,#kk-heute-v27 .kkv30-market-summary-row.is-selected{background:var(--v30-blue-soft,#eef1f5)}
+#kk-heute-v27 .kkv30-market-summary-row span{color:#172033;font-size:11px;font-weight:750}
+#kk-heute-v27 .kkv30-market-summary-row b{color:var(--v30-gold,#96721e);font-size:11px;font-variant-numeric:tabular-nums}
+#kk-heute-v27 .kkv30-market-summary-empty{padding:14px;color:#667085;background:#f8fafc;border-radius:11px;font-size:10.5px;text-align:center}
 
 #kk-heute-v27 .kkh-quick-card{margin:0!important}
 #kk-heute-v27 .kkh-quick-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
@@ -3776,9 +3792,12 @@ function layout(){
  bindNew();renderNew();
 }
 function normalizeFooter(card){if(!card)return;qa('.kkh-card-body>div[style*="margin-top"]',card).forEach(function(x){x.className='kkv30-list-footer';x.removeAttribute('style')})}
+/* V31 Marktmonitor-Rebuild: die handgezeichnete SVG-Formgrafik ist entfernt (siehe
+   .claude/rules/market.md - keine zweite Kartenloesung). Ersatz ist eine reine
+   Kennzahlen-Karte ohne jede Kartengrafik, mit direktem Sprung zur echten Leaflet-
+   Hauptkarte im Marktmonitor-Tab statt einer zweiten (Mini-)Karte auf dem Dashboard. */
 function mapCardHtml(){
- var groups=Object.keys(PATHS).map(function(k){var p=PATHS[k],small=(k==='bruchkoebel'||k==='hammersbach'||k==='langenselbold')?' small':'';return '<g class="kkv30-town" data-v30-town="'+k+'" tabindex="0" role="button" aria-label="'+esc(NAMES[k])+' auswählen"><path d="'+p[0]+'"></path><text class="kkv30-map-label'+small+'" x="'+p[1]+'" y="'+p[2]+'">'+esc(NAMES[k])+'</text><rect class="kkv30-map-badge" x="'+(p[1]-29)+'" y="'+(p[2]+12)+'" width="58" height="20"></rect><text class="kkv30-map-num" data-v30-map-num x="'+p[1]+'" y="'+(p[2]+26)+'">–</text></g>'}).join('');
- return '<article class="kkv30-card kkv30-map-card"><div class="kkv30-card-head"><div><h2>Main-Kinzig-Kreis Marktübersicht</h2></div><div class="kkv30-map-toolbar"><select id="kkv30MapMetric" aria-label="Kartenkennzahl"><option value="potential">Gesamtpotenzial</option><option value="owners">Eigentümer</option><option value="searchCustomers">Suchkunden</option><option value="openLeads">Offene Leads</option><option value="activeObjects">Aktive Objekte</option><option value="openFollowups">Follow-ups</option></select></div></div><div class="kkv30-map-wrap"><svg class="kkv30-map-svg" viewBox="0 0 830 590" role="img" aria-label="Interaktive schematische Karte des Main-Kinzig-Kreises">'+groups+'</svg></div><div class="kkv30-map-legend"><span><i style="background:'+COLORS.blue+'"></i>sehr hoch</span><span><i style="background:'+COLORS.green+'"></i>hoch</span><span><i style="background:'+COLORS.yellow+'"></i>mittel</span><span><i style="background:'+COLORS.orange+'"></i>beobachten</span><span><i style="background:'+COLORS.red+'"></i>Handlungsbedarf</span><span><i style="background:'+COLORS.gray+'"></i>keine Daten</span></div></article>'
+ return '<article class="kkv30-card kkv30-map-card"><div class="kkv30-card-head"><div><h2>Main-Kinzig-Kreis Marktübersicht</h2><p>Top-Gebiete nach Gesamtpotenzial aus deinen echten CRM-Daten.</p></div><button type="button" class="light" id="kkv30OpenMarketmonitor">Karte öffnen</button></div><div class="kkv30-market-summary-list" id="kkv30MarketSummaryList"></div></article>'
 }
 function areaCardHtml(){return '<article class="kkv30-card kkv30-area-card"><div class="kkv30-card-head"><h2>Gebietsdetails</h2><span class="kkv30-pill">Live</span></div><div class="kkv30-area-body"><div class="kkv30-area-title"><h3 id="kkv30AreaName">Bruchköbel</h3><span class="kkv30-status" id="kkv30AreaStatus">Keine Daten</span></div><div class="kkv30-area-metrics" id="kkv30AreaMetrics"></div><div class="kkv30-area-signals" id="kkv30AreaSignals"></div><div class="kkv30-area-actions"><button type="button" id="kkv30AreaOpen">Marktmonitor öffnen</button><button class="light" type="button" id="kkv30AreaCrm">CRM nach Ort</button></div></div></article>'}
 function pipelineCardHtml(){return '<article class="kkv30-card" id="kkv30PipelineCard"><div class="kkv30-card-head"><h2>Offene Pipeline</h2><span class="kkv30-pill" id="kkv30PipelineCount">0 Chancen</span></div><div class="kkh-card-body"><div class="kkv30-pipeline-stages"><i id="kkv30PipelineProgress" style="width:0%"></i></div><div class="kkv30-pipeline-list" id="kkv30PipelineList"></div><div class="kkv30-pipeline-footer"><span id="kkv30PipelineFoot">Keine offenen Chancen</span><a href="#verkaufsauftrags-pipeline">Zur Pipeline →</a></div></div></article>'}
@@ -3815,13 +3834,13 @@ function nowSectionHtml(){return '<article class="kkv30-card kkv30-now-card" id=
 function data(){return window.KK_MKK_MAP&&typeof KK_MKK_MAP.getData==='function'?KK_MKK_MAP.getData():{}}
 function metricValue(d,m){if(!d)return 0;return num(d[m])}
 function colorFor(d,m,max){if(!d||!d.hasOperationalData)return COLORS.gray;var v=metricValue(d,m),ratio=max>0?v/max:0;if(m==='potential'){if(v>=80)return COLORS.blue;if(v>=60)return COLORS.green;if(v>=40)return COLORS.yellow;if(v>=20)return COLORS.orange;return COLORS.red}if(ratio>=.8)return COLORS.blue;if(ratio>=.55)return COLORS.green;if(ratio>=.3)return COLORS.yellow;if(ratio>0)return COLORS.orange;return COLORS.red}
-function renderMap(){var D=data(),metric=(q('#kkv30MapMetric')||{}).value||'potential',vals=Object.keys(PATHS).map(function(k){return metricValue(D[k],metric)}),max=Math.max.apply(null,vals.concat([1]));qa('[data-v30-town]').forEach(function(g){var k=g.dataset.v30Town,d=D[k],v=metricValue(d,metric),path=g.querySelector('path'),n=g.querySelector('[data-v30-map-num]');path.setAttribute('fill',colorFor(d,metric,max));n.textContent=d&&d.hasOperationalData?(metric==='potential'?Math.round(v)+'%':String(v)):'–';g.classList.toggle('is-selected',k===selectedTown)});renderArea()}
+function renderMap(){var D=data(),list=q('#kkv30MarketSummaryList');if(list){var ranked=Object.keys(NAMES).map(function(k){return {key:k,name:NAMES[k],d:D[k],v:metricValue(D[k],'potential')}}).sort(function(a,b){return b.v-a.v}).slice(0,5);list.innerHTML=ranked.length?ranked.map(function(r){return '<button type="button" class="kkv30-market-summary-row" data-v30-town="'+r.key+'"><span>'+esc(r.name)+'</span><b>'+(r.d&&r.d.hasOperationalData?Math.round(r.v)+'%':'–')+'</b></button>'}).join(''):'<div class="kkv30-market-summary-empty">Noch keine Daten.</div>'}qa('[data-v30-town]').forEach(function(g){g.classList.toggle('is-selected',g.dataset.v30Town===selectedTown)});renderArea()}
 function renderArea(){var d=data()[selectedTown]||{},name=NAMES[selectedTown]||selectedTown;var nameEl=q('#kkv30AreaName'),status=q('#kkv30AreaStatus');if(nameEl)nameEl.textContent=name;if(status){status.textContent=d.status||'Keine Daten';status.style.background=d.hasOperationalData?'var(--v30-green-soft)':'#eef1f5';status.style.color=d.hasOperationalData?'var(--v30-green)':'#667085'}var rows=[['Eigentümer',d.owners],['Suchkunden',d.searchCustomers],['Aktive Objekte',d.activeObjects],['Verkäufe YTD',d.sales],['Ø Verkaufspreis',d.avgPrice?Number(d.avgPrice).toLocaleString('de-DE')+' €/m²':'–'],['Vermarktungsdauer',d.avgMarketingDays?d.avgMarketingDays+' Tage':'–']];q('#kkv30AreaMetrics').innerHTML=rows.map(function(r){return '<div class="kkv30-area-row"><span>'+esc(r[0])+'</span><b>'+esc(r[1]==null?'–':r[1])+'</b></div>'}).join('');var sig=[['Follow-ups',d.openFollowups||0],['Bewertungen',d.valuationAppointments||0],['Besichtigungen',d.viewings||0],['Neue Eigentümer',d.newOwnerInquiries||0]];q('#kkv30AreaSignals').innerHTML=sig.map(function(r){return '<div class="kkv30-area-signal"><b>'+esc(r[1])+'</b><span>'+esc(r[0])+'</span></div>'}).join('')}
 function renderKpis(){var objects=uniq(arr('kk_crm_objects').concat(arr('kk12_objects')),'obj').filter(function(x){return openStatus(x.status)});var deals=uniq(arr('kk_sales_pipeline').concat(arr('kk_crm_owner_pipeline')),'deal').filter(function(x){return openStatus(x.status||x.stage||x.phase)&&!stageClosed(x)});var contacts=arr('kk_crm_contacts').filter(function(c){var t=[c.category,c.contactType,c.role,c.status].join(' ');return openStatus(c.status)&&/(lead|eigentümer|eigentuemer|käufer|kaeufer|suchkunde|interessent|chance)/i.test(t)});q('#kkv30KpiObjectsValue').textContent=String(objects.length+deals.length);q('#kkv30KpiObjectsSub').textContent=objects.length+' Objekte · '+deals.length+' Chancen';q('#kkv30KpiLeadsValue').textContent=String(contacts.length);q('#kkv30KpiLeadsSub').textContent='offene CRM-Kontakte'}
 function renderPipeline(){var all=uniq(arr('kk_sales_pipeline').concat(arr('kk_crm_owner_pipeline')),'deal').filter(function(x){return openStatus(x.status||x.stage||x.phase)&&!stageClosed(x)});all.sort(function(a,b){var da=String(a.deadline||a.followUpDate||'9999-12-31'),db=String(b.deadline||b.followUpDate||'9999-12-31');return da.localeCompare(db)||String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))});q('#kkv30PipelineCount').textContent=all.length+' Chancen';var list=q('#kkv30PipelineList');if(!all.length){list.innerHTML='<div class="kkv30-pipeline-empty">Keine offenen Pipeline-Chancen.</div>';q('#kkv30PipelineProgress').style.width='0%';q('#kkv30PipelineFoot').textContent='Keine offenen Chancen';return}list.innerHTML=all.slice(0,5).map(function(x){var name=x.name||x.contactName||x.owner||x.objectLabel||'Verkaufschance',stage=x.stage||x.status||x.phase||'Offen',area=x.area||x.town||x.city||'ohne Gebiet',prob=Math.max(0,Math.min(100,num(x.probability)));return '<div class="kkv30-pipeline-item"><div><strong>'+esc(name)+'</strong><span>'+esc(stage+' · '+area)+'</span></div><b>'+prob+' %</b></div>'}).join('');var avg=Math.round(all.reduce(function(s,x){return s+num(x.probability)},0)/all.length);q('#kkv30PipelineProgress').style.width=Math.max(3,avg)+'%';q('#kkv30PipelineFoot').textContent='Ø Wahrscheinlichkeit '+avg+' %'}
 function renderNew(){if(!root||root.dataset.v303Layout!=='1')return;renderKpis();renderPipeline();renderMap();renderNowDo()}
 function openTab(tab,hash){try{if(window.KK_APP_SHELL&&typeof KK_APP_SHELL.openTab==='function')KK_APP_SHELL.openTab(tab);else if(window.KK_APP_SHELL&&typeof KK_APP_SHELL.setActiveTab==='function')KK_APP_SHELL.setActiveTab(tab)}catch(e){}if(hash)location.hash=hash}
-function bindNew(){q('#kkv30MapMetric').addEventListener('change',renderMap);qa('[data-v30-town]').forEach(function(g){function choose(){selectedTown=g.dataset.v30Town;renderMap()}g.addEventListener('click',choose);g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();choose()}})});q('#kkv30AreaOpen').addEventListener('click',function(){try{if(window.KK_MKK_MAP)KK_MKK_MAP.selectTown(selectedTown)}catch(e){}openTab('marktmonitor','#mkk-market-map')});q('#kkv30AreaCrm').addEventListener('click',function(){openTab('crm','#crm-pro-os');setTimeout(function(){var D=data(),n=(D[selectedTown]&&D[selectedTown].name)||NAMES[selectedTown];['#kkcrmproContactAreaFilter','#kkcrmproContactSearch','#kkcrmproFilterArea','#crmFilterArea','#kkcrmproSearch'].some(function(s){var el=document.querySelector(s);if(el){el.value=n;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true}return false})},180)});window.addEventListener('kk:storage-changed',function(){setTimeout(renderNew,40)});window.addEventListener('storage',function(){setTimeout(renderNew,40)});window.addEventListener('kk:storage-imported',function(){setTimeout(renderNew,100)});document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='heute')setTimeout(renderNew,50)});bindDrillThrough()}
+function bindNew(){var openBtn=q('#kkv30OpenMarketmonitor');if(openBtn)openBtn.addEventListener('click',function(){openTab('marktmonitor','#kk-realmap-v31')});var summaryList=q('#kkv30MarketSummaryList');if(summaryList)summaryList.addEventListener('click',function(e){var g=e.target.closest('[data-v30-town]');if(!g)return;selectedTown=g.dataset.v30Town;renderMap()});q('#kkv30AreaOpen').addEventListener('click',function(){try{if(window.KK_MKK_MAP)KK_MKK_MAP.selectTown(selectedTown)}catch(e){}openTab('marktmonitor','#mkk-market-map')});q('#kkv30AreaCrm').addEventListener('click',function(){openTab('crm','#crm-pro-os');setTimeout(function(){var D=data(),n=(D[selectedTown]&&D[selectedTown].name)||NAMES[selectedTown];['#kkcrmproContactAreaFilter','#kkcrmproContactSearch','#kkcrmproFilterArea','#crmFilterArea','#kkcrmproSearch'].some(function(s){var el=document.querySelector(s);if(el){el.value=n;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true}return false})},180)});window.addEventListener('kk:storage-changed',function(){setTimeout(renderNew,40)});window.addEventListener('storage',function(){setTimeout(renderNew,40)});window.addEventListener('kk:storage-imported',function(){setTimeout(renderNew,100)});document.addEventListener('kk-app-tab-changed',function(e){if(!e.detail||e.detail.tab==='heute')setTimeout(renderNew,50)});bindDrillThrough()}
 /* V31 Phase C: KPI-Karten werden klickbar — "ein Klick, direkt arbeiten" statt
    nur Zahlen anzeigen. Nutzt ausschließlich bestehende Navigation (openTab,
    openTool) und bestehende Tab-/Filterelemente der Zielbereiche; setzt KEINEN
@@ -4284,16 +4303,24 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
   </div>
 </section>
 
-<!-- V31 Phase 11 (PRD Teil 4 / .claude/rules/market.md: "Kein zweiter Kartenstack
-     parallel sichtbar"): diese aeltere Schema-Kartenansicht (SVG-Formen statt
-     echter Geografie) lief bisher gleichzeitig mit der echten Leaflet-Basiskarte
-     (KK_MAP/KK_REALMAP, Abschnitt "kk-realmap-v31" direkt darunter) - beide waren
-     beim Oeffnen des Marktmonitor-Tabs voll sichtbar. Konsolidiert nach demselben
-     Muster wie die Legacy-Kontaktliste in Phase D: eingeklappt, nicht geloescht,
-     weiterhin per Klick erreichbar. Die echte Basiskarte ist ab jetzt die primaer
-     sichtbare Kartenengine. -->
-<details class="kk-mkk-legacy-wrap" id="kkmkk-legacy-wrap">
-<summary>Alte Schema-Kartenansicht (Formgrafik, zur Referenz einklappbar)</summary>
+<!-- V31 Marktmonitor-Rebuild (PRD Teil 4 / .claude/rules/market.md: "Kein zweiter
+     Kartenstack parallel sichtbar"): die alte Schema-Kartenansicht (handgezeichnete
+     SVG-Formen statt echter Geografie) ist jetzt vollstaendig unsichtbar und ueber
+     KEINE Bedienhandlung mehr erreichbar (frueher: einklappbares <details>, jetzt:
+     dauerhaft hidden, kein <summary>-Aufklapper mehr). Die reale Leaflet-Basiskarte
+     (KK_MAP/KK_REALMAP, Abschnitt "kk-realmap-v31" direkt darunter) ist die einzige
+     Hauptkarte des Marktmonitors.
+     Der Container bleibt technisch im DOM, weil kk-mkk-market-map-js seine
+     Datenaggregation (buildData/DATA/refreshData, Datenqualitaets-Werkzeuge,
+     CSV-Export, Schnellanlage-Aktionen) an das Vorhandensein von
+     #mkk-market-map koppelt (init(){root=document.getElementById('mkk-market-map');
+     if(!root)return;...}) - diese Daten speisen weiterhin die echten Marker/
+     Ortsteil-Auswertungen der realen Karte. Ein Herausloesen der Datenschicht aus
+     dem stark verzahnten View-Code waere eine groessere, riskante Refaktorierung
+     ausserhalb des unmittelbaren Kartenrebuilds und wird hier bewusst nicht
+     mitgemacht, um keine bestehende Funktion (Datenqualitaet, CSV-Export,
+     Schnellanlage) zu beschaedigen. -->
+<div class="kk-mkk-legacy-wrap" id="kkmkk-legacy-wrap" hidden aria-hidden="true">
 <section class="kkmkk-section" id="mkk-market-map" aria-labelledby="kkmkk-title">
   <div class="kkmkk-shell">
     <div class="kkmkk-head">
@@ -4473,7 +4500,7 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
     </div>
   </div>
 </section>
-</details>
+</div>
 
 <style id="kk-realmap-v31-css">
 .kkgeo-section{background:var(--v30-canvas,#f6f6f5);border-bottom:1px solid var(--v30-border,#e3e5e8)}
