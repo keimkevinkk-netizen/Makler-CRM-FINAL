@@ -2688,7 +2688,7 @@ REVOPS-UPDATE 2026-06-11 · Kevin Keim Makler-Betriebssystem
 #kk-heute-v27 .kkh-metric-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
 #kk-heute-v27 .kkh-metric{border:1px solid var(--line);border-radius:16px;background:#fffdf9;padding:12px}
 #kk-heute-v27 .kkh-metric-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
-#kk-heute-v27 .kkh-metric-label{font-size:10.5px;font-weight:950;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+#kk-heute-v27 .kkh-metric-label{font-size:10.5px;font-weight:950;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);word-break:keep-all;overflow-wrap:normal;hyphens:none}
 #kk-heute-v27 .kkh-stepper{display:flex;gap:3px}
 #kk-heute-v27 .kkh-stepper button{width:25px;height:25px;padding:0;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--primary);font-size:13px;font-weight:950;cursor:pointer}
 #kk-heute-v27 .kkh-stepper button:hover{background:var(--primary);color:#fff}
@@ -2704,7 +2704,7 @@ REVOPS-UPDATE 2026-06-11 · Kevin Keim Makler-Betriebssystem
 #kk-heute-v27 .kkh-week-stat.red{border-left-color:var(--accent)}
 #kk-heute-v27 .kkh-week-stat.orange{border-left-color:var(--orange)}
 #kk-heute-v27 .kkh-week-stat.green{border-left-color:var(--green)}
-#kk-heute-v27 .kkh-week-stat span{display:block;color:var(--muted);font-size:11px;font-weight:700}
+#kk-heute-v27 .kkh-week-stat span{display:block;color:var(--muted);font-size:11px;font-weight:700;word-break:keep-all;overflow-wrap:normal;hyphens:none}
 #kk-heute-v27 .kkh-week-stat b{display:block;color:var(--primary);font-size:20px;margin-top:4px}
 #kk-heute-v27 .kkh-tools{margin-top:16px;border:1px solid var(--line);border-radius:18px;background:#fff}
 #kk-heute-v27 .kkh-tools summary{cursor:pointer;list-style:none;padding:13px 16px;color:var(--primary);font-size:12px;font-weight:950}
@@ -2714,7 +2714,6 @@ REVOPS-UPDATE 2026-06-11 · Kevin Keim Makler-Betriebssystem
 @media (max-width:980px){
   #kk-heute-v27 .kkh-hero,#kk-heute-v27 .kkh-workgrid{grid-template-columns:1fr}
   #kk-heute-v27 .kkh-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
-  #kk-heute-v27 .kkh-metric-grid,#kk-heute-v27 .kkh-week-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media (max-width:640px){
   #kk-heute-v27 .kkh-shell{padding:16px 12px 34px}
@@ -2725,7 +2724,6 @@ REVOPS-UPDATE 2026-06-11 · Kevin Keim Makler-Betriebssystem
   #kk-heute-v27 .kkh-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   #kk-heute-v27 .kkh-form-grid{grid-template-columns:1fr}
   #kk-heute-v27 .kkh-form-grid .kkh-btn{width:100%}
-  #kk-heute-v27 .kkh-metric-grid,#kk-heute-v27 .kkh-week-grid{grid-template-columns:1fr 1fr}
   #kk-heute-v27 .kkh-settings-grid{grid-template-columns:1fr 1fr}
   #kk-heute-v27 .kkh-card-head{padding:14px}
   #kk-heute-v27 .kkh-card-body{padding:13px}
@@ -2864,13 +2862,14 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
 #kk-heute-v27 .kkh-quick-form input,#kk-heute-v27 .kkh-quick-form select,#kk-heute-v27 .kkh-quick-form textarea{min-height:37px!important;padding:8px 9px!important;font-size:11px!important}
 #kk-heute-v27 .kkh-field label{font-size:8.5px!important}
 #kk-heute-v27 .kkh-metrics{margin:0!important}
-#kk-heute-v27 .kkh-metric-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+#kk-heute-v27 .kkh-metric-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important}
 #kk-heute-v27 .kkh-metric{border-radius:11px!important;padding:9px!important;background:#f8fafc!important}
+#kk-heute-v27 .kkh-metric-head{flex-direction:column!important;align-items:flex-start!important;gap:6px!important}
 #kk-heute-v27 .kkh-metric-number{font-family:Inter,system-ui,sans-serif!important;font-size:22px!important}
 #kk-heute-v27 .kkh-week{margin-top:9px!important}
 #kk-heute-v27 .kkh-week summary{padding:11px 13px!important;border-radius:13px!important;box-shadow:none!important;font-size:10.5px!important}
 #kk-heute-v27 .kkh-week-body{padding:10px!important}
-#kk-heute-v27 .kkh-week-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+#kk-heute-v27 .kkh-week-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important}
 #kk-heute-v27 .kkh-week-stat{padding:8px!important;border-radius:10px!important}.kkh-week-stat b{font-size:15px!important}.kkh-week-stat span{font-size:7.5px!important}
 #kk-heute-v27 .kkv30-side-stack{display:grid;gap:12px}
 #kk-heute-v27 .kkv30-note-card .kkh-card-body{max-height:190px;overflow:auto}
