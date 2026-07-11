@@ -1,5 +1,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
+const fs = require('fs');
+const http = require('http');
 
 const LAUNCH_OPTS = Object.assign({ args: ['--no-sandbox'] }, process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : {});
 
@@ -12,10 +14,47 @@ function check(name, cond, results) {
   if (!cond) console.log('::error::FAILED CHECK: ' + name);
 }
 
+// This test is the only e2e file that exercises real fetch() calls (mocked via
+// page.route() to the .netlify/functions/* endpoints), so unlike the other
+// tests here it cannot use file:// like the rest - a real CI run (commit
+// 858826c, job 86565442902) showed the app's own connector landing in its
+// catch(err) branch with error:'network_error' / message:'Failed to fetch' for
+// EVERY toggle, and crucially NONE of the page.on('requestfailed'/'response')
+// diagnostic listeners fired either - meaning Chromium blocked the fetch at
+// the CSP layer before it ever became a network-level request Playwright's
+// page.route() could see or intercept. index.html's CSP has no explicit
+// connect-src, so it falls back to `default-src 'self' https: data: blob:` -
+// and 'self' resolution for a relative fetch() from a file:// document is
+// exactly the kind of edge case that differs between Chromium versions (this
+// sandbox's pinned Chromium build is older than what CI's fresh
+// `npx playwright install chromium` provisions for the pinned playwright-core
+// version - confirmed by chromium-1194 being the only build available here
+// while a bare `chromium.launch()` looks for revision ~1228). Loosening the
+// app's CSP to "fix" this would violate the project's CSP-minimalism rule for
+// a bug that doesn't even exist on the real deployed site (served over
+// https://, where 'self' trivially matches - and Kevin's own live screenshots
+// already confirmed BORIS/ALKIS work there). Serving this test's page from a
+// real local http:// origin instead of file:// sidesteps the whole file://
+// CSP edge case and is also a more faithful stand-in for the actual
+// https://-served production app than file:// ever was.
+function startStaticServer(filePath) {
+  const html = fs.readFileSync(filePath);
+  return new Promise((resolve, reject) => {
+    const server = http.createServer((req, res) => {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(html);
+    });
+    server.on('error', reject);
+    server.listen(0, '127.0.0.1', () => resolve(server));
+  });
+}
+
 (async () => {
+  let staticServer;
   try {
     const browser = await chromium.launch(LAUNCH_OPTS);
-    const fileUrl = 'file://' + path.resolve(__dirname, '..', '..', 'index.html');
+    staticServer = await startStaticServer(path.resolve(__dirname, '..', '..', 'index.html'));
+    const fileUrl = 'http://127.0.0.1:' + staticServer.address().port + '/';
     const results = [];
 
     for (const vp of [{ w: 1440, h: 1000, label: 'desktop' }, { w: 390, h: 844, label: 'mobile' }]) {
@@ -301,9 +340,12 @@ function check(name, cond, results) {
     if (failed.length) console.log('FAILED:', failed.map(f => f.name));
     console.log('RESULT:', failed.length === 0 ? 'PASS' : 'FAIL');
     await browser.close();
+    if (staticServer) staticServer.close();
+    process.exit(failed.length ? 1 : 0);
   } catch (err) {
     console.error('FATAL - test crashed:', err && err.stack || err);
     console.log('::error::FATAL: ' + String(err && err.message || err));
+    if (staticServer) staticServer.close();
     process.exit(1);
   }
 })();
