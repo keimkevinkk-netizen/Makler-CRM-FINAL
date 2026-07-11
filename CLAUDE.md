@@ -1,6 +1,6 @@
 # Keim CRM Pro — Project Instructions
 
-Single-file Vanilla-JS Makler-CRM (`kevin keim makler betriebssystem v30 7 ux finalisiert repariert 2.html`, ~13.000 Zeilen). Primärer Nutzer: Kevin Keim, Main-Kinzig-Kreis. Wird auf Netlify öffentlich ausgeliefert.
+Single-file Vanilla-JS Makler-CRM (`index.html`, ~16.900 Zeilen; historischer Dateiname `kevin keim makler betriebssystem v30 7 ux finalisiert repariert 2.html` wurde bereits vor mehreren Phasen auf `index.html` umbenannt). Primärer Nutzer: Kevin Keim, Main-Kinzig-Kreis. Wird auf Netlify öffentlich ausgeliefert.
 
 Das verbindliche Master-PRD steht in `docs/prd/01` bis `05` (Produktstrategie, UX/Design, Architektur/Datenmodell, Marktmonitor/Karte, Development Manual). Bei jedem größeren Auftrag zuerst den relevanten Teil lesen, nicht raten. `docs/prd/00-ist-zustand-inventar.md` enthält das Storage-/API-Inventar der Codebasis.
 
