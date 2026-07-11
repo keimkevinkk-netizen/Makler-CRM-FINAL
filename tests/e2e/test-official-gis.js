@@ -121,10 +121,10 @@ function check(name, cond, results) {
       });
 
       await page.goto(fileUrl, { waitUntil: 'load', timeout: 60000 });
-      await page.waitForTimeout(500);
+      await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_OFFICIAL_GIS), null, { timeout: 15000 });
       await page.evaluate(() => { try { localStorage.removeItem('kk_official_gis_capabilities_cache_v2'); } catch (e) {} });
       await page.evaluate(() => { if (window.KK_APP_SHELL) window.KK_APP_SHELL.setActiveTab('marktmonitor'); });
-      await page.waitForTimeout(1200);
+      await page.waitForSelector('#kkofficial-layer-grid [data-kkofficial-layer]', { state: 'attached', timeout: 15000 });
 
       const panelExists = await page.evaluate(() => ({
         panel: !!document.getElementById('kkofficial-panel'),
@@ -151,7 +151,15 @@ function check(name, cond, results) {
 
       // --- BORIS: single unambiguous layer, should auto-select as before ---
       await page.click('[data-kkofficial-layer="boris"]');
-      await page.waitForTimeout(600);
+      // Wait for the actual async discover()/toggleLayer() chain to settle
+      // (status leaves 'loading') instead of a fixed delay - a cold CI
+      // browser can need more wall-clock time for the mocked fetch + render
+      // cycle than this sandbox's warmed-up one (same class of flakiness
+      // fixed for test-a11y-focus-restore.js earlier in this session).
+      await page.waitForFunction(() => {
+        var s = window.KK_OFFICIAL_GIS && window.KK_OFFICIAL_GIS.getState().boris;
+        return !!s && s.status !== 'loading' && s.status !== 'off';
+      }, null, { timeout: 15000 });
       const borisState = await page.evaluate(() => window.KK_OFFICIAL_GIS.getState().boris);
       console.log(vp.label + ' boris state after toggle:', JSON.stringify(borisState));
       check(vp.label + ': BORIS discovery picks "BORIS2026-Zonen" specifically out of 12 year/role combinations (the exact bug Kevin hit live - it previously defaulted to "BORIS2020-Label")', borisState.layerName === 'BORIS2026-Zonen', results);
@@ -172,7 +180,10 @@ function check(name, cond, results) {
       // Flurstueck layer), not CadastralBoundary/CadastralZoning, and must NOT be
       // stuck at "kein passender Layer gefunden" (Kevin's exact bug report). ---
       await page.click('[data-kkofficial-layer="alkis"]');
-      await page.waitForTimeout(600);
+      await page.waitForFunction(() => {
+        var s = window.KK_OFFICIAL_GIS && window.KK_OFFICIAL_GIS.getState().alkis;
+        return !!s && s.status !== 'loading' && s.status !== 'off';
+      }, null, { timeout: 15000 });
       const alkisState = await page.evaluate(() => window.KK_OFFICIAL_GIS.getState().alkis);
       console.log(vp.label + ' alkis state after toggle (3 candidate layers):', JSON.stringify(alkisState));
       check(vp.label + ': ALKIS status is "live" (bug fixed - no longer "kein passender Layer gefunden")', alkisState.status === 'live', results);
@@ -215,9 +226,12 @@ function check(name, cond, results) {
         }
       });
       await page.click('[data-kkofficial-layer="alkis"]'); // off
-      await page.waitForTimeout(200);
+      await page.waitForFunction(() => { var s = window.KK_OFFICIAL_GIS && window.KK_OFFICIAL_GIS.getState().alkis; return !!s && s.active === false; }, null, { timeout: 15000 });
       await page.click('[data-kkofficial-layer="alkis"]'); // on again -> cache was cleared above, forces a real (mocked) re-fetch
-      await page.waitForTimeout(700);
+      await page.waitForFunction(() => {
+        var s = window.KK_OFFICIAL_GIS && window.KK_OFFICIAL_GIS.getState().alkis;
+        return !!s && s.status !== 'loading';
+      }, null, { timeout: 15000 });
       const ambiguousState = await page.evaluate(() => window.KK_OFFICIAL_GIS.getState().alkis);
       console.log(vp.label + ' alkis state with two near-tied candidates:', JSON.stringify(ambiguousState));
       check(vp.label + ': two near-tied plausible layers are flagged ambiguous instead of silently guessing', ambiguousState.ambiguous === true && ambiguousState.candidates.length === 2, results);
@@ -228,7 +242,10 @@ function check(name, cond, results) {
       // Manually confirm the picker -> ambiguity resolves, layer applied.
       await page.selectOption('[data-kkofficial-picker="alkis"]', 'flurstuecke_neu');
       await page.click('[data-kkofficial-confirm="alkis"]');
-      await page.waitForTimeout(300);
+      await page.waitForFunction(() => {
+        var s = window.KK_OFFICIAL_GIS && window.KK_OFFICIAL_GIS.getState().alkis;
+        return !!s && s.ambiguous === false;
+      }, null, { timeout: 15000 });
       const resolvedState = await page.evaluate(() => window.KK_OFFICIAL_GIS.getState().alkis);
       check(vp.label + ': manual picker confirmation resolves ambiguity and sets the chosen layer', resolvedState.ambiguous === false && resolvedState.layerName === 'flurstuecke_neu', results);
       check(vp.label + ': manual picker confirmation also derives the correct queryLayerName (queryable itself, so equals layerName)', resolvedState.queryLayerName === 'flurstuecke_neu', results);
@@ -238,7 +255,10 @@ function check(name, cond, results) {
         const mapBox = await page.locator('#kkgeo-map').boundingBox();
         if (mapBox) {
           await page.mouse.click(mapBox.x + mapBox.width / 2, mapBox.y + mapBox.height / 2);
-          await page.waitForTimeout(700);
+          await page.waitForFunction(() => {
+            var el = document.getElementById('kkgeo-detail-panel');
+            return !!el && !/wird abgerufen/.test(el.innerHTML);
+          }, null, { timeout: 15000 });
           const detailHtml = await page.evaluate(() => document.getElementById('kkgeo-detail-panel').innerHTML);
           console.log(vp.label + ' detail panel after map click (BORIS+ALKIS both active):', detailHtml.replace(/\s+/g, ' ').slice(0, 800));
           check(vp.label + ': ALKIS popup shows friendly "Gemarkung" label (not raw "gemarkung" key)', /Gemarkung/.test(detailHtml), results);
