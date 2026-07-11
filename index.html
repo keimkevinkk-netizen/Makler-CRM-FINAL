@@ -15200,8 +15200,8 @@ var SERVICES=[
 ];
 var AMBIGUITY_MARGIN=6; // Punkteabstand, ab dem der Spitzenreiter als eindeutig gilt
 
-var state={}; // key -> {active,status,layerName,title,error,lastChecked,candidates,ambiguous,rawLayerNames}
-SERVICES.forEach(function(s){state[s.key]={active:false,status:'off',layerName:'',title:'',error:'',lastChecked:'',attribution:'',candidates:[],ambiguous:false,rawLayerNames:[]}});
+var state={}; // key -> {active,status,layerName,queryLayerName,title,error,lastChecked,candidates,ambiguous,rawLayerNames}
+SERVICES.forEach(function(s){state[s.key]={active:false,status:'off',layerName:'',queryLayerName:'',title:'',error:'',lastChecked:'',attribution:'',candidates:[],ambiguous:false,rawLayerNames:[]}});
 
 function readCache(){try{return JSON.parse(localStorage.getItem(CACHE_KEY)||'{}')}catch(e){return {}}}
 function writeCache(obj){try{localStorage.setItem(CACHE_KEY,JSON.stringify(obj))}catch(e){}}
@@ -15230,6 +15230,28 @@ function scoreLayer(service,layer){
   if(layer.queryable)score+=5;
   if(!layer.hasChildren)score+=3;
   return score;
+}
+
+/* FIX (nach echtem Live-Test): der fuer die Kartendarstellung gewaehlte Layer
+   (z.B. "...-Zonen") ist beim echten BORIS-Dienst NICHT queryable - die dazu
+   gehoerige Sachdatenabfrage laeuft ueber einen SEPARATEN Layer ("...-Info"/
+   "...-Feature"). Ein GetFeatureInfo auf einen nicht abfragbaren Layer liefert
+   serverseitig "LayerNotDefined". Deshalb wird zusaetzlich zum Anzeige-Layer
+   ein eigener, tatsaechlich queryable Layer ermittelt: bevorzugt aus demselben
+   Jahrgang/derselben Gruppe wie der Anzeige-Layer, sonst der best bewertete
+   queryable Layer insgesamt. Ist der Anzeige-Layer selbst schon queryable
+   (z.B. ALKIS CP.CadastralParcel), ist queryLayer identisch mit layerName. */
+function pickQueryLayer(service,chosen,allLayers){
+  if(!chosen)return null;
+  if(chosen.queryable)return chosen.name;
+  var queryable=(allLayers||[]).filter(function(l){return l.queryable&&l.name!==chosen.name});
+  if(!queryable.length)return null;
+  var year=extractYear(chosen);
+  var scored=queryable.map(function(l){return Object.assign({},l,{score:scoreLayer(service,l)})});
+  var sameYear=year!=null?scored.filter(function(l){return extractYear(l)===year}):[];
+  var pool=sameYear.length?sameYear:scored;
+  pool.sort(function(a,b){return b.score-a.score});
+  return pool[0].name;
 }
 
 /* Waehlt automatisch, wenn der Spitzenreiter eindeutig ist. Bei echter
@@ -15289,6 +15311,7 @@ async function discover(service,force){
     var okResult={
       status:ranked.chosen?'live':'live_no_layers_found',
       layerName:ranked.chosen?ranked.chosen.name:'',title:ranked.chosen?(ranked.chosen.title||ranked.chosen.name):'',
+      queryLayerName:ranked.chosen?pickQueryLayer(service,ranked.chosen,data.layers):'',
       ambiguous:ranked.ambiguous,candidates:ranked.candidates,
       layerCount:data.layerCount,allLayers:data.layers,baseUrl:data.baseUrl,licenseHint:data.licenseHint,
       /* Diagnose-Anzeige fuer den Fall "verbunden, aber kein passender Layer":
@@ -15391,13 +15414,17 @@ function applyOverlay(key,layerName){
    im Code. Nach Bestaetigung merkt sich der Cache diese Wahl wie einen normalen
    eindeutigen Treffer (kein erneutes Nachfragen bei jedem Toggle). */
 function selectLayer(key,layerName){
+  var service=SERVICES.find(function(s){return s.key===key});
   var st=state[key];
   var chosen=(st.candidates||[]).find(function(c){return c.name===layerName});
+  var cache=readCache();
+  var allLayers=(cache[key]&&cache[key].allLayers)||[];
+  var queryLayerName=service?pickQueryLayer(service,chosen||{name:layerName,queryable:(allLayers.find(function(l){return l.name===layerName})||{}).queryable},allLayers):layerName;
   st.layerName=layerName;
+  st.queryLayerName=queryLayerName||layerName;
   st.title=chosen?candidateLabel(chosen):layerName;
   st.ambiguous=false;
-  var cache=readCache();
-  if(cache[key]){cache[key].layerName=layerName;cache[key].title=st.title;cache[key].ambiguous=false;writeCache(cache)}
+  if(cache[key]){cache[key].layerName=layerName;cache[key].queryLayerName=st.queryLayerName;cache[key].title=st.title;cache[key].ambiguous=false;writeCache(cache)}
   renderStatus();
   applyOverlay(key,layerName);
 }
@@ -15415,6 +15442,7 @@ async function toggleLayer(key,on){
   var result=await discover(service,false);
   state[key].status=result.status;
   state[key].layerName=result.layerName||'';
+  state[key].queryLayerName=result.queryLayerName||result.layerName||'';
   state[key].title=result.title||'';
   state[key].error=result.error||'';
   state[key].message=result.message||'';
@@ -15473,12 +15501,16 @@ async function handleMapClick(latlng){
   var results=[];
   for(var i=0;i<activeServices.length;i++){
     var s=activeServices[i];
+    var queryLayer=state[s.key].queryLayerName||state[s.key].layerName;
+    if(!queryLayer)continue; // kein bekannter queryable Layer fuer diesen Dienst - keine sinnlose Anfrage senden
     try{
-      var qs=new URLSearchParams(Object.assign({service:s.key,layer:state[s.key].layerName},params));
+      var qs=new URLSearchParams(Object.assign({service:s.key,layer:queryLayer},params));
       var res=await fetch('/.netlify/functions/wms-feature-info?'+qs.toString());
       var data=await res.json();
       if(res.ok&&data.features&&data.features.length){
         results.push({service:s,data:data});
+      }else if(!res.ok&&data.message){
+        results.push({service:s,data:{features:[],errorMessage:data.message}});
       }
     }catch(e){/* einzelner Dienstfehler blockiert nicht die anderen */}
   }
@@ -15495,6 +15527,10 @@ async function handleMapClick(latlng){
      zurueckgeben sollte als erwartet - nie stillschweigend anzeigen. */
   var OWNER_FIELD_RE=/eigentuemer|eigentümer|owner|besitzer/i;
   panel.innerHTML=results.map(function(r){
+    if(r.data.errorMessage){
+      return '<div class="kkgeo-popup-type">'+esc(r.service.label)+'</div>'+
+        '<div class="kkgeo-empty">'+esc(r.data.errorMessage)+'</div>';
+    }
     var feature=r.data.features[0]||{};
     var keys=Object.keys(feature).filter(function(k){return !OWNER_FIELD_RE.test(k)});
     var rows=keys.map(function(k){
