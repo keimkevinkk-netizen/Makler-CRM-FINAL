@@ -16,6 +16,10 @@ const LAUNCH_OPTS = Object.assign({ args: ['--no-sandbox'] }, process.env.PLAYWR
 function check(name, cond, results) {
   results.push({ name, pass: !!cond });
   console.log((cond ? 'PASS' : 'FAIL') + ' - ' + name);
+  // GitHub Actions renders ::error:: lines as always-visible job annotations,
+  // readable without opening the raw log viewer - the only way this failure
+  // could be diagnosed without direct CI log access (see ADR/commit history).
+  if (!cond) console.log('::error::FAILED CHECK: ' + name);
 }
 
 (async () => {
@@ -106,6 +110,7 @@ function check(name, cond, results) {
     process.exit(failed.length ? 1 : 0);
   } catch (err) {
     console.error('FATAL - test crashed:', err && err.stack || err);
+    console.log('::error::FATAL: ' + String(err && err.message || err));
     process.exit(1);
   }
 })();

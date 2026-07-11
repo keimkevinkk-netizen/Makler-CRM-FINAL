@@ -104,6 +104,7 @@ const LAUNCH_OPTS = Object.assign({ args: ['--no-sandbox'] }, process.env.PLAYWR
   await browser.close();
   } catch (err) {
     console.error('FATAL - verify.js crashed:', err && err.stack || err);
+    console.log('::error::FATAL: ' + String(err && err.message || err));
     process.exit(1);
   }
 })();
