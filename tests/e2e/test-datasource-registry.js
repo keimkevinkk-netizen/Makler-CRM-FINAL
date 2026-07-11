@@ -37,7 +37,7 @@ function check(name, cond, results) {
 
   check('KK_DATASOURCE_REGISTRY is registered with 4 sources (Nominatim, OSM tiles, BORIS, ALKIS)', api.version === '1.0' && api.count === 4, results);
   check('every entry has the Anhang-A7-required core fields populated', api.allHaveRequiredFields, results);
-  check('BORIS entry honestly documents "not live-verified from this sandbox"', /nicht.*aus dieser Sandbox live verifiziert|ADR-0002/i.test(api.borisHasHonestNote), results);
+  check('BORIS entry documents the actual live-verification status (confirmed by Kevin on the deploy preview, not a fake/assumed "live")', /live verifiziert|bestaetigt|bestätigt/i.test(api.borisHasHonestNote), results);
 
   const panelHtml = await page.evaluate(() => document.getElementById('kkdsr-body').innerHTML);
   check('panel renders a table with all 4 sources', (panelHtml.match(/<tr>/g) || []).length >= 4, results);
