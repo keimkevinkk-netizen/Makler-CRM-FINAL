@@ -18,7 +18,7 @@ function check(name, cond, results) {
     const fileUrl = 'file://' + path.resolve(__dirname, '..', '..', 'index.html');
     const page = await browser.newPage({ viewport: { width: 1440, height: 1200 } });
     const pageErrors = [];
-    page.on('pageerror', (e) => pageErrors.push(e.message));
+    page.on('pageerror', (e) => { pageErrors.push(e.message); console.log('::error::PAGEERROR: ' + e.message + (e.stack ? ' | ' + e.stack.split('\n').slice(0, 3).join(' <- ') : '')); });
     const results = [];
 
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 60000 });

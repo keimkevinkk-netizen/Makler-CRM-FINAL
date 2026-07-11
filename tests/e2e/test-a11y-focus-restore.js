@@ -29,7 +29,7 @@ function check(name, cond, results) {
     const results = [];
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     const pageErrors = [];
-    page.on('pageerror', (e) => pageErrors.push(e.message));
+    page.on('pageerror', (e) => { pageErrors.push(e.message); console.log('::error::PAGEERROR: ' + e.message + (e.stack ? ' | ' + e.stack.split('\n').slice(0, 3).join(' <- ') : '')); });
 
     await page.goto(fileUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_STORE), null, { timeout: 15000 });

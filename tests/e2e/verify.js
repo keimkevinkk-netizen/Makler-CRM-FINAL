@@ -18,7 +18,7 @@ const LAUNCH_OPTS = Object.assign({ args: ['--no-sandbox'] }, process.env.PLAYWR
     let alertFired = false;
     page.on('dialog', async (d) => { alertFired = true; await d.dismiss(); });
     const errors = [];
-    page.on('pageerror', (e) => errors.push(e.message));
+    page.on('pageerror', (e) => { errors.push(e.message); console.log('::error::PAGEERROR: ' + e.message + (e.stack ? ' | ' + e.stack.split('\n').slice(0, 3).join(' <- ') : '')); });
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 60000 });
     await page.waitForTimeout(800);
 
@@ -67,7 +67,7 @@ const LAUNCH_OPTS = Object.assign({ args: ['--no-sandbox'] }, process.env.PLAYWR
     const consoleErrors = [];
     const pageErrors = [];
     page.on('console', (msg) => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
-    page.on('pageerror', (e) => pageErrors.push(e.message));
+    page.on('pageerror', (e) => { pageErrors.push(e.message); console.log('::error::PAGEERROR: ' + e.message + (e.stack ? ' | ' + e.stack.split('\n').slice(0, 3).join(' <- ') : '')); });
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 60000 });
     await page.waitForTimeout(1000);
 

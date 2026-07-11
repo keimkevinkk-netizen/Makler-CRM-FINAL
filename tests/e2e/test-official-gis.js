@@ -22,7 +22,7 @@ function check(name, cond, results) {
       const context = await browser.newContext({ viewport: { width: vp.w, height: vp.h } });
       const page = await context.newPage();
       const pageErrors = [];
-      page.on('pageerror', (e) => pageErrors.push(e.message));
+      page.on('pageerror', (e) => { pageErrors.push(e.message); console.log('::error::PAGEERROR: ' + e.message + (e.stack ? ' | ' + e.stack.split('\n').slice(0, 3).join(' <- ') : '')); });
 
       // Mock the wms-capabilities/wms-feature-info Netlify Functions (unreachable
       // from this sandbox for real) so we can test the CLIENT-SIDE logic (panel
