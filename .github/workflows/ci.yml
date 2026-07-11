@@ -29,4 +29,4 @@ jobs:
         run: npm run test:functions
 
       - name: Run E2E smoke suite (file:// index.html, mocked network)
-        run: npm run test:e2e
+        run: npm run test:e2e:full
