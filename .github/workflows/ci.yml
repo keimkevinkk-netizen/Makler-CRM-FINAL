@@ -52,3 +52,6 @@ jobs:
 
       - name: E2E - test-repository-layer.js
         run: node tests/e2e/test-repository-layer.js
+
+      - name: E2E - test-chart-canvas-reuse.js
+        run: node tests/e2e/test-chart-canvas-reuse.js

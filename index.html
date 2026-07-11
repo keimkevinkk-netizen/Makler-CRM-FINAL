@@ -13258,7 +13258,21 @@ function normalize(d){var m={}; d.forEach(function(x){if(x&&x.town)m[x.town]=x})
 function saveMarket(d){try{window.KK_STORE.setRaw(KEY,JSON.stringify(normalize(d)))}catch(e){}}
 function score(x){return Math.round((Number(x.newOffers)||0)*4+(Number(x.priceChanges)||0)*7+(Number(x.longListings)||0)*5+(Number(x.ownerDensity)||0)*3+(Number(x.crmContacts)||0)*1.5+(Number(x.openFollowups)||0)*4)}
 function conclusion(x){var s=score(x); if(s>=95)return 'Heute aktiv bearbeiten: Marktbewegung + CRM-Kontakte verbinden.'; if(s>=65)return 'Guter Anrufanlass für diese Woche.'; if((x.priceChanges||0)+(x.longListings||0)>4)return 'Preis-/Vermarktungsproblem als Akquise-Hebel nutzen.'; return 'Beobachten, Datenbasis weiter auffüllen.'}
-function destroy(id){if(charts[id]){try{charts[id].destroy()}catch(e){} delete charts[id]}}
+/* FIX (nach echtem CI-Live-Test): dieses Modul und das "KK Marktanalyse"-Modul
+   (~Zeile 13443) rendern beide potenziell auf denselben Canvas (z.B.
+   kkV10PriceLevelChart), fuehren aber getrennte, sich nicht kennende
+   Buchhaltungen (charts{} hier, chartBag{} dort). Wenn das jeweils ANDERE
+   Modul zuerst einen Chart auf diesem Canvas erzeugt hatte, fand die alte
+   Pruefung "if(charts[id])" nichts (der Eintrag steht ja im fremden Dict) und
+   liess die vorhandene Chart.js-Instanz unzerstoert stehen - der naechste
+   "new Chart(...)" auf demselben Canvas wirft dann Chart.js' eigenen Fehler
+   "Canvas is already in use". Zusaetzlich zur eigenen Buchhaltung jetzt auch
+   Chart.js' GLOBALE Registry (Chart.getChart) pruefen, wie es das andere
+   Modul bereits korrekt macht. */
+function destroy(id){
+  if(charts[id]){try{charts[id].destroy()}catch(e){} delete charts[id]}
+  try{var el=$('#'+id); var existing=el&&window.Chart&&window.Chart.getChart&&window.Chart.getChart(el); if(existing)existing.destroy()}catch(e){}
+}
 function chart(id,cfg){var el=$('#'+id); if(!el||!window.Chart)return; destroy(id); charts[id]=new Chart(el,cfg)}
 function barCfg(labels,data,label){return {type:'bar',data:{labels:labels,datasets:[{label:label,data:data}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45,minRotation:0,font:{size:10}}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}}}
 function renderMarket(){var d=loadMarket(), labels=d.map(function(x){return x.town});
