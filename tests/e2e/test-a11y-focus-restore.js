@@ -28,7 +28,7 @@ function check(name, cond, results) {
     page.on('pageerror', (e) => pageErrors.push(e.message));
 
     await page.goto(fileUrl, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(300);
+    await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_STORE), null, { timeout: 15000 });
 
     const toastAttrs = await page.evaluate(() => {
       return ['kkhToast', 'kk12Toast', 'kkcrmproToast', 'kkCrmToast', 'kkFuToast'].map((id) => {
@@ -42,18 +42,27 @@ function check(name, cond, results) {
       window.KK_STORE.writeJSON('kk_crm_contacts', [{ id: 'c1', name: 'Fokus Test', category: 'Eigentümer', phone: '0170' }]);
     });
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(500);
+    await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_CRM_PRO && window.KK_CRM_PRO.showTab), null, { timeout: 15000 });
     // 'capture' (not 'cockpit'/'Heute') is the tab that actually renders
     // #kkcrmproContactRows - see comment above.
     await page.evaluate(() => { window.KK_APP_SHELL.openTab('crm'); window.KK_CRM_PRO.showTab('capture'); });
-    await page.waitForTimeout(300);
+    // Wait for the actual condition (a visible, focusable trigger button)
+    // instead of a fixed delay - a fresh/cold browser instance can take
+    // longer to finish rendering than this sandbox's warmed-up one, and a
+    // too-short fixed wait here is exactly what caused a hidden-panel false
+    // failure in the original scratchpad version of this test (see header
+    // comment) - condition-based waits avoid that whole class of flakiness.
+    await page.waitForSelector('[data-contact-detail]', { state: 'visible', timeout: 15000 });
     await page.evaluate(() => {
       const btn = document.querySelector('[data-contact-detail]');
       btn.id = 'kk-a11y-trigger-btn';
       btn.focus();
       btn.click();
     });
-    await page.waitForTimeout(300);
+    await page.waitForFunction(() => {
+      const dlg = document.getElementById('kkcrmproContactDetailDialog');
+      return !!dlg && dlg.open;
+    }, null, { timeout: 15000 });
 
     const focusInsideDialogAfterOpen = await page.evaluate(() => {
       const dlg = document.getElementById('kkcrmproContactDetailDialog');
@@ -62,7 +71,14 @@ function check(name, cond, results) {
     check('focus moves inside the contact detail dialog when opened', focusInsideDialogAfterOpen, results);
 
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.waitForFunction(() => {
+      const dlg = document.getElementById('kkcrmproContactDetailDialog');
+      return !!dlg && !dlg.open;
+    }, null, { timeout: 15000 });
+    // The focus-restore listener defers via setTimeout(...,0) (see index.html
+    // ~line 6874) - give the event loop a moment to run it after the dialog
+    // itself reports closed.
+    await page.waitForTimeout(100);
     const closedByEscape = await page.evaluate(() => !document.getElementById('kkcrmproContactDetailDialog').open);
     const focusReturnedToTrigger = await page.evaluate(() => !!document.activeElement && document.activeElement.id === 'kk-a11y-trigger-btn');
     check('Escape closes the contact detail dialog', closedByEscape, results);
