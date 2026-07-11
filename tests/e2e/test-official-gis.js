@@ -23,6 +23,16 @@ function check(name, cond, results) {
       const page = await context.newPage();
       const pageErrors = [];
       page.on('pageerror', (e) => { pageErrors.push(e.message); console.log('::error::PAGEERROR: ' + e.message + (e.stack ? ' | ' + e.stack.split('\n').slice(0, 3).join(' <- ') : '')); });
+      // Diagnostic instrumentation (kept minimal/conditional): if the mocked
+      // wms-capabilities/wms-feature-info routes below are for any reason not
+      // actually intercepting the app's fetch() calls in a given CI environment
+      // (different Chromium build/version than this sandbox's pinned one), the
+      // real relative-URL fetch would fail outright (no Netlify Functions backend
+      // exists for a file:// page) - these listeners make that failure visible via
+      // ::error:: annotations, the only diagnostic channel available without
+      // authenticated CI log access (see ADR/commit history for this pattern).
+      page.on('requestfailed', (req) => { if (/\.netlify\/functions\//.test(req.url())) console.log('::error::REQUESTFAILED ' + req.url() + ' :: ' + (req.failure() && req.failure().errorText)); });
+      page.on('response', (res) => { if (/\.netlify\/functions\/(wms-capabilities|wms-feature-info)/.test(res.url())) console.log('::error::RESPONSE ' + res.status() + ' ' + res.url()); });
 
       // Mock the wms-capabilities/wms-feature-info Netlify Functions (unreachable
       // from this sandbox for real) so we can test the CLIENT-SIDE logic (panel
@@ -162,6 +172,7 @@ function check(name, cond, results) {
       }, null, { timeout: 15000 });
       const borisState = await page.evaluate(() => window.KK_OFFICIAL_GIS.getState().boris);
       console.log(vp.label + ' boris state after toggle:', JSON.stringify(borisState));
+      if (borisState.status !== 'live') console.log('::error::DEBUG boris state (status!=live): ' + JSON.stringify(borisState));
       check(vp.label + ': BORIS discovery picks "BORIS2026-Zonen" specifically out of 12 year/role combinations (the exact bug Kevin hit live - it previously defaulted to "BORIS2020-Label")', borisState.layerName === 'BORIS2026-Zonen', results);
       check(vp.label + ': BORIS status becomes "live" after successful discovery', borisState.status === 'live', results);
       check(vp.label + ': BORIS is NOT flagged ambiguous despite 12 similarly-named layers (zonen-role-hint + year-tie-breaker resolve it confidently)', borisState.ambiguous === false, results);
@@ -186,6 +197,7 @@ function check(name, cond, results) {
       }, null, { timeout: 15000 });
       const alkisState = await page.evaluate(() => window.KK_OFFICIAL_GIS.getState().alkis);
       console.log(vp.label + ' alkis state after toggle (3 candidate layers):', JSON.stringify(alkisState));
+      if (alkisState.status !== 'live') console.log('::error::DEBUG alkis state (status!=live): ' + JSON.stringify(alkisState));
       check(vp.label + ': ALKIS status is "live" (bug fixed - no longer "kein passender Layer gefunden")', alkisState.status === 'live', results);
       check(vp.label + ': ALKIS auto-selects CP.CadastralParcel specifically (not Boundary/Zoning)', alkisState.layerName === 'CP.CadastralParcel', results);
       check(vp.label + ': ALKIS overlay layer is itself queryable, so queryLayerName equals layerName (no separate query layer needed)', alkisState.queryLayerName === 'CP.CadastralParcel', results);
@@ -234,6 +246,7 @@ function check(name, cond, results) {
       }, null, { timeout: 15000 });
       const ambiguousState = await page.evaluate(() => window.KK_OFFICIAL_GIS.getState().alkis);
       console.log(vp.label + ' alkis state with two near-tied candidates:', JSON.stringify(ambiguousState));
+      if (!(ambiguousState.ambiguous === true && ambiguousState.candidates.length === 2)) console.log('::error::DEBUG alkis state (ambiguity expected): ' + JSON.stringify(ambiguousState));
       check(vp.label + ': two near-tied plausible layers are flagged ambiguous instead of silently guessing', ambiguousState.ambiguous === true && ambiguousState.candidates.length === 2, results);
       const pickerHtml = await page.evaluate(() => document.getElementById('kkofficial-status').innerHTML);
       check(vp.label + ': ambiguity picker shows human-readable Titles ("Flurstücke (Bestand...)"), not raw layer codes', /Flurstücke \(Bestand/.test(pickerHtml) && !/flurstuecke_alt</.test(pickerHtml), results);
@@ -247,6 +260,7 @@ function check(name, cond, results) {
         return !!s && s.ambiguous === false;
       }, null, { timeout: 15000 });
       const resolvedState = await page.evaluate(() => window.KK_OFFICIAL_GIS.getState().alkis);
+      if (!(resolvedState.ambiguous === false && resolvedState.layerName === 'flurstuecke_neu')) console.log('::error::DEBUG alkis state (post-picker-confirm): ' + JSON.stringify(resolvedState));
       check(vp.label + ': manual picker confirmation resolves ambiguity and sets the chosen layer', resolvedState.ambiguous === false && resolvedState.layerName === 'flurstuecke_neu', results);
       check(vp.label + ': manual picker confirmation also derives the correct queryLayerName (queryable itself, so equals layerName)', resolvedState.queryLayerName === 'flurstuecke_neu', results);
 
