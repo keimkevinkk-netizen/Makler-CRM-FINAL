@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Syntax-check Netlify Functions
+        run: npm run check:functions
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright environment info
+        run: |
+          node --version
+          npx playwright --version
+          node -e "console.log('playwright-core:', require('playwright-core/package.json').version)"
+
+      - name: Run function-level tests (no browser, no network)
+        run: npm run test:functions
+
+      # Split into one step per file (instead of one combined "test:e2e:full"
+      # step) so a failure's step name alone identifies which specific test
+      # crashed - this repo's CI runs in an environment we cannot get raw logs
+      # from interactively, so step-name granularity is the primary diagnostic.
+      - name: E2E - verify.js (full tab/XSS/overflow regression)
+        run: node tests/e2e/verify.js
+
+      - name: E2E - test-a11y-focus-restore.js
+        run: node tests/e2e/test-a11y-focus-restore.js
+
+      - name: E2E - test-datasource-registry.js
+        run: node tests/e2e/test-datasource-registry.js
+
+      - name: E2E - test-official-gis.js
+        run: node tests/e2e/test-official-gis.js
+
+      - name: E2E - test-repository-layer.js
+        run: node tests/e2e/test-repository-layer.js
+
+      - name: E2E - test-chart-canvas-reuse.js
+        run: node tests/e2e/test-chart-canvas-reuse.js

@@ -1,0 +1,19 @@
+{
+  "name": "makler-crm-final",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Keim CRM Pro - Makler-Betriebssystem (Single-File-App index.html + Netlify Functions)",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test:functions": "node tests/functions/test-wms-capabilities-parser.js && node tests/functions/test-wms-feature-info.js",
+    "test:e2e": "node tests/e2e/verify.js",
+    "test:e2e:full": "node tests/e2e/verify.js && for f in tests/e2e/test-*.js; do echo \"--- $f ---\"; node \"$f\" || exit 1; done",
+    "test": "npm run test:functions && npm run test:e2e:full",
+    "check:functions": "for f in netlify/functions/*.js; do node --check \"$f\" || exit 1; done"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}

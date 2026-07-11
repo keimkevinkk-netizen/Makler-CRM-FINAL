@@ -2,10 +2,27 @@
   publish = "."
   functions = "netlify/functions"
 
+[build.environment]
+  # package.json wurde in Master-Prompt Phase 1 fuer Tests/CI eingefuehrt
+  # (playwright als devDependency). Die Produktions-/Preview-Auslieferung
+  # braucht das nicht - --omit=dev haelt den Netlify-Build schlank und
+  # verhindert einen unnoetigen Browser-Download waehrend des Deploys.
+  NPM_FLAGS = "--omit=dev"
+
 [functions]
   node_bundler = "esbuild"
 
 [[redirects]]
   from = "/api/geocode"
   to = "/.netlify/functions/geocode"
+  status = 200
+
+[[redirects]]
+  from = "/api/wms-capabilities"
+  to = "/.netlify/functions/wms-capabilities"
+  status = 200
+
+[[redirects]]
+  from = "/api/wms-feature-info"
+  to = "/.netlify/functions/wms-feature-info"
   status = 200
