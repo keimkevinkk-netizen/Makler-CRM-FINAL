@@ -1,7 +1,7 @@
 {
-  "registryVersion": 1,
-  "generatedAt": "2026-07-09",
-  "source": "docs/prd/00-ist-zustand-inventar.md + statische Analyse der index.html (Phase 2)",
+  "registryVersion": 2,
+  "generatedAt": "2026-07-11",
+  "source": "docs/prd/00-ist-zustand-inventar.md + statische Analyse der index.html (Phase 2); v2: 4 seit Phase 2 hinzugekommene Keys ergaenzt (kk_geo_active_layers_v1, kk_market_observations_v1, kk_market_presentation_mode, kk_official_gis_capabilities_cache_v2) nach vollstaendigem Abgleich aller kk_*-Literale in index.html gegen diese Registry",
   "backupDetectionRegex": "^(kk_|kkbib|kk11|kk12|kkref|kk[A-Z]|kkcrm|kkops|kkdom|kkprod|__kk)",
   "idPrefixes": {
     "contact_": "Kontakt (uid-Praefix, entspricht sinngemaess PRD ct_)",
@@ -277,6 +277,16 @@
       "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
     },
     {
+      "key": "kk_geo_active_layers_v1",
+      "owner": "marktmonitor",
+      "entity": "{ [layerKey]: boolean }",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Kartenebenen-Sichtbarkeitszustand (Objekte/Eigentuemer/Kaeufer/Leads/Tippgeber/Verkaufschancen/Verkaeufe), pro Browser gespeicherte UI-Praeferenz, kein CRM-Datensatz. Nachtraeglich in die Registry aufgenommen (war seit Phase 11 im Code, aber nicht dokumentiert - Master-Prompt-Live-Audit vom 11.07.2026 fand die Luecke)."
+    },
+    {
       "key": "kk_heute_focus_v29",
       "owner": "heute",
       "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
@@ -355,6 +365,26 @@
       "backup": "required",
       "retention": "user-controlled",
       "notes": "manuelle Analysen"
+    },
+    {
+      "key": "kk_market_observations_v1",
+      "owner": "marktmonitor",
+      "entity": "MarketObservation[]",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Eigenstaendiges Datenmodell des Marktbeobachtungen-Moduls (KK_MARKET_OBS, Phase Marktbeobachtungen), Grundlage der zentralen Marktwert-Engine (KK_VALUATION). Bewusst getrennt von kk_market_analysis_v1 (manuelle Freitext-Analysen) und kk_market_monitor_entries_v1 (Legacy). Nachtraeglich in die Registry aufgenommen (Master-Prompt-Live-Audit vom 11.07.2026 fand die Luecke)."
+    },
+    {
+      "key": "kk_market_presentation_mode",
+      "owner": "marktmonitor",
+      "entity": "'0' | '1' (Flag)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "excluded (reiner UI-Zustand, kein Datensatz)",
+      "retention": "user-controlled",
+      "notes": "Ob der Marktmonitor-Praesentationsmodus (Phase 15.4a) aktiv ist. Nachtraeglich in die Registry aufgenommen (Master-Prompt-Live-Audit vom 11.07.2026 fand die Luecke)."
     },
     {
       "key": "kk_market_monitor_entries_v1",
@@ -445,6 +475,16 @@
       "backup": "required",
       "retention": "user-controlled",
       "notes": "versionierter Legacy-/Modul-Key, Zweck aus Namen ableitbar, formale Zuordnung in spaeterer Phase"
+    },
+    {
+      "key": "kk_official_gis_capabilities_cache_v2",
+      "owner": "marktmonitor",
+      "entity": "{ [serviceKey]: WmsCapabilitiesDiscoveryResult }",
+      "schemaVersion": 2,
+      "sensitivity": "internal",
+      "backup": "excluded (Cache mit 24h-TTL, aus einem erneuten GetCapabilities-Aufruf jederzeit neu erzeugbar, keine Nutzerdaten)",
+      "retention": "24h TTL, automatisch verworfen",
+      "notes": "BORIS-/ALKIS-WMS-Layerauswahl-Cache (kk-official-gis-v1-js, PR #7). v2 statt v1, weil der Layer-Parser nach dem Live-Test grundlegend gefixt wurde und ein alter v1-Cache-Eintrag mit dem damaligen fehlerhaften Ergebnis nicht weiterverwendet werden darf. Nachtraeglich in die Registry aufgenommen (Master-Prompt-Live-Audit vom 11.07.2026 fand die Luecke)."
     },
     {
       "key": "kk_owner_opportunities",
