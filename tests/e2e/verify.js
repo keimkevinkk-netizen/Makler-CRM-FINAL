@@ -7,6 +7,7 @@ const path = require('path');
 const LAUNCH_OPTS = Object.assign({ args: ['--no-sandbox'] }, process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : {});
 
 (async () => {
+  try {
   const browser = await chromium.launch(LAUNCH_OPTS);
   const fileUrl = 'file://' + path.resolve(__dirname, '..', '..', 'index.html');
 
@@ -87,7 +88,12 @@ const LAUNCH_OPTS = Object.assign({ args: ['--no-sandbox'] }, process.env.PLAYWR
       }
     }
 
-    await page.screenshot({ path: `/tmp/claude-0/-home-user-Makler-CRM-FINAL/c7e669fd-4102-5c50-bc6e-06c3b72f82f9/scratchpad/pw/verify-${viewport.tag}-final.png`, fullPage: false });
+    // Best-effort diagnostic screenshot only - written under the OS temp dir so
+    // this works on any machine/CI runner, not just this development sandbox.
+    // Never allowed to fail the whole regression run.
+    try {
+      await page.screenshot({ path: path.join(require('os').tmpdir(), `verify-${viewport.tag}-final.png`), fullPage: false });
+    } catch (e) { console.log(`[${viewport.tag}] screenshot skipped:`, e.message); }
 
     const realErrors = consoleErrors.filter(e => !/ERR_TUNNEL_CONNECTION_FAILED|ERR_CONNECTION_RESET|Failed to load resource/i.test(e));
     console.log(`[${viewport.tag}] pageErrors:`, JSON.stringify(pageErrors));
@@ -96,4 +102,8 @@ const LAUNCH_OPTS = Object.assign({ args: ['--no-sandbox'] }, process.env.PLAYWR
   }
 
   await browser.close();
+  } catch (err) {
+    console.error('FATAL - verify.js crashed:', err && err.stack || err);
+    process.exit(1);
+  }
 })();
