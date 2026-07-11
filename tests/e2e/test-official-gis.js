@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
 
-const LAUNCH_OPTS = process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : {};
+const LAUNCH_OPTS = Object.assign({ args: ['--no-sandbox'] }, process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : {});
 
 function check(name, cond, results) {
   results.push({ name, pass: !!cond });

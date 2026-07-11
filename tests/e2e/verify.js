@@ -4,7 +4,7 @@ const path = require('path');
 // Kein hartcodierter Sandbox-Pfad: in CI/lokal wird der von Playwright selbst
 // verwaltete Browser genutzt; nur diese Entwicklungssandbox setzt einen
 // vorinstallierten Pfad ueber PLAYWRIGHT_CHROMIUM_PATH.
-const LAUNCH_OPTS = process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : {};
+const LAUNCH_OPTS = Object.assign({ args: ['--no-sandbox'] }, process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : {});
 
 (async () => {
   const browser = await chromium.launch(LAUNCH_OPTS);
