@@ -93,5 +93,15 @@ Nach Merge von PR #7 hat Kevin den Master-Prompt (64 Funktionen, Phasen 0-10) al
 
 **Gate erfuellt:** volle E2E-Regression (7 Testdateien inkl. neuer `test-data-quality-sentinel.js`, 6/6) gruen nach jeder Aenderung; `npm run lint` 0 Fehler; `npm audit` 0 Schwachstellen. Kernergebnis: 2 von 64 Funktionen mit echter Vorarbeit in dieser Session, 1 mit Teilgrundlage aus frueheren Phasen, ueberwiegender Rest strukturell an Phase 2 (Auth+Datenbank) gebunden - wie vom Master-Prompt selbst vorgeschrieben (Teil E0).
 
+## Phase 19 — Master-Prompt P0- und P1-Batch: 31 weitere Funktionen real umgesetzt ✅ ABGESCHLOSSEN (Commits 5ebb94b, 205220e)
+Kevin hat nach der ersten Backlog-Fassung zurecht bemaengelt, dass zu viele Funktionen pauschal auf Phase 2/Datenbank verschoben wurden, obwohl der Master-Prompt selbst fuer jede der 64 Funktionen eine Fallback-Loesung ohne Auth/DB nennt. Reaktion: komplette Neubewertung aller 64 Funktionen anhand der echten Matrix-Spalten (`docs/prd/08-masterprompt-backlog.md`), danach direkter Bau aller als "jetzt umsetzbar" eingestuften P0- und P1-Funktionen:
+
+- **P0 (9 weitere, 2 bereits vorher fertig):** Zusagen-Ledger + Kontaktversprechen-Waechter (#16/#51), Transaktionswahrheits-Ledger (#17, automatisch aus Sales-Pipeline), Besichtigungs-Debrief (#36), Finanzierungsstatus (#39), echtes Qualitaets-Gate im bestehenden Pipeline-Formular (#55), Feldsignal-Schnellerfassung (#56), Einwand-Bibliothek + Wirksamkeits-Tracking (#59/#60).
+- **P1 (22 Funktionen):** 17 ueber eine generische, datengetriebene Formular-/Listen-Engine (`window.KK_P1_FUNKTIONEN.CARDS`) statt Copy-Paste-Code; 4 mit echter, aus vorhandenen Daten berechneter Logik (#42 Beziehungs-Abkuehlungsalarm aus kk_crm_activities, #53 Tageskapazitaet aus kk_time_budget+Follow-ups, #62 Lifecycle-Erinnerung aus kk_transactions_v1, #30 Preisaktions-Gate); #12/#20 brauchten keine neue Karte (bereits abgedeckt).
+
+24 neue kk_*-Storage-Keys, Schema-Registry vollstaendig aktualisiert, Navigation synchron gehalten.
+
+**Gate erfuellt:** 2 neue Testdateien (`test-masterprompt-p0.js` 15/15, `test-masterprompt-p1.js` 11/11, beide mit echten synthetischen Daten und echter Dialog-/Gate-Interaktion), volle Regression (9 E2E-Dateien) nach jeder Aenderung gruen, `npm run lint` 0 Fehler. Backlog-Stand: 33 von 64 Funktionen erledigt (P0 11/11, P1 22/22), P2 (25) und P3 (5, Fallback-Teil) folgen direkt im Anschluss.
+
 ## Nicht in diesem Umsetzungsplan
 Vollständige Quellcode-Modularisierung (`src/core/...`, Teil 3 §40) — laut PRD selbst erst sinnvoll, wenn Datenverträge stabil sind; wird nicht vorgezogen.
