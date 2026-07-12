@@ -4295,6 +4295,11 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
           <div class="kkv8-field"><label for="kkv8MarketLink">Link</label><input id="kkv8MarketLink" name="link" placeholder="Inseratslink einfügen"></div>
           <div class="kkv8-field"><label for="kkv8MarketStatus">Status</label><select id="kkv8MarketStatus" name="status"><option>Neu prüfen</option><option>Relevant</option><option>Akquise ableiten</option><option>Beobachten</option><option>Archiviert</option></select></div>
         </div>
+        <div class="kkv8-row three">
+          <div class="kkv8-field"><label for="kkv8MarketStreet">Straße + Hausnummer (optional, für genaue Kartenposition)</label><input id="kkv8MarketStreet" name="street" placeholder="z. B. Im kleinen Feld"></div>
+          <div class="kkv8-field"><label for="kkv8MarketHouseNo">Hausnummer</label><input id="kkv8MarketHouseNo" name="houseNo" placeholder="z. B. 15"></div>
+          <div class="kkv8-field"><label for="kkv8MarketPostal">PLZ (optional)</label><input id="kkv8MarketPostal" name="postal" inputmode="numeric" placeholder="z. B. 63486"></div>
+        </div>
         <div class="kkv8-field"><label for="kkv8MarketNote">Chancen-Notiz</label><textarea id="kkv8MarketNote" name="note" placeholder="Was bedeutet das für Akquise, Vergleichsobjekte, Eigentümeransprache oder Eigentümeransprache?"></textarea></div>
         <button class="kkv8-btn" type="submit">Marktbeobachtung speichern</button>
       </form>
@@ -4770,6 +4775,7 @@ body.kk-v30-shell-ready #kk-app-shell .kkmo-row-card-actions button{border:0!imp
 .kkgeo-toggle[aria-pressed="true"]:before{background:currentColor}
 .kkgeo-offline{margin:0 0 12px;padding:11px 14px;border-radius:10px;background:var(--sev-med-soft,#f7ecd9);color:#5a3d0a;font-size:13px;border-left:3px solid var(--v30-orange,#ad7714)}
 .kkgeo-map-wrap{border:1px solid var(--v30-border,#e3e5e8);border-radius:16px;overflow:hidden;box-shadow:var(--v30-shadow,0 1px 2px rgba(16,20,24,.04),0 6px 18px rgba(16,20,24,.05))}
+.kkgeo-official-hint{margin:0 0 8px;font-size:12px;color:var(--v30-muted,#6b7280)}
 .kkgeo-map{width:100%;height:440px;background:#eef1ec}
 .kkgeo-map .leaflet-popup-content{font-family:Inter,system-ui,sans-serif;font-size:12.5px;min-width:180px}
 .kkgeo-map .leaflet-popup-content b{display:block;font-size:13.5px;color:#141a21;margin-bottom:4px}
@@ -4820,6 +4826,9 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
 .kkgeo-layer-check .kkgeo-layer-label{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kkgeo-layer-check .kkgeo-layer-count{font-variant-numeric:tabular-nums;font-size:11px;color:var(--v30-muted,#5b6472);font-weight:700;white-space:nowrap;flex:0 0 auto}
 .kkgeo-unmapped-note{margin-top:10px;font-size:12px;color:var(--v30-muted,#5b6472);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kkgeo-unmapped-list{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.kkgeo-unmapped-item{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;padding:6px 8px;border:1px solid var(--v30-border,#e3e5e8);border-radius:8px}
+.kkgeo-unmapped-item-actions{display:flex;gap:6px;flex-wrap:wrap}
 .kkgeo-unmapped-note button{border:0;background:none;color:var(--v30-blue,#182c46);font:inherit;font-size:12px;font-weight:750;cursor:pointer;text-decoration:underline;padding:0}
 /* Nachbesserung Karteninteraktion (Punkt 4): jede Ebenen-Zeile = Checkbox+Zähler
    plus separater "Nur diese"-Button, statt nur der reinen Checkbox-Zeile. */
@@ -4877,7 +4886,8 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
 .kkgeo-kpi-tile{border:1px solid var(--v30-border,#e3e5e8);border-radius:12px;background:#fff;padding:10px 12px}
 .kkgeo-kpi-tile span{display:block;font-size:10.5px;color:var(--v30-muted,#5b6472);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:3px}
 .kkgeo-kpi-tile b{font-size:19px;color:var(--v30-ink,#141a21);font-weight:900;letter-spacing:-.02em}
-.kkgeo-detail-panel{margin-top:14px}
+.kkgeo-detail-panel{margin-top:14px;scroll-margin-bottom:76px;scroll-margin-top:12px}
+.kkgeo-popup-rawtext{white-space:pre-wrap;word-break:break-word;font-size:11px;background:var(--v30-box,#f4f5f7);border-radius:8px;padding:8px;max-height:180px;overflow:auto}
 .kkgeo-detail-panel:empty{display:none}
 .kkgeo-detail-card{border:1px solid var(--v30-border,#e3e5e8);border-radius:16px;background:#fff;padding:16px 18px}
 .kkgeo-detail-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px}
@@ -4968,6 +4978,7 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
     <div class="kkgeo-offline" id="kkgeo-offline" hidden="" role="status">
       <strong>Kartenkacheln nicht verfügbar.</strong> Vermutlich kein Internetzugriff — Orte, Marker und Daten bleiben trotzdem nutzbar.
     </div>
+    <p class="kkgeo-official-hint" id="kkgeo-official-hint">Auf eine Bodenrichtwertzone oder ein Flurstück tippen, um amtliche Details anzuzeigen (bei aktivierten amtlichen Ebenen).</p>
     <div class="kkgeo-map-wrap">
       <div class="kkgeo-map" id="kkgeo-map" role="img" aria-label="Interaktive Karte des Main-Kinzig-Kreises mit Marktgebieten und CRM-Datensätzen"></div>
     </div>
@@ -5008,6 +5019,7 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
       <span id="kkgeo-unmapped-count"></span>
       <button type="button" id="kkgeo-unmapped-open">Liste öffnen</button>
     </div>
+    <div class="kkgeo-unmapped-list" id="kkgeo-unmapped-list" hidden></div>
     <div class="kkgeo-foot">
       <div class="kkgeo-legend" id="kkgeo-legend">
         <span><i class="blue"></i>sehr hoch</span><span><i class="green"></i>hoch</span><span><i class="yellow"></i>mittel</span><span><i class="orange"></i>beobachten</span><span><i class="red"></i>Handlungsbedarf</span><span><i class="gray"></i>keine Daten</span>
@@ -6772,12 +6784,48 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
     return '<span class="kkcp-pill '+cls+'">'+money(v.estimatedValue)+'</span><br><small>'+esc(v.confidenceLabel)+' · '+v.sampleSize+' Vergleiche</small>';
   }
   function renderObjectPipeline(){var objects=arr(KEYS.objects); $('#kkcrmproObjectPipelineRows').innerHTML=objects.map(function(o){var missing=DOCS.filter(function(d){return (o.docs||[]).indexOf(d)<0}); return '<tr><td><b>'+esc(o.address)+'</b><br><small>'+esc(o.objectType||o.kind||'')+'</small></td><td>'+esc(o.ownerName||'—')+'</td><td>'+esc(o.area||'—')+'</td><td>'+esc(o.status||'—')+'</td><td>'+valuationPillHtml(o)+'</td><td>'+(missing.slice(0,4).map(function(x){return '<span class="kkcp-pill orange">'+esc(x)+'</span>'}).join('')||'<span class="kkcp-pill green">vollständig</span>')+'</td><td>'+esc(o.nextStep||'Unterlagen prüfen')+'</td><td><button class="kkcp-btn light" data-edit-object="'+esc(o.id)+'">Bearbeiten</button></td></tr>'}).join('')||'<tr><td colspan="8">Noch keine Objektakten.</td></tr>'; bindMiniActions()}
-  function readObjectForm(){var docs=$$('#kkcrmproDocChecks input:checked').map(function(i){return i.value}); var o={id:$('#kkcrmproObjectId').value||uid('obj'),ownerName:$('#kkcrmproObjectOwner').value,address:$('#kkcrmproObjectAddress').value,area:$('#kkcrmproObjectArea').value,district:$('#kkcrmproObjectDistrict').value,objectType:$('#kkcrmproObjectKind').value,status:$('#kkcrmproObjectStatus').value,buildYear:$('#kkcrmproBuildYear').value,livingArea:num($('#kkcrmproLivingArea').value),plotArea:num($('#kkcrmproPlotArea').value),rooms:$('#kkcrmproRooms').value,condition:$('#kkcrmproCondition').value,energyClass:$('#kkcrmproEnergy').value,heating:$('#kkcrmproHeating').value,modernizations:$('#kkcrmproModernizations').value,marketValue:num($('#kkcrmproMarketValue').value),wantedPrice:num($('#kkcrmproWantedPrice').value),priceRange:$('#kkcrmproPriceRange').value,priceRisk:$('#kkcrmproPriceRisk').value,strategyPrice:num($('#kkcrmproStrategyPrice').value),valuationDate:$('#kkcrmproValuationDate').value,docs:docs,notes:$('#kkcrmproObjectNotes').value,nextStep:docs.length<DOCS.length?'fehlende Unterlagen anfordern':'Bewertung / Auftrag vorbereiten'};
+  function readObjectForm(){var docs=$$('#kkcrmproDocChecks input:checked').map(function(i){return i.value}); var id=$('#kkcrmproObjectId').value||uid('obj'); var existing=arr(KEYS.objects).find(function(x){return x.id===id}); var o={id:id,ownerName:$('#kkcrmproObjectOwner').value,address:$('#kkcrmproObjectAddress').value,area:$('#kkcrmproObjectArea').value,district:$('#kkcrmproObjectDistrict').value,objectType:$('#kkcrmproObjectKind').value,status:$('#kkcrmproObjectStatus').value,buildYear:$('#kkcrmproBuildYear').value,livingArea:num($('#kkcrmproLivingArea').value),plotArea:num($('#kkcrmproPlotArea').value),rooms:$('#kkcrmproRooms').value,condition:$('#kkcrmproCondition').value,energyClass:$('#kkcrmproEnergy').value,heating:$('#kkcrmproHeating').value,modernizations:$('#kkcrmproModernizations').value,marketValue:num($('#kkcrmproMarketValue').value),wantedPrice:num($('#kkcrmproWantedPrice').value),priceRange:$('#kkcrmproPriceRange').value,priceRisk:$('#kkcrmproPriceRisk').value,strategyPrice:num($('#kkcrmproStrategyPrice').value),valuationDate:$('#kkcrmproValuationDate').value,docs:docs,notes:$('#kkcrmproObjectNotes').value,nextStep:docs.length<DOCS.length?'fehlende Unterlagen anfordern':'Bewertung / Auftrag vorbereiten'};
     var street=$('#kkcrmproObjectStreet')?$('#kkcrmproObjectStreet').value.trim():'',houseNo=$('#kkcrmproObjectHouseNo')?$('#kkcrmproObjectHouseNo').value.trim():'',postal=$('#kkcrmproObjectPostal')?$('#kkcrmproObjectPostal').value.trim():'',vis=$('#kkcrmproObjectVisibility')?$('#kkcrmproObjectVisibility').value:'exact';
     var gemarkung=$('#kkcrmproObjectGemarkung')?$('#kkcrmproObjectGemarkung').value.trim():'',flur=$('#kkcrmproObjectFlur')?$('#kkcrmproObjectFlur').value.trim():'',flurstueck=$('#kkcrmproObjectFlurstueck')?$('#kkcrmproObjectFlurstueck').value.trim():'',addrNote=$('#kkcrmproObjectAddrNote')?$('#kkcrmproObjectAddrNote').value.trim():'';
-    if(window.KK_GEO){window.KK_GEO.ensureRecordGeo(o,{city:'area',district:'district',rawAddress:'address'}); if(street)o.addr.street=street; if(houseNo)o.addr.houseNumber=houseNo; if(postal)o.addr.postalCode=postal; o.geo.visibility=vis; if(gemarkung)o.addr.gemarkung=gemarkung; if(flur)o.addr.flur=flur; if(flurstueck)o.addr.flurstueck=flurstueck; if(addrNote)o.addr.note=addrNote;}
+    /* Geo-Preserve-on-Edit-Fix (Kevin Abschnitt 11): o ist bei JEDEM Speichern
+       (auch beim Bearbeiten) ein frisch aufgebautes Objekt ohne .geo/.addr -
+       ensureRecordGeo() erzeugt darauf immer ein LEERES emptyGeo(), und
+       saveOrUpdate() (Object.assign) ueberschreibt damit anschliessend
+       bedingungslos die bereits geocodierte Position des Bestandsdatensatzes.
+       Fix: vorhandenen addr/geo-Stand VOR ensureRecordGeo() uebernehmen, damit
+       ensureRecordGeo() ihn nur ERGAENZT statt zu ersetzen. */
+    if(existing){
+      if(existing.addr)o.addr=JSON.parse(JSON.stringify(existing.addr));
+      if(existing.geo)o.geo=JSON.parse(JSON.stringify(existing.geo));
+    }
+    if(window.KK_GEO){window.KK_GEO.ensureRecordGeo(o,{city:'area',district:'district',rawAddress:'address'}); if(street)o.addr.street=street; if(houseNo)o.addr.houseNumber=houseNo; if(postal)o.addr.postalCode=postal; o.geo.visibility=vis; if(gemarkung)o.addr.gemarkung=gemarkung; if(flur)o.addr.flur=flur; if(flurstueck)o.addr.flurstueck=flurstueck; if(addrNote)o.addr.note=addrNote;
+      /* 11A/11B: nur bei TATSAECHLICHER Adressaenderung neu geocodieren -
+         unveraenderte Adresse behaelt Position+Status vollstaendig. 11C:
+         eine manuell gesetzte Position wird nie automatisch verworfen. */
+      if(existing&&existing.addr&&!o.geo.manuallyAdjusted){
+        var addrChanged=['street','houseNumber','postalCode','city','district'].some(function(k){return String(existing.addr[k]||'')!==String(o.addr[k]||'')});
+        if(addrChanged){var keepVis=o.geo.visibility; o.geo=window.KK_GEO.emptyGeo(); o.geo.visibility=keepVis;}
+      }
+    }
     return o; }
-  function saveObject(e){e.preventDefault(); var o=readObjectForm(); if(!o.address){toast('Objektadresse fehlt'); return} saveOrUpdate(KEYS.objects,o); if(window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded('kk_crm_objects',o.id); if(o.ownerName)createActivity({contact:o.ownerName,type:'Unterlagen angefordert',channel:'CRM',result:'Objektakte aktualisiert',nextStep:o.nextStep,note:o.address}); $('#kkcrmproObjectForm').reset(); $('#kkcrmproObjectId').value=''; $$('#kkcrmproDocChecks input').forEach(function(x){x.checked=false}); renderAll(); renderLiveValuation(); toast('Objektakte gespeichert')}
+  function saveObject(e){e.preventDefault(); var o=readObjectForm(); if(!o.address){toast('Objektadresse fehlt'); return} saveOrUpdate(KEYS.objects,o); if(o.ownerName)createActivity({contact:o.ownerName,type:'Unterlagen angefordert',channel:'CRM',result:'Objektakte aktualisiert',nextStep:o.nextStep,note:o.address}); $('#kkcrmproObjectForm').reset(); $('#kkcrmproObjectId').value=''; $$('#kkcrmproDocChecks input').forEach(function(x){x.checked=false}); renderAll(); renderLiveValuation();
+    /* Kevin Abschnitt 10: sichtbarer Geocoding-Status statt eines einzigen
+       "gespeichert"-Toasts unabhaengig vom tatsaechlichen Ergebnis - Objekt ist
+       so oder so bereits sicher gespeichert (kein 0,0-Marker, kein Datenverlust
+       bei Fehlschlag), nur die Kartenposition folgt asynchron. */
+    if(window.KK_GEOCODE&&window.KK_GEOCODE.needsGeocoding(o,{})){
+      toast('Objektakte gespeichert – Kartenposition wird ermittelt…');
+      window.KK_GEOCODE.geocodeIfNeeded('kk_crm_objects',o.id).then(function(outcome){
+        renderAll(); renderLiveValuation();
+        if(!outcome)return;
+        if(outcome.status==='resolved')toast('Kartenposition gefunden.');
+        else if(outcome.status==='ambiguous')toast('Mehrere mögliche Adressen gefunden – Position bitte prüfen.');
+        else if(outcome.status==='failed')toast('Keine Kartenposition gefunden. Adresse prüfen oder Position manuell setzen.');
+      });
+    }else{
+      toast('Objektakte gespeichert');
+    }
+  }
   /* Master-Prompt Punkt 27 "Live-Berechnung in der Objektmaske": kompakte, sich
      laufend aktualisierende Schaetzwert-Box waehrend der Objekterfassung. Rechnet
      ausschliesslich ueber die zentrale window.KK_VALUATION-Engine (dieselbe, die
@@ -13769,7 +13817,15 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
 
   function marketEntries(){var arr=read(MARKET_KEY,[]);return Array.isArray(arr)?arr:[]}
   function saveMarketEntries(arr){write(MARKET_KEY,arr)}
-  function addMarketEntry(entry){var arr=marketEntries();entry.id=entry.id||('market_'+Date.now()+'_'+Math.random().toString(16).slice(2));entry.createdAt=entry.createdAt||new Date().toISOString();entry.updatedAt=new Date().toISOString();entry.done=!!entry.done;arr.unshift(entry);saveMarketEntries(arr.slice(0,400));renderMarket();renderTodayExtension();return entry}
+  /* Kevin Abschnitt 9: Marktbeobachtungen brauchen ein optionales, strukturiertes
+     Adress-/Geo-Modell statt gar keins - keine zweite Geocoding-Logik, sondern
+     dasselbe zentrale window.KK_GEO/window.KK_GEOCODE-Paar wie CRM-Objekte.
+     "town" (Pflichtfeld, eines der festen TOWNS) liefert immer mindestens eine
+     ungefaehre Ortsposition (resolvePosition() faellt automatisch auf den
+     Orts-Anker zurueck, wenn keine Strasse geocodiert werden konnte) - "object"
+     bleibt bewusst ein reines Freitextfeld und wird NIE als Adresse interpretiert
+     (Kevin: "Das Feld object darf nicht pauschal als Adresse interpretiert werden"). */
+  function addMarketEntry(entry){var arr=marketEntries();entry.id=entry.id||('market_'+Date.now()+'_'+Math.random().toString(16).slice(2));entry.createdAt=entry.createdAt||new Date().toISOString();entry.updatedAt=new Date().toISOString();entry.done=!!entry.done;if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(entry,{city:'town'});if(entry.addr&&entry.addr.street&&window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded(MARKET_KEY,entry.id);arr.unshift(entry);saveMarketEntries(arr.slice(0,400));renderMarket();renderTodayExtension();return entry}
   function updateMarketEntry(id,patch){var arr=marketEntries().map(function(x){if(x.id===id){Object.keys(patch).forEach(function(k){x[k]=patch[k]});x.updatedAt=new Date().toISOString();}return x});saveMarketEntries(arr);renderMarket();renderTodayExtension();}
   function searchUrl(platform,town){
     var q=encodeURIComponent(town+' Haus Wohnung kaufen');
@@ -13821,7 +13877,7 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
   }
   function bindMarket(){
     var f=$('#kkv8MarketEntryForm');
-    if(f&&!f.__kkv8Bound){f.__kkv8Bound=true;f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f);addMarketEntry({town:fd.get('town'),platform:fd.get('platform'),type:fd.get('type'),object:fd.get('object'),price:fd.get('price'),sqm:fd.get('sqm'),link:fd.get('link'),status:fd.get('status'),note:fd.get('note')});f.reset();toast('Marktbeobachtung gespeichert.');});}
+    if(f&&!f.__kkv8Bound){f.__kkv8Bound=true;f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f);var street=String(fd.get('street')||'').trim(),houseNo=String(fd.get('houseNo')||'').trim(),postal=String(fd.get('postal')||'').trim();var entry={town:fd.get('town'),platform:fd.get('platform'),type:fd.get('type'),object:fd.get('object'),price:fd.get('price'),sqm:fd.get('sqm'),link:fd.get('link'),status:fd.get('status'),note:fd.get('note')};if(street||postal)entry.addr={street:street,houseNumber:houseNo,postalCode:postal};addMarketEntry(entry);f.reset();toast('Marktbeobachtung gespeichert.');});}
     var imp=$('#kkv8MarketImportForm');
     if(imp&&!imp.__kkv8Bound){imp.__kkv8Bound=true;imp.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(imp);var txt=String(fd.get('text')||'').trim();if(!txt)return;var first=txt.split(/\n/).filter(Boolean)[0]||'Kopiertes Inserat';addMarketEntry({town:fd.get('town'),platform:'Import / Notiz',type:fd.get('type'),object:first.slice(0,120),status:'Neu prüfen',note:txt});imp.reset();toast('Import als Marktbeobachtung gespeichert.');});}
   }
@@ -15265,7 +15321,8 @@ var ICONS={
   network:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M10.7 7 6.3 15.8M13.3 7l4.4 8.8M7.5 18h9"/></svg>',
   funnel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></svg>',
-  group:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>'
+  group:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>'
 };
 function isClosedStage(s){return /abgeschlossen|verkauft|notartermin durchgef/i.test(String(s||''))}
 function isLostStage(s){return /verloren/i.test(String(s||''))}
@@ -15366,7 +15423,27 @@ var LAYER_DEFS=[
       fieldRow('Telefon',x.phone)+
       fieldRow('E-Mail',x.email)+
       fieldRow('Letzte Aktivität',x.lastContact?fmtDate(x.lastContact):'')+
-      fieldRow('Quelle / Modul','CRM Pro · Pipeline')}}
+      fieldRow('Quelle / Modul','CRM Pro · Pipeline')}},
+  /* Fehler B (Kevin, Live-Test): eine als Marktbeobachtung erfasste Adresse
+     (kk_market_monitor_entries_v1) erschien nicht auf der Karte, weil KEINE
+     LAYER_DEFS-Ebene diesen Speicher je gelesen hat - die Ebene "Objekte" liest
+     ausschliesslich kk_crm_objects. Marktbeobachtung und CRM-Objekt sind
+     fachlich unterschiedliche Dinge (Kevin Abschnitt 8: "Marktbeobachtung ist
+     nicht gleich CRM-Objekt") und bleiben es - eigene Ebene statt die
+     Trennung stillschweigend aufzuheben. */
+  {key:'market_observations',label:'Marktbeobachtungen / Angebote',storageKey:'kk_market_monitor_entries_v1',color:'#0EA5A5',icon:ICONS.eye,
+    extract:function(arr){return arr.filter(function(x){return x&&x.status!=='Archiviert'})},
+    popup:function(x){return popupHead('Marktbeobachtung (kein eigenes Vermarktungsobjekt)',x.object||x.town||'Marktbeobachtung')+
+      fieldRow('Ort',x.town)+
+      fieldRow('Quelle / Plattform',x.platform)+
+      fieldRow('Beobachtungsart',x.type)+
+      fieldRow('Preis',x.price?money(x.price):'')+
+      fieldRow('Fläche',x.sqm?x.sqm+' m²':'')+
+      fieldRow('Status',x.status)+
+      fieldRow('Link',x.link)+
+      fieldRow('Quelle / Modul','Marktmonitor')+
+      (x.crmObjectId?'<div class="kkgeo-popup-precision">Bereits als CRM-Objekt übernommen.</div>':
+        '<div class="kkgeo-popup-actions"><button type="button" data-kkgeo-adopt="'+esc(x.id)+'">Als CRM-Objekt übernehmen</button></div>')}}
 ];
 /* Bekannter "Phantommarker"-Fehler (Master-Prompt Punkt 11.2): buildTownMarkers()
    (Orts-Gesamtpotenzial-Kreise) wurde bisher IMMER gerendert, unabhaengig von
@@ -15374,6 +15451,52 @@ var LAYER_DEFS=[
    Orts-Uebersicht wird jetzt selbst als Eintrag im SELBEN activeLayers-System
    gefuehrt (TOWN_OVERVIEW_KEY), damit exakt EINE zentrale Filterlogik entscheidet,
    was sichtbar ist - keine getrennte "immer an"-Sonderregel mehr. */
+/* Kevin Abschnitt 8.5 "Als CRM-Objekt uebernehmen": bewusste, einmalige
+   Aktion statt automatischer Uebernahme jeder Marktbeobachtung (Kevin: "nicht
+   automatisch aus jeder Marktbeobachtung ein CRM-Objekt machen"). Adresse/Geo
+   werden 1:1 uebernommen (kein zweiter Geocoding-Aufruf noetig, wenn die
+   Marktbeobachtung schon eine Position hat); crmObjectId auf der
+   Marktbeobachtung verhindert eine zweite Uebernahme (keine Duplikate bei
+   zweitem Klick). */
+function adoptMarketObservation(id){
+  var raw=window.KK_UTIL.readJSON('kk_market_monitor_entries_v1',[]);
+  var arr=Array.isArray(raw)?raw:[];
+  var idx=arr.findIndex(function(x){return x&&x.id===id});
+  if(idx<0)return;
+  var entry=arr[idx];
+  if(entry.crmObjectId){
+    if(window.KK_UTIL.toast)window.KK_UTIL.toast('Diese Marktbeobachtung wurde bereits als CRM-Objekt übernommen.');
+    return;
+  }
+  var objects=window.KK_UTIL.readJSON('kk_crm_objects',[]);
+  if(!Array.isArray(objects))objects=[];
+  var newId=window.KK_UTIL.uid?window.KK_UTIL.uid('obj'):('obj_'+Date.now());
+  var obj={
+    id:newId,
+    address:entry.object||entry.town||'',
+    area:entry.town||'',
+    objectType:entry.type||'',
+    status:'Marktbeobachtung übernommen',
+    notes:['Übernommen aus Marktbeobachtung.',entry.note,entry.link?('Inserat: '+entry.link):'',entry.platform?('Quelle: '+entry.platform):''].filter(Boolean).join(' · '),
+    wantedPrice:Number(entry.price)||0,
+    docs:[],
+    nextStep:'Objekt qualifizieren',
+    marketObservationId:entry.id,
+    createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()
+  };
+  if(entry.addr)obj.addr=JSON.parse(JSON.stringify(entry.addr));
+  if(entry.geo)obj.geo=JSON.parse(JSON.stringify(entry.geo));
+  if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(obj,{city:'area'});
+  objects.unshift(obj);
+  window.KK_UTIL.writeJSON('kk_crm_objects',objects);
+  entry.crmObjectId=newId;
+  entry.updatedAt=new Date().toISOString();
+  arr[idx]=entry;
+  window.KK_UTIL.writeJSON('kk_market_monitor_entries_v1',arr);
+  if(window.KK_UTIL.toast)window.KK_UTIL.toast('Als CRM-Objekt übernommen.');
+  renderNow();
+}
+
 var TOWN_OVERVIEW_KEY='town_overview';
 function defaultActiveLayers(){return ['objects','owners',TOWN_OVERVIEW_KEY]} // bewusst zurueckhaltender Default, Rest ist Opt-in
 function readActiveLayers(){
@@ -15384,6 +15507,7 @@ function writeActiveLayers(list){try{window.KK_UTIL.writeJSON(ACTIVE_LAYERS_KEY,
 var activeLayers=readActiveLayers();
 var unmappedRecords=[];
 var editModeRecordId=null; // wenn gesetzt: genau dieser Marker ist gerade per Drag verschiebbar
+var unmappedListVisible=false; // Kevin Abschnitt 13: "Liste öffnen"-Umschalter fuer ungekartete Datensaetze
 
 function recordSeedId(rec,layerKey){return layerKey+'::'+(rec.id||JSON.stringify(rec).slice(0,40))}
 
@@ -15416,7 +15540,7 @@ function buildRecordMarkers(){
     var on=activeLayers.indexOf(def.key)>-1;
     items.forEach(function(rec){
       var pos=window.KK_GEO.resolvePosition(rec,null,recordSeedId(rec,def.key));
-      if(!pos){unmapped.push({layer:def.key,label:def.label,name:rec.name||rec.address||rec.ownerName||'Ohne Bezeichnung',id:rec.id});return}
+      if(!pos){unmapped.push({layer:def.key,label:def.label,storageKey:def.storageKey,name:rec.name||rec.address||rec.ownerName||rec.object||'Ohne Bezeichnung',id:rec.id});return}
       mappedCounts[def.key]++;
       if(!on)return;
       var name=rec.name||rec.address||rec.ownerName||'Ohne Bezeichnung';
@@ -15464,11 +15588,21 @@ function buildRecordMarkers(){
   return {records:records,mapPoints:mapPoints,counts:counts,mappedCounts:mappedCounts,unmapped:unmapped};
 }
 
-function renderLayerPanel(mappedCounts){
+/* Kevin Abschnitt 13: "0 sichtbar" allein macht nicht erkennbar, ob eine
+   Ebene wirklich leer ist oder ob Datensaetze da sind, aber keine Position
+   haben - deshalb zusaetzlich die Anzahl "ohne Position" je Ebene anzeigen,
+   sobald sie > 0 ist, statt Datensaetze stillschweigend verschwinden zu
+   lassen. recordData ist das volle buildRecordMarkers()-Ergebnis (statt nur
+   mappedCounts wie zuvor), damit row() auch die per-Ebene ungekarteten
+   Datensaetze aus recordData.unmapped auszaehlen kann. */
+function renderLayerPanel(recordData){
   var grid=document.getElementById('kkgeo-layer-grid');
   if(!grid)return;
-  function row(key,label,color,count,checked){
-    var countLabel=count+(checked?' sichtbar':' verfügbar');
+  var mappedCounts=(recordData&&recordData.mappedCounts)||{};
+  var unmappedByLayer={};
+  ((recordData&&recordData.unmapped)||[]).forEach(function(u){unmappedByLayer[u.layer]=(unmappedByLayer[u.layer]||0)+1});
+  function row(key,label,color,count,unmappedCount,checked){
+    var countLabel=count+(checked?' sichtbar':' verfügbar')+(unmappedCount?' · '+unmappedCount+' ohne Position':'');
     return '<div class="kkgeo-layer-row">'+
       '<label class="kkgeo-layer-check"><input type="checkbox" data-kkgeo-layer="'+esc(key)+'"'+(checked?' checked':'')+'>'+
       '<span class="kkgeo-layer-dot" style="background:'+color+'"></span>'+
@@ -15478,20 +15612,41 @@ function renderLayerPanel(mappedCounts){
       '</div>';
   }
   var townChecked=activeLayers.indexOf(TOWN_OVERVIEW_KEY)>-1;
-  grid.innerHTML=row(TOWN_OVERVIEW_KEY,'Orts-Gesamtpotenzial (Kreisübersicht)','#8b93a0',Object.keys(TOWN_COORDS).length,townChecked)+
+  grid.innerHTML=row(TOWN_OVERVIEW_KEY,'Orts-Gesamtpotenzial (Kreisübersicht)','#8b93a0',Object.keys(TOWN_COORDS).length,0,townChecked)+
     LAYER_DEFS.map(function(def){
       var checked=activeLayers.indexOf(def.key)>-1;
-      var count=mappedCounts&&mappedCounts[def.key]!=null?mappedCounts[def.key]:0;
-      return row(def.key,def.label,def.color,count,checked);
+      var count=mappedCounts[def.key]!=null?mappedCounts[def.key]:0;
+      return row(def.key,def.label,def.color,count,unmappedByLayer[def.key]||0,checked);
     }).join('');
 }
 
+/* Kevin Abschnitt 13: "Fuer nicht kartierbare Objekte muss eine Liste mit
+   Aktionen existieren: Datensatz oeffnen, Geocoding erneut versuchen,
+   Position manuell setzen." "Position manuell setzen" fuer einen Datensatz
+   OHNE jede Position hat in der bestehenden UI keinen sinnvollen Einstiegs-
+   punkt (Drag/Klick-Korrektur setzt einen bereits vorhandenen Marker voraus,
+   siehe editModeRecordId) - bewusst nicht als drittes UI-Element erfunden,
+   siehe Abschlussbericht. "Datensatz oeffnen" und "Geocoding erneut
+   versuchen" sind die beiden sicher umsetzbaren Aktionen. */
+function renderUnmappedList(unmapped){
+  var list=document.getElementById('kkgeo-unmapped-list');
+  if(!list)return;
+  list.innerHTML=(unmapped&&unmapped.length?unmapped:[]).map(function(u){
+    return '<div class="kkgeo-unmapped-item">'+
+      '<span>'+esc(u.name)+' <small>('+esc(u.label)+')</small></span>'+
+      '<div class="kkgeo-unmapped-item-actions">'+
+      '<button type="button" data-kkgeo-open="'+esc(u.layer)+':'+esc(u.id)+'">Datensatz öffnen</button>'+
+      (u.storageKey?'<button type="button" data-kkgeo-retry-geocode="'+esc(u.storageKey)+':'+esc(u.id)+'">Geocoding erneut versuchen</button>':'')+
+      '</div></div>';
+  }).join('')||'<div class="kkgeo-empty">Keine ungekarteten Datensätze.</div>';
+}
 function renderUnmappedNote(unmapped){
-  var note=document.getElementById('kkgeo-unmapped-note'),countEl=document.getElementById('kkgeo-unmapped-count');
+  var note=document.getElementById('kkgeo-unmapped-note'),countEl=document.getElementById('kkgeo-unmapped-count'),list=document.getElementById('kkgeo-unmapped-list');
   if(!note||!countEl)return;
-  if(!unmapped||!unmapped.length){note.hidden=true;return}
+  if(!unmapped||!unmapped.length){note.hidden=true;if(list)list.hidden=true;unmappedListVisible=false;return}
   note.hidden=false;
   countEl.textContent=unmapped.length+' Datensatz'+(unmapped.length===1?'':'ätze')+' ohne Kartenposition (kein Ort/Ortsteil hinterlegt).';
+  if(unmappedListVisible)renderUnmappedList(unmapped);
 }
 
 /* V31 Marktmonitor-Rebuild Schritt 6 (Seitenstruktur, Punkte 1/4/5/6): Kennzahlenleiste,
@@ -15583,6 +15738,7 @@ function openRecordDetail(layerKey,id){
     if(layerKey==='objects'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('crm');setTimeout(function(){if(window.KK_CRM_PRO)window.KK_CRM_PRO.editObject(id)},170)}
     else if(layerKey==='owners'||layerKey==='buyers'||layerKey==='leads'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('crm');setTimeout(function(){if(window.KK_CRM_PRO)window.KK_CRM_PRO.editContact(id)},170)}
     else if(layerKey==='referrers'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('tippgeber');setTimeout(function(){if(window.KK_REFERRAL_NETWORK_V1)window.KK_REFERRAL_NETWORK_V1.editRecord(id)},170)}
+    else if(layerKey==='market_observations'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('marktmonitor')}
     else{if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('pipeline')}
   }catch(err){}
 }
@@ -15656,7 +15812,7 @@ function renderAccessibleTable(){
 function renderNow(){
   renderAccessibleTable();
   var recordData=buildRecordMarkers();
-  renderLayerPanel(recordData.mappedCounts);
+  renderLayerPanel(recordData);
   renderUnmappedNote(recordData.unmapped);
   renderKpiBar(recordData);
   renderDetailPanel();
@@ -15801,6 +15957,25 @@ function bind(){
     if(window.KK_MARKET)window.KK_MARKET.MarketProvider.refreshAll().then(function(){updateStatusLine();renderNow()});
     else renderNow();
   });
+  var unmappedOpenBtn=document.getElementById('kkgeo-unmapped-open');
+  if(unmappedOpenBtn)unmappedOpenBtn.addEventListener('click',function(){
+    unmappedListVisible=!unmappedListVisible;
+    unmappedOpenBtn.textContent=unmappedListVisible?'Liste schließen':'Liste öffnen';
+    var list=document.getElementById('kkgeo-unmapped-list');
+    if(list)list.hidden=!unmappedListVisible;
+    if(unmappedListVisible)renderUnmappedList(unmappedRecords);
+  });
+  var unmappedListHost=document.getElementById('kkgeo-unmapped-list');
+  if(unmappedListHost)unmappedListHost.addEventListener('click',function(e){
+    var openBtn=e.target.closest('[data-kkgeo-open]');
+    if(openBtn){var parts=openBtn.getAttribute('data-kkgeo-open').split(':'),layerKey=parts[0],id=parts.slice(1).join(':');openRecordDetail(layerKey,id);return}
+    var retryBtn=e.target.closest('[data-kkgeo-retry-geocode]');
+    if(retryBtn){
+      var rp=retryBtn.getAttribute('data-kkgeo-retry-geocode').split(':'),storeKey=rp[0],recId=rp.slice(1).join(':');
+      retryBtn.disabled=true;retryBtn.textContent='Wird versucht…';
+      if(window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded(storeKey,recId,{retry:true}).then(function(){renderNow()});
+    }
+  });
   var host=document.getElementById('kkgeo-metric-filters');
   if(host)host.addEventListener('click',function(e){
     var b=e.target.closest('[data-kkgeo-metric]');if(!b)return;
@@ -15869,9 +16044,21 @@ function bind(){
       editModeRecordId=storeKey+':'+recId;
       renderNow();
     }
+    var adoptBtn=e.target.closest('[data-kkgeo-adopt]');
+    if(adoptBtn){
+      adoptMarketObservation(adoptBtn.getAttribute('data-kkgeo-adopt'));
+      return;
+    }
   });
   window.addEventListener('storage',function(e){if(e&&/kk_mkk_market_reference|kk_crm_|kk_sales_pipeline|kk_followups/.test(e.key||''))scheduleRender()});
   window.addEventListener('kk:storage-changed',function(){scheduleRender()});
+  /* Kevin Abschnitt 12: explizit auf kk:geo-updated reagieren, statt sich nur
+     auf den (an sich bereits ausreichenden, aber indirekten) kk:storage-changed-
+     Seiteneffekt jedes KK_GEOCODE-Schreibvorgangs zu verlassen - macht die
+     Reaktivitaet nach einer Geocodierung robust und unmittelbar erkennbar,
+     unabhaengig von der internen Schreibkette. scheduleRender() debounced
+     bereits intern (siehe Definition), keine doppelten Renderdurchlaeufe. */
+  window.addEventListener('kk:geo-updated',function(){scheduleRender()});
   document.addEventListener('kk-app-tab-changed',function(e){
     if(!e.detail||e.detail.tab==='marktmonitor'){
       init().then(function(){if(adapter)adapter.invalidateSize();renderNow()});
@@ -15894,7 +16081,7 @@ function boot(){
   if(active==='marktmonitor')init();
 }
 
-window.KK_REALMAP={version:'31.0',init:init,render:render,getMarkers:buildTownMarkers,getDensityMarkers:buildDensityMarkers,townCoords:TOWN_COORDS,setMetric:function(k){selectedMetric=k;renderMetricFilters();renderNow()},toggleHeat:function(v){heatOn=v==null?!heatOn:!!v;renderNow()},toggleDensity:function(v){densityOn=v==null?!densityOn:!!v;renderNow()},getActiveLayers:function(){return activeLayers.slice()},setActiveLayers:function(list){activeLayers=Array.isArray(list)?list:[];writeActiveLayers(activeLayers);renderNow()},getLayerDefs:function(){return LAYER_DEFS.map(function(d){return {key:d.key,label:d.label,color:d.color}})},getUnmapped:function(){return unmappedRecords.slice()},buildRecordMarkers:buildRecordMarkers,
+window.KK_REALMAP={version:'31.0',init:init,render:render,getMarkers:buildTownMarkers,getDensityMarkers:buildDensityMarkers,townCoords:TOWN_COORDS,setMetric:function(k){selectedMetric=k;renderMetricFilters();renderNow()},toggleHeat:function(v){heatOn=v==null?!heatOn:!!v;renderNow()},toggleDensity:function(v){densityOn=v==null?!densityOn:!!v;renderNow()},getActiveLayers:function(){return activeLayers.slice()},setActiveLayers:function(list){activeLayers=Array.isArray(list)?list:[];writeActiveLayers(activeLayers);renderNow()},getLayerDefs:function(){return LAYER_DEFS.map(function(d){return {key:d.key,label:d.label,color:d.color}})},getUnmapped:function(){return unmappedRecords.slice()},buildRecordMarkers:buildRecordMarkers,adoptMarketObservation:adoptMarketObservation,
   /* Master-PRD Band 3: Zugriffspunkt fuer kk-official-gis-v1-js, damit amtliche
      WMS-Overlays (BORIS/ALKIS) denselben Leaflet-Adapter/dieselbe Karteninstanz
      nutzen statt eine zweite Karte aufzubauen (Regelverstoss "keine zweite
@@ -15944,10 +16131,27 @@ var CACHE_TTL_MS=24*3600*1000; // Capabilities aendern sich selten - nicht bei j
    sonst gleichwertigen Kandidaten den JEWEILS AKTUELLSTEN Jahrgang bevorzugt
    (nicht auf "2026" hartkodiert, damit das auch nach dem naechsten Stichtag
    noch korrekt funktioniert). */
+/* FIX 3 (nach Live-Test der mobilen Produktivnutzung): die farbigen BORIS-
+   Zonen wurden korrekt dargestellt, die eigentlichen Bodenrichtwert-Zahlen
+   (€/m²) aber nie - der Code waehlte bislang GENAU EINEN Layer ("layerName")
+   fuer Anzeige UND Sachdatenabfrage, obwohl der reale Dienst pro Jahrgang DREI
+   fachlich unterschiedliche Rollen liefert: "...-Zonen" (Flaechenfarbe),
+   "...-Label" (die sichtbare €/m²-Beschriftung) und "...-Info" (GetFeatureInfo-
+   Sachdaten). "roleHints" trennt diese drei Rollen ueber eigene, sich
+   gegenseitig negativ bewertende Hinweis-Regeln (siehe scoreForRole/
+   pickLayerForRole unten) - nur fuer Dienste, die das brauchen (aktuell nur
+   BORIS; ALKIS hat einen einzigen Layer, der gleichzeitig Anzeige- UND
+   Query-Layer ist, und behaelt bewusst den alten, bereits getesteten Pfad
+   ueber rankLayers()/pickQueryLayer() unveraendert bei). */
 var SERVICES=[
   {key:'boris',label:'BORIS Hessen 2026 (Bodenrichtwerte)',color:'#8b5cf6',
    strongHints:[/bodenrichtwert/i,/\bbrw\b/i,/\bbrz\b/i,/\bzonen?\b/i],weakHints:[/boris/i],negativeHints:[],
-   licenseHint:'Datenlizenz Deutschland - Zero - Version 2.0 (laut Metadaten, vor Produktivnutzung am Dienst selbst zu bestaetigen)'},
+   licenseHint:'Datenlizenz Deutschland - Zero - Version 2.0 (laut Metadaten, vor Produktivnutzung am Dienst selbst zu bestaetigen)',
+   roleHints:{
+     zone:{strongHints:[/bodenrichtwert/i,/\bbrw\b/i,/\bbrz\b/i,/\bzonen?\b/i,/\bzone\b/i],negativeHints:[/label|beschrift|text/i,/\binfo\b|feature|sachdaten|\bquery\b/i]},
+     label:{strongHints:[/label|beschrift|text/i],negativeHints:[/\bzonen?\b/i,/\bzone\b/i,/\binfo\b|feature|sachdaten|\bquery\b/i]},
+     query:{strongHints:[/\binfo\b|feature|sachdaten|\bquery\b/i],negativeHints:[/label|beschrift|text/i,/\bzonen?\b/i,/\bzone\b/i],requireQueryable:true}
+   }},
   {key:'alkis',label:'Flurstuecke / ALKIS (INSPIRE-WMS Hessen)',color:'#0d6efd',
    strongHints:[/flurst(u|ü)ck/i,/cadastral\s*parcel/i],
    weakHints:[/\bparcel\b/i,/alkis/i,/grundst(u|ü)ck/i,/cadastr/i],
@@ -15956,8 +16160,8 @@ var SERVICES=[
 ];
 var AMBIGUITY_MARGIN=6; // Punkteabstand, ab dem der Spitzenreiter als eindeutig gilt
 
-var state={}; // key -> {active,status,layerName,queryLayerName,title,error,lastChecked,candidates,ambiguous,rawLayerNames}
-SERVICES.forEach(function(s){state[s.key]={active:false,status:'off',layerName:'',queryLayerName:'',title:'',error:'',lastChecked:'',attribution:'',candidates:[],ambiguous:false,rawLayerNames:[]}});
+var state={}; // key -> {active,status,layerName,queryLayerName,title,error,lastChecked,candidates,ambiguous,rawLayerNames,zoneLayerName,labelLayerName}
+SERVICES.forEach(function(s){state[s.key]={active:false,status:'off',layerName:'',queryLayerName:'',title:'',error:'',lastChecked:'',attribution:'',candidates:[],ambiguous:false,rawLayerNames:[],zoneLayerName:'',labelLayerName:''}});
 
 function readCache(){try{return JSON.parse(localStorage.getItem(CACHE_KEY)||'{}')}catch(e){return {}}}
 function writeCache(obj){try{localStorage.setItem(CACHE_KEY,JSON.stringify(obj))}catch(e){}}
@@ -16008,6 +16212,46 @@ function pickQueryLayer(service,chosen,allLayers){
   var pool=sameYear.length?sameYear:scored;
   pool.sort(function(a,b){return b.score-a.score});
   return pool[0].name;
+}
+
+/* Rollen-basierte Bewertung (Zone/Label/Query, siehe roleHints oben) - wie
+   scoreLayer(), aber mit eigenen, pro Rolle unterschiedlichen Hinweis-Regeln
+   statt der generischen dienst-weiten strongHints/weakHints. Kein Jahres-Bonus
+   hier (siehe pickLayerForRole - Jahr wird dort als harter Vorfilter behandelt,
+   nicht als Score-Zuschlag). */
+function scoreForRole(layer,hints){
+  var text=[layer.name,layer.title,layer.abstract||''].join(' ').toLowerCase();
+  var score=0;
+  (hints.strongHints||[]).forEach(function(re){if(re.test(text))score+=50});
+  (hints.negativeHints||[]).forEach(function(re){if(re.test(text))score-=40});
+  if(layer.queryable)score+=5;
+  if(!layer.hasChildren)score+=3;
+  return score;
+}
+
+/* Waehlt den am besten zu einer einzelnen Rolle (Zone/Label/Query) passenden
+   Layer. preferYear grenzt zunaechst auf denselben Jahrgang ein (Kevins
+   Vorgabe: "moeglichst derselbe aktuelle Jahrgang fuer alle drei Rollen"),
+   faellt aber auf den gesamten Kandidatenpool zurueck, wenn im bevorzugten
+   Jahrgang nichts passt - kein Vermischen erzwungen, aber auch keine leere
+   Rolle nur weil der exakte Jahrgang fehlt. Fuer die Query-Rolle ist
+   queryable===true eine harte Voraussetzung (Kevin Punkt 4.2); findet sich
+   dort kein Layer mit positivem Rollen-Score (kein "Info"/"Feature"-Layer),
+   greift Kevins Regel 5: bester UEBERHAUPT queryable Layer als Fallback,
+   statt die Sachdatenabfrage ganz auszulassen. */
+function pickLayerForRole(layers,hints,preferYear){
+  var pool=(layers||[]).filter(function(l){return !hints.requireQueryable||l.queryable});
+  if(!pool.length)return null;
+  var scored=pool.map(function(l){return Object.assign({},l,{score:scoreForRole(l,hints)})});
+  if(preferYear!=null){
+    var sameYear=scored.filter(function(l){return extractYear(l)===preferYear});
+    if(sameYear.length)scored=sameYear;
+  }
+  scored.sort(function(a,b){return b.score-a.score});
+  var top=scored[0];
+  if(top.score>0)return top.name;
+  if(hints.requireQueryable)return pool[0].name; // Regel 5: Fallback auf irgendeinen queryable Layer
+  return null; // Rolle fehlt transparent (z.B. kein separater Label-Layer vorhanden) statt zu raten
 }
 
 /* Waehlt automatisch, wenn der Spitzenreiter eindeutig ist. Bei echter
@@ -16064,10 +16308,27 @@ async function discover(service,force){
       return errResult;
     }
     var ranked=rankLayers(service,data.layers);
+    /* Rollen-basierte Zone/Label/Query-Trennung (siehe roleHints/pickLayerForRole
+       oben) - nur fuer Dienste, die roleHints definieren (aktuell BORIS). Der
+       generelle Status/Mehrdeutigkeits-Flow (ranked) bleibt fuer ALLE Dienste
+       unveraendert bestehen (bereits getestet, u.a. fuer ALKIS); die Rollen-
+       Felder ergaenzen ihn nur zusaetzlich. Jahrgang wird vom generischen
+       Spitzenreiter abgeleitet (falls vorhanden), sonst rollenweise frei
+       gesucht - "moeglichst derselbe Jahrgang", kein Zwang. */
+    var roleYear=ranked.chosen?extractYear(ranked.chosen):null;
+    var zoneLayerName=ranked.chosen?ranked.chosen.name:'';
+    var labelLayerName='';
+    var queryLayerNameRoled='';
+    if(service.roleHints){
+      zoneLayerName=pickLayerForRole(data.layers,service.roleHints.zone,roleYear)||zoneLayerName;
+      labelLayerName=pickLayerForRole(data.layers,service.roleHints.label,roleYear)||'';
+      queryLayerNameRoled=pickLayerForRole(data.layers,service.roleHints.query,roleYear)||'';
+    }
     var okResult={
       status:ranked.chosen?'live':'live_no_layers_found',
-      layerName:ranked.chosen?ranked.chosen.name:'',title:ranked.chosen?(ranked.chosen.title||ranked.chosen.name):'',
-      queryLayerName:ranked.chosen?pickQueryLayer(service,ranked.chosen,data.layers):'',
+      layerName:zoneLayerName,title:ranked.chosen?(ranked.chosen.title||ranked.chosen.name):zoneLayerName,
+      zoneLayerName:zoneLayerName,labelLayerName:labelLayerName,
+      queryLayerName:service.roleHints?(queryLayerNameRoled||(ranked.chosen?pickQueryLayer(service,ranked.chosen,data.layers):'')):(ranked.chosen?pickQueryLayer(service,ranked.chosen,data.layers):''),
       ambiguous:ranked.ambiguous,candidates:ranked.candidates,
       layerCount:data.layerCount,allLayers:data.layers,baseUrl:data.baseUrl,licenseHint:data.licenseHint,
       /* Diagnose-Anzeige fuer den Fall "verbunden, aber kein passender Layer":
@@ -16110,6 +16371,14 @@ function renderStatus(){
     var line='<div class="kkofficial-source-line"><b>'+esc(s.label)+'</b>'+
       '<span class="kkofficial-badge '+statusBadgeClass(st.active?st.status:'off')+'">'+esc(st.active?statusLabel(st.status):'Ausgeblendet')+'</span>';
     if(st.active&&st.layerName&&!st.ambiguous)line+='<span>Layer: '+esc(st.title||st.layerName)+'</span>';
+    /* Kevin Abschnitt 3: "keine dauerhaft unsichtbare Funktion ohne Erklaerung" -
+       transparent machen, ob die €/m²-Beschriftung tatsaechlich mit angezeigt
+       wird oder (mangels separatem Label-Layer beim Dienst) nur per Antippen
+       einer Zone abrufbar ist. */
+    if(st.active&&st.status==='live'&&!st.ambiguous){
+      if(st.labelLayerName)line+='<span>Bodenrichtwert-Zahlen: als Kartenbeschriftung eingeblendet (bei Bedarf weiter hineinzoomen)</span>';
+      else line+='<span>Keine separate Beschriftungsebene gefunden – Bodenrichtwert per Antippen einer Zone abrufbar</span>';
+    }
     if(st.active&&st.lastChecked)line+='<span>Abgerufen: '+esc(new Date(st.lastChecked).toLocaleString('de-DE'))+'</span>';
     if(st.active)line+='<span>'+esc(s.licenseHint)+'</span>';
     if(st.active&&st.error)line+='<span class="kkofficial-badge blocked">'+esc(st.error)+(st.message?': '+esc(st.message):'')+'</span>';
@@ -16158,11 +16427,22 @@ function renderPanel(){
   renderStatus();
 }
 
-function applyOverlay(key,layerName){
+/* Kevins bevorzugte Loesung (Abschnitt 3): Zonen- und Label-Layer als EIN
+   gemeinsamer WMS-Aufruf mit kommaseparierter layers-Liste, statt zwei
+   getrennte Leaflet-Layer mit eigener Z-Index-Verwaltung zu bauen - WMS
+   rendert die layers-Liste in der angegebenen Reihenfolge (erster=unten),
+   "Zonen,Label" liefert also automatisch die von Kevin geforderte Schichtung
+   (Flaechenfarbe unten, Beschriftung/Zahlen oben) ohne zusaetzlichen Leaflet-
+   Layer-Verwaltungscode. Fuer Dienste ohne separaten Label-Layer (z.B. ALKIS,
+   oder BORIS falls der Dienst mal keinen Label-Layer liefert) bleibt es wie
+   bisher ein einzelner Layername - keine Verhaltensaenderung dort. */
+function applyOverlay(key){
   var adapter=window.KK_REALMAP&&window.KK_REALMAP.getAdapter?window.KK_REALMAP.getAdapter():null;
   var st=state[key];
+  var layerName=st.zoneLayerName||st.layerName;
   if(!adapter||!layerName||!st.baseUrl)return;
-  adapter.setOfficialOverlay(key,{url:st.baseUrl,layers:layerName,opacity:0.55,attribution:st.attribution||''});
+  var layers=(st.labelLayerName&&st.labelLayerName!==layerName)?(layerName+','+st.labelLayerName):layerName;
+  adapter.setOfficialOverlay(key,{url:st.baseUrl,layers:layers,opacity:0.55,attribution:st.attribution||''});
 }
 
 /* Manuelle Bestaetigung bei Mehrdeutigkeit (siehe rankLayers) - der Nutzer waehlt
@@ -16177,12 +16457,22 @@ function selectLayer(key,layerName){
   var allLayers=(cache[key]&&cache[key].allLayers)||[];
   var queryLayerName=service?pickQueryLayer(service,chosen||{name:layerName,queryable:(allLayers.find(function(l){return l.name===layerName})||{}).queryable},allLayers):layerName;
   st.layerName=layerName;
+  st.zoneLayerName=layerName;
   st.queryLayerName=queryLayerName||layerName;
   st.title=chosen?candidateLabel(chosen):layerName;
   st.ambiguous=false;
-  if(cache[key]){cache[key].layerName=layerName;cache[key].queryLayerName=st.queryLayerName;cache[key].title=st.title;cache[key].ambiguous=false;writeCache(cache)}
+  /* Nach manueller Zonen-Bestaetigung (Mehrdeutigkeit) auch Label/Query fuer
+     denselben Jahrgang neu ableiten, statt sie auf dem alten, ggf. zu einem
+     anderen Jahrgang gehoerenden Stand zu belassen (Kevin Punkt 2: "kein
+     Vermischen falscher Jahrgaenge"). */
+  if(service&&service.roleHints){
+    var chosenYear=extractYear(chosen||{name:layerName,title:st.title});
+    st.labelLayerName=pickLayerForRole(allLayers,service.roleHints.label,chosenYear)||'';
+    st.queryLayerName=pickLayerForRole(allLayers,service.roleHints.query,chosenYear)||queryLayerName||layerName;
+  }
+  if(cache[key]){cache[key].layerName=layerName;cache[key].zoneLayerName=layerName;cache[key].labelLayerName=st.labelLayerName;cache[key].queryLayerName=st.queryLayerName;cache[key].title=st.title;cache[key].ambiguous=false;writeCache(cache)}
   renderStatus();
-  applyOverlay(key,layerName);
+  applyOverlay(key);
 }
 
 async function toggleLayer(key,on){
@@ -16198,6 +16488,8 @@ async function toggleLayer(key,on){
   var result=await discover(service,false);
   state[key].status=result.status;
   state[key].layerName=result.layerName||'';
+  state[key].zoneLayerName=result.zoneLayerName||result.layerName||'';
+  state[key].labelLayerName=result.labelLayerName||'';
   state[key].queryLayerName=result.queryLayerName||result.layerName||'';
   state[key].title=result.title||'';
   state[key].error=result.error||'';
@@ -16210,7 +16502,7 @@ async function toggleLayer(key,on){
   state[key].lastChecked=result.fetchedAt||new Date().toISOString();
   renderStatus();
   if(result.status==='live'&&result.layerName&&!result.ambiguous){
-    applyOverlay(key,result.layerName);
+    applyOverlay(key);
   }
 }
 
@@ -16229,8 +16521,8 @@ var FIELD_LABELS=[
   [/^(flurstuecksnummer|flurstueck.?nr|parcel.?number|label|zaehler.?nenner)$/i,'Flurstücksnummer'],
   [/^(flurstueckskennzeichen|national.?cadastral.?reference|inspire.?id)$/i,'Flurstückskennzeichen'],
   [/^(gemeinde|municipality)$/i,'Gemeinde'],
-  [/^(bodenrichtwert|brw|value.?eur.?m2)$/i,'Bodenrichtwert (€/m²)'],
-  [/^(stichtag|reference.?date|wertermittlungsstichtag)$/i,'Stichtag'],
+  [/^(bodenrichtwert|brw|brw.?wert|richtwert|eur.?m2|value.?eur.?m2)$/i,'Bodenrichtwert (€/m²)'],
+  [/^(stichtag|bezugsjahr|reference.?date|wertermittlungsstichtag)$/i,'Stichtag'],
   [/^(nutzung|nutzungsart|usage.?type)$/i,'Nutzungsart'],
   [/^(entwicklungszustand|development.?status)$/i,'Entwicklungszustand'],
   [/^(gfz)$/i,'Geschossflächenzahl (GFZ)'],
@@ -16245,6 +16537,17 @@ function friendlyFieldLabel(key){
 /* GetFeatureInfo bei Kartenklick, aber NUR wenn mindestens ein amtlicher Layer
    aktiv ist (Anhang C9) - operative CRM-Marker-Klicks (markerClick) sind ein
    eigenes, unabhaengiges Event und bleiben unberuehrt. */
+/* FIX (nach Live-Test der mobilen Produktivnutzung, Kevin Abschnitt 6): eine
+   erfolgreiche Antwort wurde bisher verworfen, sobald sie nicht exakt
+   "res.ok && data.features.length>0" entsprach - genau der Fall bei einer
+   text/plain-Antwort mit geparsten Key-Value-Feldern (die inzwischen zwar
+   ALS features[0] zurueckkommen, siehe wms-feature-info.js) oder einer
+   Antwort mit rawText aber ohne strukturierte Felder. Jetzt werden vier
+   Faelle sauber unterschieden: (1) strukturierte Features, (2) nur Rohtext
+   (rawText vorhanden, keine Felder erkannt), (3) explizite Fehlermeldung,
+   (4) echtes "kein Treffer" (Dienst hat geantwortet, aber weder Features
+   noch Rohtext - z.B. leere JSON-FeatureCollection). Keine dieser vier
+   Antworten verschwindet mehr stillschweigend. */
 async function handleMapClick(latlng){
   var activeServices=SERVICES.filter(function(s){return state[s.key].active&&state[s.key].status==='live'});
   if(!activeServices.length)return;
@@ -16253,7 +16556,14 @@ async function handleMapClick(latlng){
   var params=adapter.getFeatureInfoParams(latlng);
   if(!params)return;
   var panel=document.getElementById('kkgeo-detail-panel');
-  if(panel)panel.innerHTML='<div class="kkgeo-empty">Amtliche Objektinformation wird abgerufen…</div>';
+  if(panel){
+    panel.innerHTML='<div class="kkgeo-empty" aria-busy="true">Amtliche Objektinformation wird abgerufen…</div>';
+    /* Mobile Sichtbarkeit (Kevin Abschnitt 7): Ladezustand sofort sichtbar
+       machen, auch wenn das Panel unterhalb des sichtbaren Bereichs liegt -
+       scroll-margin-bottom (CSS) haelt dabei automatisch Abstand zu einer
+       fixen Bottom-Navigation, falls eine aktiv ist. */
+    try{panel.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}
+  }
   var results=[];
   for(var i=0;i<activeServices.length;i++){
     var s=activeServices[i];
@@ -16264,9 +16574,13 @@ async function handleMapClick(latlng){
       var res=await fetch('/.netlify/functions/wms-feature-info?'+qs.toString());
       var data=await res.json();
       if(res.ok&&data.features&&data.features.length){
-        results.push({service:s,data:data});
+        results.push({service:s,data:data,kind:'features'});
+      }else if(res.ok&&data.rawText&&data.rawText.trim()){
+        results.push({service:s,data:data,kind:'rawText'});
       }else if(!res.ok&&data.message){
-        results.push({service:s,data:{features:[],errorMessage:data.message}});
+        results.push({service:s,data:{errorMessage:data.message},kind:'error'});
+      }else if(res.ok){
+        results.push({service:s,data:{wmsVersion:data.wmsVersion,infoFormat:data.infoFormat},kind:'empty'});
       }
     }catch(e){/* einzelner Dienstfehler blockiert nicht die anderen */}
   }
@@ -16283,9 +16597,23 @@ async function handleMapClick(latlng){
      zurueckgeben sollte als erwartet - nie stillschweigend anzeigen. */
   var OWNER_FIELD_RE=/eigentuemer|eigentümer|owner|besitzer/i;
   panel.innerHTML=results.map(function(r){
-    if(r.data.errorMessage){
+    if(r.kind==='error'){
       return '<div class="kkgeo-popup-type">'+esc(r.service.label)+'</div>'+
         '<div class="kkgeo-empty">'+esc(r.data.errorMessage)+'</div>';
+    }
+    if(r.kind==='empty'){
+      return '<div class="kkgeo-popup-type">'+esc(r.service.label)+'</div>'+
+        '<div class="kkgeo-empty">Dienst hat geantwortet: kein Treffer an dieser Position.</div>';
+    }
+    if(r.kind==='rawText'){
+      /* esc() zwingend - rawText kommt vom externen Dienst und wird NIE
+         ungefiltert ins DOM geschrieben (Kevin Abschnitt 5B: "keine XSS-Luecke
+         erzeugen"). Als erkennbare Diagnose-/Rohinformation gekennzeichnet,
+         nicht als vollwertiges Attribut-Feld. */
+      return '<div class="kkgeo-popup-type">'+esc(r.service.label)+'</div>'+
+        '<div class="kkgeo-empty">Dienst hat geantwortet, aber die Felder konnten nicht sicher zugeordnet werden. Rohantwort:</div>'+
+        '<pre class="kkgeo-popup-rawtext">'+esc(r.data.rawText)+'</pre>'+
+        '<div class="kkgeo-popup-precision">'+esc(r.service.licenseHint)+'</div>';
     }
     var feature=r.data.features[0]||{};
     var keys=Object.keys(feature).filter(function(k){return !OWNER_FIELD_RE.test(k)});
@@ -16296,6 +16624,7 @@ async function handleMapClick(latlng){
       (rows||'<div class="kkgeo-empty">Dienst hat geantwortet, aber keine Attribute geliefert.</div>')+
       '<div class="kkgeo-popup-precision">Nur vom Dienst tatsächlich gelieferte Attribute · '+esc(r.service.licenseHint)+'</div>';
   }).join('<hr>');
+  try{panel.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}
 }
 
 var boundToAdapter=null;
