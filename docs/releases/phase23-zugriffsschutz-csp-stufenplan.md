@@ -1,4 +1,4 @@
-# Phase 23 — Zugriffsschutz-Entscheidung, NOMINATIM_CONTACT, SRI-Strategie, Regressionsnachweis
+# Phase 23/24 — Zugriffsschutz-Entscheidung, NOMINATIM_CONTACT, SRI-Strategie, Regressionsnachweis
 
 Auftrag: "Stabilisierung, Zugriffsschutz, Netlify-Konfiguration und risikoarmer Sicherheitsfahrplan für maklercrm" (Kevin). Branch: `claude/stabilisierung-security-audit` (unverändert aktuell zu `main`, kein Rebase nötig — siehe Phase A.1). Baut auf `docs/releases/phase22-stabilisierung-bestandsaufnahme.md` und `docs/adr/ADR-0005-modularisierungsplan-strangler.md` auf; **eine wichtige Korrektur gegenüber Phase 22 ist enthalten (siehe B.1)**.
 
@@ -123,6 +123,63 @@ In dieser Phase wurden **keine Code-Änderungen an `index.html` oder `netlify.to
 
 **Bewusst NICHT jetzt verändern:** `esc()`-Escaping-Logik (bereits korrekt, Phase 22), `confirm()`-Gates (bereits korrekt, Phase 22), Datenmodell/Storage-Schema (stabil, keine Notwendigkeit), Kartenengine/GIS-Provider-Anbindung (funktioniert, siehe ADR-0002/ADR-0003), jede Form von Komplett-Rewrite oder Bundler-Einführung (unverhältnismäßiges Risiko für den aktuellen Auftrag).
 
-## Nächste Schritte
+## Nächste Schritte (Phase 23, historisch)
 
-Siehe `docs/adr/ADR-0006-csp-haertung-stufenplan.md` für den vollständigen 5-Stufen-CSP-Plan (Phase F). Pull Request wird im Anschluss gegen `main` erstellt, **nicht gemergt**.
+Siehe `docs/adr/ADR-0006-csp-haertung-stufenplan.md` für den vollständigen 5-Stufen-CSP-Plan (Phase F). Pull Request wurde im Anschluss als PR #9 gegen `main` erstellt, **nicht gemergt**.
+
+---
+
+## Phase 24 — NOMINATIM_CONTACT-Live-Verifikation (nach Kevins manuellem Dashboard-Setzen)
+
+Kevin hat `NOMINATIM_CONTACT` manuell im Netlify-Dashboard angelegt (Scope: alle, gleicher Wert für alle Deploy-Kontexte) und am 12.07.2026 um 22:25 Uhr einen neuen Production-Deploy ausgelöst. Diese Phase verifiziert den Erfolg **so weit wie technisch aus dieser Sandbox möglich** — mit expliziter Offenlegung der Grenze dieser Verifikation.
+
+### 1. Ist `NOMINATIM_CONTACT` in den Functions tatsächlich verfügbar? ✅ Verifiziert
+
+Erneuter `manage-env-vars`/`getAllEnvVars`-Aufruf über die Netlify-API zeigt jetzt (im Unterschied zu allen vorherigen Versuchen in Phase 22/23):
+```
+key: NOMINATIM_CONTACT
+scopes: ["builds","functions","post_processing","runtime"]
+values: [{ value: "keim.kevin.kk@gmail.com", context: "all" }]
+updated_by: Kevin Keim (keim.kevin.kk@gmail.com)
+updated_at: 2026-07-12T19:33:46Z
+```
+Scope schließt `functions` explizit ein — die Function `geocode` kann den Wert zur Laufzeit lesen. **Auffällig und dokumentationswürdig:** Meine eigenen zwei Schreibversuche in Phase 22/23 über exakt dieselbe API meldeten ebenfalls „Environment variable upserted", blieben aber beim Auslesen dauerhaft unsichtbar. Kevins Aktion über das echte Netlify-Dashboard war erfolgreich und ist jetzt korrekt sichtbar — das bestätigt im Nachhinein, dass es sich um einen echten, reproduzierbaren Fehler auf der Schreib-Seite dieser spezifischen MCP-Werkzeuganbindung handelte (nicht um ein generelles API-Problem oder einen Fehler meinerseits bei der Bedienung), während der Lesepfad und das Dashboard selbst zuverlässig funktionieren.
+
+### 2. Verwendet die Geocoding-Funktion den Wert korrekt? ✅ Code verifiziert, ⚠️ Laufzeitverhalten nicht direkt einsehbar
+
+Codeprüfung (unverändert seit Phase 23, `netlify/functions/geocode.js` Zeile 24-27):
+```js
+function buildUserAgent() {
+  var contact = process.env.NOMINATIM_CONTACT || 'bitte-NOMINATIM_CONTACT-env-var-setzen@example.invalid';
+  return 'KeimCRMPro-Geocoder/1.0 (' + contact + ')';
+}
+```
+Liest ausschließlich aus `process.env.NOMINATIM_CONTACT`, fällt nur beim Fehlen der Variable auf den Platzhalter zurück. Da die Variable jetzt mit Scope `functions` gesetzt ist, verwendet jeder **neue** Function-Kaltstart automatisch den echten Wert im `User-Agent`-Header gegenüber Nominatim. Ich kann diesen tatsächlichen Header-Inhalt zur Laufzeit nicht direkt einsehen (kein Log-Lesewerkzeug in dieser Session verfügbar, siehe Punkt 4) — die Aussage stützt sich auf Code-Logik + bestätigte Env-Var-Verfügbarkeit, nicht auf eine beobachtete Live-Anfrage.
+
+### 3. Funktionieren Karten und Adresssuche auf der Production-Seite? ⚠️ Nicht live nachprüfbar aus dieser Sandbox — aber strukturell unverändert
+
+**Wichtiger Fakt:** Der neue Deploy (`6a53f833e24f9ead5fecd7f6`, erstellt 2026-07-12T20:25:24Z = 22:25 Uhr MESZ, passt exakt zu Kevins Angabe) hat denselben `commit_ref` wie der vorherige Deploy: `09e4fc6f4607522f140a8bd8cf0c656a73215f67`. Netlify bestätigt selbst: „All files already uploaded by a previous deploy with the same commits" — **kein einziges ausgeliefertes Byte an `index.html`, CSS oder Client-JS hat sich geändert**, nur die drei Functions wurden mit der neuen Umgebungsvariable neu gebaut (Function-Digests identisch zum vorherigen Deploy: `geocode` weiterhin `669aaaa8...`, `wms-capabilities` weiterhin `d36ca3cb...`, `wms-feature-info` weiterhin `251286db...` — reiner Umgebungswechsel, kein Code-Drift).
+
+Daraus folgt zwingend: Da genau dieser Commit (`09e4fc6`) bereits vor diesem Deploy lokal mit der vollen E2E-Suite getestet wurde (Phase 22/23, mehrfach 12/12 PASS, inkl. Kartenrendering, Chart.js-Laden, XSS-Regression, kein horizontaler Overflow), **kann sich an Karten/Chart.js/Leaflet/CSP durch diesen Deploy nichts verändert haben** — diese Bereiche sind rein clientseitig und vom Functions-Redeploy vollständig unberührt.
+
+Direkter Live-Aufruf war nicht möglich: sowohl `curl` als auch das WebFetch-Werkzeug scheitern für `maklercrm.netlify.app` in dieser Sandbox mit HTTP 403 auf reiner Netzwerk-/Infrastrukturebene (derselbe Typ Blockade wie zuvor bei `cdnjs.cloudflare.com` und `netlify.com` — die Sandbox erlaubt offenbar nur eine enge Werkzeug-/API-Allowlist, keine freien Web-Aufrufe, auch nicht auf die eigene Produktions-URL). **Das ist eine ehrliche Grenze dieser Verifikation, kein angenommener Erfolg.**
+
+**Konkrete Bitte an Kevin zur letzten Lücke:** Bitte einmal kurz selbst live auf `https://maklercrm.netlify.app` eine neue Adresse in CRM/Objekte speichern (z. B. Testadresse) und prüfen, dass auf der Karte ein Marker erscheint — das ist der einzige verbleibende Nachweis, den ich technisch nicht selbst erbringen kann.
+
+### 4. Enthalten die Function-Logs neue Fehler? ❌ Nicht einsehbar aus dieser Sandbox
+
+Es steht in dieser Session kein Werkzeug zum Lesen von Netlify-Function-Ausführungslogs zur Verfügung (nur Projekt-/Deploy-/Team-/User-/Extension-Metadaten, keine Log-Inhalte). Ich kann diesen Punkt **nicht** verifizieren und behaupte nicht, dass die Logs fehlerfrei sind. **Bitte selbst prüfen:** Netlify-Dashboard → „maklercrm" → *Logs → Functions → geocode*, dort nach Einträgen nach 20:25 Uhr (12.07.2026) mit `error`/`5xx` filtern.
+
+### 5. Treten CORS-, Nominatim-, Leaflet- oder CSP-Probleme auf? ⚠️ Teilweise beantwortbar
+
+- **CSP/Leaflet:** Siehe Punkt 3 — unverändertes `index.html`, bereits vollständig getestet, kann durch diesen reinen Functions-Redeploy nicht neu betroffen sein.
+- **CORS:** Die Netlify Function `geocode.js` selbst setzt keine expliziten CORS-Header, ist aber auch nicht dafür ausgelegt, von einer fremden Origin aus aufgerufen zu werden — der Client (`index.html`, ausgeliefert von derselben Origin `maklercrm.netlify.app`) ruft `/.netlify/functions/geocode` als **Same-Origin**-Anfrage auf (kein `fetch` zu einer anderen Domain), CORS ist hier strukturell gar nicht relevant. Das war schon vor dieser Änderung so und bleibt unverändert.
+- **Nominatim:** Ohne Log-Zugriff oder Live-Aufruf nicht direkt prüfbar, ob Nominatim mit dem neuen Kontakt tatsächlich erfolgreich antwortet. Indirektes Argument: Die Funktion war schon vorher (mit dem Platzhalter-Kontakt) funktionsfähig — Nominatim blockiert erst bei tatsächlichem Regelverstoß (Missbrauch/hohes Volumen), nicht per se wegen eines Platzhalter-Strings in der Kontaktangabe selbst. Der reale Effekt der Änderung ist daher eher präventiv (reduziertes Sperrrisiko bei künftig höherem Volumen) als eine sofort sichtbare Verhaltensänderung — ein „vorher kaputt, jetzt repariert"-Vergleich ist hier gar nicht zu erwarten.
+
+### 6. Vollständige Test-Suite erneut ausgeführt
+
+Da sich am ausgelieferten Code nichts geändert hat (siehe Punkt 3), wurde dennoch — wie von Kevin ausdrücklich verlangt — die komplette lokale Suite ein weiteres Mal ausgeführt (dritte unabhängige Ausführung in dieser Engagement-Phase): `npm run lint` (0 Fehler), `npm run check:functions` (grün), vollständiger `npm run test` (`test:functions` + alle 11 E2E-Dateien) → **12/12 PASS, 0 FAIL**, identisch zu den vorherigen zwei Durchläufen.
+
+### Ergebnis B2
+
+**Status: Umgesetzt, mit einer offenen, ehrlich benannten Lücke.** Die Environment Variable ist nachweislich korrekt gesetzt und für Functions verfügbar (API-verifiziert), der Code liest und verwendet sie korrekt (code-verifiziert), der Deploy ist strukturell sauber und ohne Code-Drift (deploy-metadata-verifiziert). Die tatsächliche Live-Ausführung (reale Nominatim-Antwort, Abwesenheit neuer Function-Fehler) konnte ich **nicht** direkt beobachten, da dieser Sandbox sowohl der Netzwerkzugriff auf die Produktions-URL als auch ein Log-Lesewerkzeug fehlen. B2 wird daher als **überwiegend gelöst mit einer kleinen, klar benannten manuellen Restprüfung für Kevin** geführt (siehe Punkt 3), nicht vollständig geschlossen ohne diesen letzten Schritt.
