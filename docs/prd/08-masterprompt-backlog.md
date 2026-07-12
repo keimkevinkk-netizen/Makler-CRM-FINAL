@@ -19,15 +19,15 @@ Für jede Funktion:
 |---|---|---|---|
 | 54 | Datenintegritäts-Sentinel | Voll jetzt umsetzbar | ✅ Erledigt (vorherige Session) |
 | 24 | Datenherkunfts-Kompass | Voll jetzt umsetzbar (P0-Minimum) | ✅ Erledigt (Markt-/Bewertungswerte) |
-| 16 | Zusagen-Ledger | Voll jetzt umsetzbar (kein externer Dienst) | 🔧 Diese Session |
-| 51 | Kontaktversprechen-Wächter | Voll jetzt umsetzbar (kein externer Dienst) | 🔧 Diese Session |
-| 17 | Transaktionswahrheits-Ledger | Voll jetzt umsetzbar (amtliche Daten nur optional) | 🔧 Diese Session |
-| 36 | Besichtigungs-Intelligence-Capture | Fallback jetzt umsetzbar (Kalender-Sync optional/später) | 🔧 Diese Session |
-| 39 | Finanzierungs-Reibungsradar | Fallback jetzt umsetzbar (Finanzierungs-API optional/später) | 🔧 Diese Session |
-| 55 | Qualitäts-Gatekeeper | Voll jetzt umsetzbar (kein externer Dienst) | 🔧 Diese Session |
-| 56 | Feldsignal-Sofortfänger | Fallback jetzt umsetzbar (Spracheingabe optional/später) | 🔧 Diese Session |
-| 59 | Einwand-Genom | Fallback jetzt umsetzbar (KI optional/später) | 🔧 Diese Session |
-| 60 | Interventionsgedächtnis | Fallback jetzt umsetzbar, an #59 gekoppelt (echte "Empfehlungen" brauchen mehr Datenbasis) | 🔧 Diese Session |
+| 16 | Zusagen-Ledger | Voll jetzt umsetzbar (kein externer Dienst) | ✅ Erledigt |
+| 51 | Kontaktversprechen-Wächter | Voll jetzt umsetzbar (kein externer Dienst) | ✅ Erledigt |
+| 17 | Transaktionswahrheits-Ledger | Voll jetzt umsetzbar (amtliche Daten nur optional) | ✅ Erledigt |
+| 36 | Besichtigungs-Intelligence-Capture | Fallback jetzt umsetzbar (Kalender-Sync optional/später) | ✅ Erledigt (Fallback-Version) |
+| 39 | Finanzierungs-Reibungsradar | Fallback jetzt umsetzbar (Finanzierungs-API optional/später) | ✅ Erledigt (Fallback-Version) |
+| 55 | Qualitäts-Gatekeeper | Voll jetzt umsetzbar (kein externer Dienst) | ✅ Erledigt |
+| 56 | Feldsignal-Sofortfänger | Fallback jetzt umsetzbar (Spracheingabe optional/später) | ✅ Erledigt (Fallback-Version) |
+| 59 | Einwand-Genom | Fallback jetzt umsetzbar (KI optional/später) | ✅ Erledigt (Fallback-Version) |
+| 60 | Interventionsgedächtnis | Fallback jetzt umsetzbar, an #59 gekoppelt (echte "Empfehlungen" brauchen mehr Datenbasis) | ✅ Erledigt (Fallback-Version) |
 
 ## P1 (22 Funktionen)
 
@@ -102,4 +102,4 @@ Für jede Funktion:
 
 **Keine der 64 Funktionen ist wirklich vollständig blockiert.** Nur 3 (#3, #26, #31) haben eine volle Ausprägung, die zwingend einen bezahlten externen Provider braucht — deren *Fallback-Version* ist trotzdem jetzt baubar. Alle anderen 61 bekommen entweder die volle empfohlene Lösung oder eine echte, benutzbare Fallback-Version **ohne** Auth/Datenbank.
 
-**Umsetzungsreihenfolge:** P0 (11, davon 2 bereits fertig) → P1 (22) → P2 (25) → P3 (5, Fallback-Teil). Wird in dieser Session fortlaufend abgearbeitet, committet und getestet — siehe Commit-Historie für den jeweils aktuellen Stand. Wo eine "volle Ausprägung" (echte Multi-Device-Synchronisation, serverseitige Auswertung über alle Nutzer, KI-Modell-Integration) über die Fallback-Version hinausgeht, bleibt das explizit als spätere Erweiterung vermerkt — keine dieser späteren Erweiterungen wird als "erledigt" geführt.
+**Umsetzungsreihenfolge:** P0 (11 von 11 erledigt, 2 davon bereits vorher) → P1 (22, naechster Schritt) → P2 (25) → P3 (5, Fallback-Teil). Wird fortlaufend abgearbeitet, committet und getestet — siehe Commit-Historie fuer den jeweils aktuellen Stand. Wo eine "volle Ausprägung" (echte Multi-Device-Synchronisation, serverseitige Auswertung über alle Nutzer, KI-Modell-Integration) über die Fallback-Version hinausgeht, bleibt das explizit als spätere Erweiterung vermerkt — keine dieser späteren Erweiterungen wird als "erledigt" geführt.
