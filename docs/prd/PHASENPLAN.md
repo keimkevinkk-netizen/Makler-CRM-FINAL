@@ -82,5 +82,16 @@ Reaktion auf ein sehr umfangreiches Master-Prompt (GIS-/Data-Warehouse-Zielarchi
 
 **Bewusst nicht umgesetzt** (siehe ADR-0001 für Details): produktives PostgreSQL+PostGIS-Backend, Auth/RBAC, alle Live-Connectoren (BORIS, ALKIS, Overpass, Statistikquellen, Portale), Dashboard-/Marktanalyse-weite Verdrahtung über das Objektformular/-pipeline hinaus, KI-/Prognose-Engine.
 
+## Phase 18 — Master-Prompt Phase 1 abschliessen, Datenintegritaets-Sentinel, vollstaendiger 64-Funktionen-Backlog ✅ ABGESCHLOSSEN (Commits `d3279fa`, `8b52c70`, `29fba64`)
+Nach Merge von PR #7 hat Kevin den Master-Prompt (64 Funktionen, Phasen 0-10) als verbindlichen Zielkatalog bestaetigt und verlangt, alles seriös ohne weitere Entscheidung Umsetzbare zu erledigen, nichts als fertig zu markieren was es nicht ist, und alles Blockierte sauber mit exakter Voraussetzung zu dokumentieren:
+
+1. **Master-Prompt Phase 1 Abschluss** (ADR-0004): Security-Header (`netlify.toml`), ESLint fuer `netlify/functions/`+`tests/`, `npm audit`-CI-Gate. Vite/TS-Bundling bleibt bewusst zurueckgestellt (CLAUDE.md verbietet Single-File-Reformatierung ohne aktuellen Gegenwert).
+2. **Datenintegritaets-Sentinel** (Funktion #54, P0): bestehende "Datenqualitaet"-Sektion um entitaetsuebergreifende, rein lesende Pruefungen erweitert (verwaiste Follow-up->Kontakt-Referenzen, Telefonnummer-Duplikate) statt eines zweiten, parallelen Moduls.
+3. **Datenherkunft-Pruefung** (Funktion #24): bestaetigt, dass Markt-/Bewertungswerte bereits Quelle+Zeitpunkt+Qualitaet zeigen (P0-Minimum erfuellt).
+4. **Zusagen-Ledger-Pruefung** (Funktionen #16/#51): bewusst NICHT gebaut - waere redundant zum bestehenden Follow-up-Modul oder braeuchte eine neue kanonische Entitaet (Phase 3/DB-abhaengig), ehrlich in den Backlog verschoben statt eines duennen/redundanten Features.
+5. **Vollstaendiger Backlog** (`docs/prd/08-masterprompt-backlog.md`): alle 64 Funktionen einzeln Phase 0-10 zugeordnet, mit exakter fehlender Voraussetzung bei allem nicht Begonnenen.
+
+**Gate erfuellt:** volle E2E-Regression (7 Testdateien inkl. neuer `test-data-quality-sentinel.js`, 6/6) gruen nach jeder Aenderung; `npm run lint` 0 Fehler; `npm audit` 0 Schwachstellen. Kernergebnis: 2 von 64 Funktionen mit echter Vorarbeit in dieser Session, 1 mit Teilgrundlage aus frueheren Phasen, ueberwiegender Rest strukturell an Phase 2 (Auth+Datenbank) gebunden - wie vom Master-Prompt selbst vorgeschrieben (Teil E0).
+
 ## Nicht in diesem Umsetzungsplan
 Vollständige Quellcode-Modularisierung (`src/core/...`, Teil 3 §40) — laut PRD selbst erst sinnvoll, wenn Datenverträge stabil sind; wird nicht vorgezogen.
