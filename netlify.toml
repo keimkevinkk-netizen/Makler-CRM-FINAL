@@ -12,6 +12,21 @@
 [functions]
   node_bundler = "esbuild"
 
+# Master-Prompt Teil D6 ("Sicherheitsheader: X-Content-Type-Options,
+# Referrer-Policy, Permissions-Policy, Frame-Schutz"). CSP bleibt bewusst die
+# bestehende Meta-CSP in index.html (siehe .claude/rules/security.md: "CSP-
+# Aenderungen minimal halten, keine pauschale Lockerung") - hier nur additive,
+# unabhaengige Header, die nichts an der bestehenden CSP aendern.
+# Geolocation/Kamera/Mikrofon/Zahlung/USB werden von der App nachweislich
+# nirgends verwendet (grep-geprueft) und sind daher risikofrei deaktivierbar.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"
+    Permissions-Policy = "geolocation=(), camera=(), microphone=(), payment=(), usb=()"
+
 [[redirects]]
   from = "/api/geocode"
   to = "/.netlify/functions/geocode"

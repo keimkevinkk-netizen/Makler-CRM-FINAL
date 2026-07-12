@@ -11424,7 +11424,723 @@ Wenn du eine Immobilie im Main-Kinzig-Kreis besitzt und nicht sicher bist, ob od
 <article class="kk11-card" id="global-backup"><h3>Globaler Export / Import / Backup</h3><p>Verwendet dieselbe zentrale V28.2-Backup-Engine wie die technische Sicherung darüber. CRM, Follow-ups, Pipeline, Tippgeber, Markt- und Tagesdaten werden über eine gemeinsame Key-Registry exportiert und validiert importiert.</p><div class="kk11-backupbar"><button class="kk11-btn" data-kk11-action="backup" type="button">Vollständiges Produktionssystem sichern</button><label class="kk11-btn light">Backup importieren <input accept="application/json" aria-label="Backup importieren" hidden="" id="kk11ImportFile" type="file"/></label><button class="kk11-btn light" data-kk11-action="schema" type="button">Schema speichern</button></div><div class="kk11-status" id="kk11BackupStatus">Bereit.</div></article>
 </div>
 </div>
-</section><section class="kkops-section" id="datenqualitaet"><div class="kkops-shell"><div class="kkops-head"><div><span class="kkops-kicker">Ebene 2 · Datenqualität</span><h2>Datenqualität / Recherche-Warteschlange</h2><p>Kontakte mit fehlender Telefonnummer, fehlender E-Mail, Platzhaltern, falschen Feldern oder fehlendem nächsten Schritt werden vor der Akquise sichtbar.</p></div><div class="kkops-actions"><button class="kkops-btn" id="dataScanBtn" type="button">CRM prüfen</button><button class="kkops-btn light" data-export="kk_data_quality_queue" type="button">Export</button></div></div><div class="kkops-grid kkops-four" id="dataStats"></div><div class="kkops-card" style="margin-top:14px"><h3>Recherche-Warteschlange</h3><div class="kkops-list" id="dataQueue"></div></div></div></section><dialog class="kkimp-preview-dialog" id="kkImportPreviewDialog" aria-labelledby="kkImportPreviewTitle">
+</section><section class="kkops-section" id="datenqualitaet"><div class="kkops-shell"><div class="kkops-head"><div><span class="kkops-kicker">Ebene 2 · Datenqualität</span><h2>Datenqualität / Recherche-Warteschlange</h2><p>Kontakte mit fehlender Telefonnummer, fehlender E-Mail, Platzhaltern, falschen Feldern oder fehlendem nächsten Schritt werden vor der Akquise sichtbar. Prüft zusätzlich entitätsübergreifend: Follow-ups mit verwaistem Kontaktbezug, mögliche Telefonnummer-Duplikate.</p></div><div class="kkops-actions"><button class="kkops-btn" id="dataScanBtn" type="button">CRM + Referenzen prüfen</button><button class="kkops-btn light" data-export="kk_data_quality_queue" type="button">Export</button></div></div><div class="kkops-grid kkops-four" id="dataStats"></div><div class="kkops-card" style="margin-top:14px"><h3>Recherche-Warteschlange</h3><div class="kkops-list" id="dataQueue"></div></div></div></section><style>.kk-form-grid label{flex:1 1 200px;display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}.kk-form-grid input,.kk-form-grid select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}</style>
+<section class="kkops-section" id="p0funktionen"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 16/51</span><h2>Zusagen-Ledger</h2><p>Unveränderliche Zusagen mit Fälligkeit und Erfüllungsnachweis — getrennt von der veränderbaren Follow-up-Liste, damit eine Zusage nachvollziehbar bleibt, auch wenn das zugehörige Follow-up längst erledigt oder gelöscht wurde.</p></div><div class="kkops-actions"><button class="kkops-btn" id="p0CommitmentAddBtn" type="button">Neue Zusage</button><button class="kkops-btn light" data-export="kk_commitments_v1" type="button">Export</button></div></div>
+<div class="kkops-grid kkops-four" id="p0CommitmentStats"></div>
+<form class="kkops-card" id="p0CommitmentForm" style="margin-top:14px;display:none">
+<div style="display:flex;flex-wrap:wrap;gap:12px" class="kk-form-grid"><label>Kontakt<input id="p0cContact" placeholder="Name" required type="text"/></label><label>Zusage<input id="p0cText" placeholder="z.B. Exposé bis Freitag zusenden" required type="text"/></label><label>Fällig am<input id="p0cDue" type="date"/></label></div>
+<div class="kkops-item-actions" style="margin-top:10px"><button class="kkops-btn" type="submit">Zusage speichern</button><button class="kkops-btn light" id="p0CommitmentCancelBtn" type="button">Abbrechen</button></div>
+</form>
+<div class="kkops-card" style="margin-top:14px"><h3>Offene und erfüllte Zusagen</h3><div class="kkops-list" id="p0CommitmentList"></div></div>
+</div></section>
+<section class="kkops-section" id="p0transaktionen"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 17</span><h2>Transaktionswahrheits-Ledger</h2><p>Getrennt von Angebotspreisen (Marktbeobachtungen): unveränderliche Einträge für tatsächlich abgeschlossene eigene Verkäufe, automatisch angelegt sobald eine Verkaufschance auf „Verkauft“ wechselt.</p></div><div class="kkops-actions"><button class="kkops-btn light" data-export="kk_transactions_v1" type="button">Export</button></div></div>
+<div class="kkops-grid kkops-four" id="p0TransactionStats"></div>
+<div class="kkops-card" style="margin-top:14px"><h3>Bestätigte Abschlüsse</h3><div class="kkops-list" id="p0TransactionList"></div></div>
+</div></section>
+<section class="kkops-section" id="p0besichtigung"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 36</span><h2>Besichtigungs-Debrief</h2><p>Strukturierte Nachbereitung statt Freitext: Interesselevel, Einwände und nächster Schritt in festen Feldern, direkt nach der Besichtigung erfassbar.</p></div><div class="kkops-actions"><button class="kkops-btn" id="p0ViewingAddBtn" type="button">Neues Debrief</button><button class="kkops-btn light" data-export="kk_viewing_debriefs_v1" type="button">Export</button></div></div>
+<form class="kkops-card" id="p0ViewingForm" style="margin-top:14px;display:none">
+<div style="display:flex;flex-wrap:wrap;gap:12px" class="kk-form-grid"><label>Kontakt<input id="p0vContact" placeholder="Name" required type="text"/></label><label>Objekt/Adresse<input id="p0vObject" placeholder="Objektbezeichnung" type="text"/></label><label>Interesselevel<select id="p0vInterest"><option value="hoch">Hoch</option><option value="mittel">Mittel</option><option value="niedrig">Niedrig</option></select></label><label>Einwand<input id="p0vObjection" placeholder="z.B. Preis, Zuschnitt, Lage" type="text"/></label><label>Raum-Feedback (#37)<select id="p0vRoomFeedback"><option value="">–</option><option value="Küche positiv">Küche positiv</option><option value="Bad negativ">Bad negativ</option><option value="Zuschnitt positiv">Zuschnitt positiv</option><option value="Zuschnitt negativ">Zuschnitt negativ</option><option value="Licht/Aussicht positiv">Licht/Aussicht positiv</option><option value="Lärm negativ">Lärm negativ</option><option value="Garten/Balkon positiv">Garten/Balkon positiv</option></select></label><label>Nächster Schritt<input id="p0vNext" placeholder="z.B. Finanzierungsbestätigung anfordern" type="text"/></label></div>
+<div class="kkops-item-actions" style="margin-top:10px"><button class="kkops-btn" type="submit">Debrief speichern</button><button class="kkops-btn light" id="p0ViewingCancelBtn" type="button">Abbrechen</button></div>
+</form>
+<div class="kkops-card" style="margin-top:14px"><div class="kkops-list" id="p0ViewingList"></div></div>
+</div></section>
+<section class="kkops-section" id="p0finanzierung"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 39</span><h2>Finanzierungs-Reibungsradar</h2><p>Nur Status und Blocker, keine sensiblen Finanzdetails: sichtbar machen, welche Käuferchance an der Finanzierung hängt, ohne Bank-/Kreditdaten zu erfassen.</p></div><div class="kkops-actions"><button class="kkops-btn" id="p0FinancingAddBtn" type="button">Status erfassen</button><button class="kkops-btn light" data-export="kk_financing_status_v1" type="button">Export</button></div></div>
+<form class="kkops-card" id="p0FinancingForm" style="margin-top:14px;display:none">
+<div style="display:flex;flex-wrap:wrap;gap:12px" class="kk-form-grid"><label>Kontakt<input id="p0fContact" placeholder="Name" required type="text"/></label><label>Status<select id="p0fStatus"><option value="nicht_gestartet">Nicht gestartet</option><option value="in_pruefung">In Prüfung</option><option value="zusage">Zusage erhalten</option><option value="ablehnung">Ablehnung</option></select></label><label>Blocker<input id="p0fBlocker" placeholder="z.B. Eigenkapitalnachweis fehlt" type="text"/></label></div>
+<div class="kkops-item-actions" style="margin-top:10px"><button class="kkops-btn" type="submit">Speichern</button><button class="kkops-btn light" id="p0FinancingCancelBtn" type="button">Abbrechen</button></div>
+</form>
+<div class="kkops-card" style="margin-top:14px"><div class="kkops-list" id="p0FinancingList"></div></div>
+</div></section>
+<section class="kkops-section" id="p0schnellerfassung"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 56</span><h2>Feldsignal-Sofortfänger</h2><p>Notiz sofort ablegen, ohne im Moment einen Kontakt zuordnen zu müssen — spätere Zuordnung aus der Eingangsliste heraus.</p></div><div class="kkops-actions"><button class="kkops-btn light" data-export="kk_quick_capture_inbox_v1" type="button">Export</button></div></div>
+<form class="kkops-card" id="p0QuickCaptureForm"><div style="display:flex;flex-wrap:wrap;gap:12px" class="kk-form-grid"><label>Schnellnotiz<input id="p0qcText" placeholder="z.B. Nachbar von Musterstraße 5 verkaufsinteressiert" required type="text"/></label></div><div class="kkops-item-actions" style="margin-top:10px"><button class="kkops-btn" type="submit">Ablegen</button></div></form>
+<div class="kkops-card" style="margin-top:14px"><h3>Eingang (noch nicht zugeordnet)</h3><div class="kkops-list" id="p0QuickCaptureList"></div></div>
+</div></section>
+<section class="kkops-section" id="p0einwaende"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 59/60</span><h2>Einwand-Bibliothek &amp; Wirksamkeit</h2><p>Kuratierte Einwände mit vorgeschlagener Antwort. Jede Nutzung wird mit Ergebnis gekoppelt — so wird sichtbar, welche Antwort tatsächlich wirkt (Funktion 60: Interventionsgedächtnis).</p></div></div>
+<div class="kkops-card" style="margin-top:14px"><div class="kkops-list" id="p0ObjectionLibrary"></div></div>
+<div class="kkops-card" style="margin-top:14px"><h3>Bisherige Anwendungen &amp; Wirksamkeit</h3><div class="kkops-grid kkops-four" id="p0ObjectionStats"></div><div class="kkops-list" id="p0ObjectionOutcomes"></div></div>
+</div></section>
+<script>
+(function(){
+  'use strict';
+  if(window.KK_P0_FUNKTIONEN&&window.KK_P0_FUNKTIONEN.version)return;
+  var U=window.KK_UTIL||{};
+  function esc(v){return U.esc?U.esc(v):String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]})}
+  function rd(k,fb){return U.readJSON?U.readJSON(k,fb):fb}
+  function wr(k,v){return U.writeJSON?U.writeJSON(k,v):false}
+  function uid(p){return U.uid?U.uid(p):(p+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10))}
+  function today(){return U.todayISO?U.todayISO():new Date().toISOString().slice(0,10)}
+  function q(id){return document.getElementById(id)}
+  function qa(sel){return Array.prototype.slice.call(document.querySelectorAll(sel))}
+  function notify(msg){try{if(U.toast)U.toast(msg)}catch(e){}}
+  function stat(n,l){return '<div><b>'+esc(n)+'</b><span>'+esc(l)+'</span></div>'}
+  function emptyMsg(t){return '<p class="kkops-empty">'+esc(t)+'</p>'}
+
+  /* ---- Funktion 16/51: Zusagen-Ledger + Kontaktversprechen-Waechter ----
+     "Unveraendliche Zusage + Erfuellungsereignis" (empfohlene Loesung laut
+     Master-Prompt): der urspruengliche Inhalt (Kontakt/Text/Faelligkeit) wird
+     nach dem Anlegen nie mehr editiert, nur der Status bewegt sich einmalig
+     vorwaerts (offen -> erfuellt/gebrochen) - das IST das Erfuellungsereignis. */
+  var COMMIT_KEY='kk_commitments_v1';
+  function renderCommitments(){
+    var items=rd(COMMIT_KEY,[]);
+    var open=items.filter(function(x){return x.status==='offen'});
+    var overdue=open.filter(function(x){return x.due&&x.due<today()});
+    var fulfilled=items.filter(function(x){return x.status==='erfuellt'});
+    var stats=q('p0CommitmentStats'); if(stats)stats.innerHTML=[stat(items.length,'Zusagen gesamt'),stat(open.length,'offen'),stat(overdue.length,'überfällig'),stat(fulfilled.length,'erfüllt')].join('');
+    var list=q('p0CommitmentList'); if(!list)return;
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Zusagen erfasst.');return}
+    list.innerHTML=items.slice().sort(function(a,b){return (a.status==='offen'?0:1)-(b.status==='offen'?0:1)||String(a.due||'9999').localeCompare(String(b.due||'9999'))}).map(function(x){
+      var late=x.status==='offen'&&x.due&&x.due<today();
+      return '<div class="kkops-item"><strong>'+esc(x.contact)+' <span class="kkops-pill '+(x.status==='erfuellt'?'':(x.status==='gebrochen'?'red':(late?'red':'')))+'">'+esc(x.status==='offen'?(late?'überfällig':'offen'):x.status)+'</span></strong><small>Fällig: '+esc(x.due||'ohne Datum')+' · angelegt '+esc((x.createdAt||'').slice(0,10))+'</small><p>'+esc(x.text)+'</p>'+(x.fulfillmentNote?'<small>Ergebnis: '+esc(x.fulfillmentNote)+'</small>':'')+(x.status==='offen'?'<div class="kkops-item-actions"><button class="kkops-btn light" data-commit-done="'+esc(x.id)+'">Erfüllt</button><button class="kkops-btn danger" data-commit-broken="'+esc(x.id)+'">Gebrochen</button></div>':'')+'</div>'
+    }).join('');
+    qa('[data-commit-done]').forEach(function(b){b.onclick=function(){fulfillCommitment(b.dataset.commitDone,'erfuellt')}});
+    qa('[data-commit-broken]').forEach(function(b){b.onclick=function(){fulfillCommitment(b.dataset.commitBroken,'gebrochen')}});
+  }
+  function fulfillCommitment(id,status){
+    var note=prompt(status==='erfuellt'?'Kurzes Ergebnis (optional):':'Grund, warum die Zusage nicht eingehalten wurde:')||'';
+    var items=rd(COMMIT_KEY,[]);
+    var found=false;
+    items=items.map(function(x){if(x.id===id){found=true;return Object.assign({},x,{status:status,fulfillmentNote:note,fulfilledAt:new Date().toISOString()})}return x});
+    if(!found)return;
+    wr(COMMIT_KEY,items); notify('Zusage aktualisiert'); renderCommitments();
+  }
+  function bindCommitmentForm(){
+    var addBtn=q('p0CommitmentAddBtn'), form=q('p0CommitmentForm'), cancel=q('p0CommitmentCancelBtn');
+    if(addBtn)addBtn.onclick=function(){if(form)form.style.display='block'};
+    if(cancel)cancel.onclick=function(){if(form){form.style.display='none';form.reset()}};
+    if(form)form.onsubmit=function(e){e.preventDefault();
+      var contact=q('p0cContact').value.trim(), text=q('p0cText').value.trim(), due=q('p0cDue').value;
+      if(!contact||!text)return;
+      var items=rd(COMMIT_KEY,[]);
+      items.unshift({id:uid('commit'),contact:contact,text:text,due:due,status:'offen',createdAt:new Date().toISOString()});
+      wr(COMMIT_KEY,items); form.reset(); form.style.display='none'; notify('Zusage gespeichert'); renderCommitments();
+    };
+  }
+
+  /* ---- Funktion 17: Transaktionswahrheits-Ledger ----
+     Getrennt von Angebotspreisen: automatisch abgeleitet aus der
+     Verkaufschancen-Pipeline, sobald eine Chance auf "Verkauft" steht - der
+     Client legt selbst keine Preise fest, sondern spiegelt nur, was im
+     bestehenden Sales-Modul bereits als Abschluss erfasst wurde. */
+  var TX_KEY='kk_transactions_v1';
+  function syncTransactionsFromSales(){
+    var sales=rd('kk_sales_pipeline',[]);
+    var sold=sales.filter(function(x){return x.stage==='Verkauft'});
+    var tx=rd(TX_KEY,[]);
+    var known=Object.create(null); tx.forEach(function(t){known[t.dealId]=true});
+    var added=false;
+    sold.forEach(function(x){
+      if(known[x.id])return;
+      tx.push({id:uid('tx'),dealId:x.id,contact:x.name||'Ohne Name',area:x.area||'',objectLabel:x.objectLabel||x.objectType||'',price:Number(x.objectValue)||null,commission:Number(x.commission||x.expectedCommission)||null,source:'eigener Abschluss (Sales-Pipeline)',closedAt:new Date().toISOString()});
+      known[x.id]=true; added=true;
+    });
+    if(added)wr(TX_KEY,tx);
+    return tx;
+  }
+  function renderTransactions(){
+    var tx=syncTransactionsFromSales();
+    var stats=q('p0TransactionStats'); if(stats)stats.innerHTML=[stat(tx.length,'bestätigte Abschlüsse'),stat(tx.filter(function(x){return x.price}).length,'mit Preis hinterlegt'),stat(tx.filter(function(x){return x.commission}).length,'mit Provision hinterlegt'),stat(new Set(tx.map(function(x){return x.area})).size,'Gebiete')].join('');
+    var list=q('p0TransactionList'); if(!list)return;
+    if(!tx.length){list.innerHTML=emptyMsg('Noch keine als „Verkauft“ markierte Chance in der Pipeline - Eintraege erscheinen hier automatisch.');return}
+    list.innerHTML=tx.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+'</strong><small>'+esc(x.area)+' · '+esc(x.objectLabel||'kein Objekt hinterlegt')+' · '+esc((x.closedAt||'').slice(0,10))+'</small><p>Quelle: '+esc(x.source)+(x.price?' · Preis (Angabe aus Pipeline): '+esc(String(x.price))+' €':'')+'</p></div>'}).join('');
+  }
+
+  /* ---- Funktion 36: Besichtigungs-Intelligence-Capture ---- */
+  var VIEW_KEY='kk_viewing_debriefs_v1';
+  function renderViewings(){
+    var items=rd(VIEW_KEY,[]);
+    var list=q('p0ViewingList'); if(!list)return;
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Besichtigungs-Debriefs erfasst.');return}
+    list.innerHTML=items.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+' <span class="kkops-pill '+(x.interest==='hoch'?'':(x.interest==='niedrig'?'red':'orange'))+'">Interesse: '+esc(x.interest)+'</span></strong><small>'+esc(x.object||'')+' · '+esc((x.createdAt||'').slice(0,10))+'</small>'+(x.objection?'<p>Einwand: '+esc(x.objection)+'</p>':'')+(x.roomFeedback?'<p>Raum-Feedback: '+esc(x.roomFeedback)+'</p>':'')+(x.next?'<p>Nächster Schritt: '+esc(x.next)+'</p>':'')+'</div>'}).join('');
+  }
+  function bindViewingForm(){
+    var addBtn=q('p0ViewingAddBtn'), form=q('p0ViewingForm'), cancel=q('p0ViewingCancelBtn');
+    if(addBtn)addBtn.onclick=function(){if(form)form.style.display='block'};
+    if(cancel)cancel.onclick=function(){if(form){form.style.display='none';form.reset()}};
+    if(form)form.onsubmit=function(e){e.preventDefault();
+      var contact=q('p0vContact').value.trim(); if(!contact)return;
+      var items=rd(VIEW_KEY,[]);
+      items.push({id:uid('viewing'),contact:contact,object:q('p0vObject').value.trim(),interest:q('p0vInterest').value,objection:q('p0vObjection').value.trim(),roomFeedback:q('p0vRoomFeedback').value,next:q('p0vNext').value.trim(),createdAt:new Date().toISOString()});
+      wr(VIEW_KEY,items); form.reset(); form.style.display='none'; notify('Debrief gespeichert'); renderViewings();
+    };
+  }
+
+  /* ---- Funktion 39: Finanzierungs-Reibungsradar (nur Status/Blocker, keine Finanzdetails) ---- */
+  var FIN_KEY='kk_financing_status_v1';
+  function renderFinancing(){
+    var items=rd(FIN_KEY,[]);
+    var list=q('p0FinancingList'); if(!list)return;
+    if(!items.length){list.innerHTML=emptyMsg('Noch kein Finanzierungsstatus erfasst.');return}
+    var labels={nicht_gestartet:'Nicht gestartet',in_pruefung:'In Prüfung',zusage:'Zusage erhalten',ablehnung:'Ablehnung'};
+    list.innerHTML=items.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+' <span class="kkops-pill '+(x.status==='zusage'?'':(x.status==='ablehnung'?'red':'orange'))+'">'+esc(labels[x.status]||x.status)+'</span></strong>'+(x.blocker?'<p>Blocker: '+esc(x.blocker)+'</p>':'')+'<small>Stand: '+esc((x.updatedAt||'').slice(0,10))+'</small></div>'}).join('');
+  }
+  function bindFinancingForm(){
+    var addBtn=q('p0FinancingAddBtn'), form=q('p0FinancingForm'), cancel=q('p0FinancingCancelBtn');
+    if(addBtn)addBtn.onclick=function(){if(form)form.style.display='block'};
+    if(cancel)cancel.onclick=function(){if(form){form.style.display='none';form.reset()}};
+    if(form)form.onsubmit=function(e){e.preventDefault();
+      var contact=q('p0fContact').value.trim(); if(!contact)return;
+      var items=rd(FIN_KEY,[]).filter(function(x){return x.contact.toLowerCase()!==contact.toLowerCase()});
+      items.push({id:uid('fin'),contact:contact,status:q('p0fStatus').value,blocker:q('p0fBlocker').value.trim(),updatedAt:new Date().toISOString()});
+      wr(FIN_KEY,items); form.reset(); form.style.display='none'; notify('Finanzierungsstatus gespeichert'); renderFinancing();
+    };
+  }
+
+  /* ---- Funktion 56: Feldsignal-Sofortfaenger (Text-Schnellerfassung, kein Foto/Sprache noetig) ---- */
+  var QC_KEY='kk_quick_capture_inbox_v1';
+  function renderQuickCapture(){
+    var items=rd(QC_KEY,[]);
+    var list=q('p0QuickCaptureList'); if(!list)return;
+    if(!items.length){list.innerHTML=emptyMsg('Eingang leer.');return}
+    list.innerHTML=items.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.text)+'</strong><small>'+esc((x.createdAt||'').slice(0,16).replace('T',' '))+'</small><div class="kkops-item-actions"><button class="kkops-btn danger" data-qc-done="'+esc(x.id)+'">Erledigt / entfernen</button></div></div>'}).join('');
+    qa('[data-qc-done]').forEach(function(b){b.onclick=function(){var items=rd(QC_KEY,[]).filter(function(x){return x.id!==b.dataset.qcDone});wr(QC_KEY,items);renderQuickCapture()}});
+  }
+  function bindQuickCaptureForm(){
+    var form=q('p0QuickCaptureForm');
+    if(form)form.onsubmit=function(e){e.preventDefault();
+      var text=q('p0qcText').value.trim(); if(!text)return;
+      var items=rd(QC_KEY,[]); items.push({id:uid('qc'),text:text,createdAt:new Date().toISOString()});
+      wr(QC_KEY,items); form.reset(); notify('Notiz abgelegt'); renderQuickCapture();
+    };
+  }
+
+  /* ---- Funktion 59/60: Einwand-Bibliothek + Interventionsgedaechtnis ----
+     Kuratierte, realistische Einwaende (Fallback laut Master-Prompt statt
+     KI-Generierung) - jede Anwendung koppelt sich mit einem Ergebnis
+     (Funktion 60: "jede Empfehlung mit Ergebnis koppeln"). */
+  var OBJECTIONS=[
+    {id:'preis',text:'„Das ist mir zu teuer.“',response:'Vergleichswerte aus eigenen Marktbeobachtungen zeigen, nicht behaupten - konkrete Objekte in der Nähe nennen.'},
+    {id:'zeit',text:'„Wir wollen erstmal abwarten.“',response:'Konkretes, unverbindliches Zeitfenster erfragen statt Druck aufzubauen - Follow-up exakt darauf terminieren.'},
+    {id:'makler',text:'„Wir verkaufen lieber privat / über einen anderen Makler.“',response:'Konkreten Mehrwert an einem echten, bereits erledigten Fall zeigen (z.B. erzielte Zusatzreichweite, Verhandlungsergebnis).'},
+    {id:'provision',text:'„Die Provision ist zu hoch.“',response:'Leistungsumfang aufschlüsseln statt Rabatt zu geben - was konkret dafür geleistet wird.'},
+    {id:'bewertung',text:'„Unser Haus ist mehr wert.“',response:'Bewertung anhand der eigenen Marktbeobachtungsdatenbank nachvollziehbar herleiten (Median/Ausreißer zeigen), nicht nur behaupten.'},
+    {id:'zustand',text:'„Renovierung lohnt sich vor dem Verkauf nicht.“',response:'Konkrete, kleine Maßnahmen mit belegtem Preiseffekt vorschlagen statt pauschaler Empfehlung.'},
+    {id:'unterlagen',text:'„Wir haben die Unterlagen noch nicht zusammen.“',response:'Checkliste mit konkreten nächsten Schritten statt genereller Erinnerung - kleinste mögliche erste Aktion benennen.'},
+    {id:'vertrauen',text:'„Wir kennen Sie noch nicht gut genug.“',response:'Konkrete, verifizierbare Referenz aus der Region nennen statt allgemeiner Kompetenzaussagen.'}
+  ];
+  var OBJ_OUTCOME_KEY='kk_objection_outcomes_v1';
+  function renderObjectionLibrary(){
+    var lib=q('p0ObjectionLibrary'); if(!lib)return;
+    lib.innerHTML=OBJECTIONS.map(function(o){return '<div class="kkops-item"><strong>'+esc(o.text)+'</strong><p>'+esc(o.response)+'</p><div class="kkops-item-actions"><button class="kkops-btn light" data-obj-use="'+esc(o.id)+'">Eingesetzt, Ergebnis erfassen</button></div></div>'}).join('');
+    qa('[data-obj-use]').forEach(function(b){b.onclick=function(){useObjection(b.dataset.objUse)}});
+  }
+  function useObjection(objectionId){
+    var o=OBJECTIONS.filter(function(x){return x.id===objectionId})[0]; if(!o)return;
+    var contact=prompt('Bei welchem Kontakt wurde dieser Einwand behandelt?')||'';
+    if(!contact.trim())return;
+    var worked=confirm('Hat die Antwort gewirkt (Einwand ausgeräumt)?\nOK = ja, wirkte · Abbrechen = nein, wirkte nicht');
+    var items=rd(OBJ_OUTCOME_KEY,[]);
+    items.push({id:uid('objout'),objectionId:objectionId,objectionText:o.text,contact:contact.trim(),outcome:worked?'wirkte':'wirkte_nicht',usedAt:new Date().toISOString()});
+    wr(OBJ_OUTCOME_KEY,items); notify('Ergebnis erfasst'); renderObjectionOutcomes();
+  }
+  function renderObjectionOutcomes(){
+    var items=rd(OBJ_OUTCOME_KEY,[]);
+    var stats=q('p0ObjectionStats'); if(stats)stats.innerHTML=[stat(items.length,'Anwendungen gesamt'),stat(items.filter(function(x){return x.outcome==='wirkte'}).length,'wirkte'),stat(items.filter(function(x){return x.outcome==='wirkte_nicht'}).length,'wirkte nicht'),stat(items.length?Math.round(items.filter(function(x){return x.outcome==='wirkte'}).length/items.length*100)+'%':'–','Wirksamkeits-Quote')].join('');
+    var list=q('p0ObjectionOutcomes'); if(!list)return;
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Anwendung erfasst.');return}
+    list.innerHTML=items.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+' <span class="kkops-pill '+(x.outcome==='wirkte'?'':'red')+'">'+esc(x.outcome==='wirkte'?'wirkte':'wirkte nicht')+'</span></strong><small>'+esc(x.objectionText)+' · '+esc((x.usedAt||'').slice(0,10))+'</small></div>'}).join('');
+  }
+
+  function renderAllP0(){renderCommitments();renderTransactions();renderViewings();renderFinancing();renderQuickCapture();renderObjectionLibrary();renderObjectionOutcomes()}
+
+  function init(){
+    bindCommitmentForm(); bindViewingForm(); bindFinancingForm(); bindQuickCaptureForm();
+    renderAllP0();
+    document.addEventListener('kk-app-tab-changed',function(ev){try{if(ev&&ev.detail&&ev.detail.tab==='backup')renderAllP0()}catch(e){}});
+  }
+  window.KK_P0_FUNKTIONEN=Object.freeze({version:'1.0',renderAll:renderAllP0});
+  if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('p0-masterprompt-funktionen',init,{priority:85});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<section class="kkops-section" id="p1funktionen"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P1 · 22 Funktionen</span><h2>Vertriebswerkzeuge (P1)</h2><p>Strukturierte Erfassung statt Freitext fuer die 22 P1-Funktionen aus dem Master-Prompt-Zielkatalog. Jede Karte ist eine eigene, real gespeicherte Datenquelle (siehe Schema-Registry).</p></div></div>
+<div id="p1CadenceAlerts" class="kkops-card" style="margin-top:14px"></div>
+<div id="p1LifecycleAlerts" class="kkops-card" style="margin-top:14px"></div>
+<div id="p1CapacityView" class="kkops-card" style="margin-top:14px"></div>
+<div class="kkops-card" style="margin-top:14px"><h3>#30 Preisaktions-Guardrail</h3><p class="kkops-muted">Freigabe-Gate mit Konsequenzvorschau: eine Preissenkung ohne Begründung wird nicht stillschweigend gespeichert.</p><form id="p1PriceActionForm" style="display:flex;flex-wrap:wrap;gap:12px"><label>Objekt<input id="p1paObject" required type="text"/></label><label>Bisheriger Preis (€)<input id="p1paOld" type="number"/></label><label>Neuer Preis (€)<input id="p1paNew" required type="number"/></label><label>Begründung<input id="p1paReason" type="text"/></label><div style="align-self:flex-end"><button class="kkops-btn" type="submit">Speichern</button></div></form><div class="kkops-list" id="p1PriceActionList" style="margin-top:10px"></div></div>
+<div id="p1CardsContainer" style="margin-top:14px;display:grid;gap:14px"></div>
+</div></section>
+<script>
+(function(){
+  'use strict';
+  if(window.KK_P1_FUNKTIONEN&&window.KK_P1_FUNKTIONEN.version)return;
+  var U=window.KK_UTIL||{};
+  function esc(v){return U.esc?U.esc(v):String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]})}
+  function rd(k,fb){return U.readJSON?U.readJSON(k,fb):fb}
+  function wr(k,v){return U.writeJSON?U.writeJSON(k,v):false}
+  function uid(p){return U.uid?U.uid(p):(p+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10))}
+  function q(id){return document.getElementById(id)}
+  function qa(sel){return Array.prototype.slice.call(document.querySelectorAll(sel))}
+  function notify(msg){try{if(U.toast)U.toast(msg)}catch(e){}}
+  function emptyMsg(t){return '<p class="kkops-empty">'+esc(t)+'</p>'}
+  function daysSince(iso){if(!iso)return null;var d=new Date(iso);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/86400000)}
+
+  /* Master-Prompt P1 (22 Funktionen): 18 davon teilen dieselbe Grundform
+     ("strukturierter Eintrag statt Freitext, verknuepft mit einem Kontakt/
+     Objekt") - datengetrieben aus Config statt 18x Handarbeit, um echte
+     Wiederverwendung statt Copy-Paste zu erreichen. #12 und #20 sind bereits
+     durch KK_VALUATION bzw. die Ortsteil-Auswertung abgedeckt (keine neue
+     Karte noetig). #29, #30 haben zusaetzliche Spezial-Logik (Select-Optionen
+     bzw. Gate) - #42/#53/#62 sind eigene, aus echten Daten berechnete
+     Ansichten statt manueller Formulare. */
+  var CARDS=[
+    {id:'portfolio',fn:'#4',title:'Portfolio-Eigentümer-Graph',desc:'Welche Objekte gehören demselben Eigentümer - manuell gepflegt statt automatischer Graph-Query.',key:'kk_owner_portfolios_v1',prefix:'portfolio',fields:[{name:'contact',label:'Eigentümer-Kontakt',required:true},{name:'property',label:'Objekt/Adresse',required:true}]},
+    {id:'introchain',fn:'#8',title:'Empfehlungs-Kettenradar',desc:'Wer hat wen eingeführt - nachvollziehbarer Beziehungspfad statt automatischer Graphberechnung.',key:'kk_intro_chains_v1',prefix:'introchain',fields:[{name:'contact',label:'Kontakt',required:true},{name:'introducedBy',label:'Eingeführt von',required:true},{name:'date',label:'Datum',type:'date'}]},
+    {id:'competitor',fn:'#13',title:'Wettbewerber-Abwehrkarte',desc:'Fallbezogene Differenzierungsargumente statt Musteranalyse.',key:'kk_competitor_notes_v1',prefix:'competitor',fields:[{name:'contact',label:'Kontakt',required:true},{name:'competitor',label:'Wettbewerber',required:true},{name:'differentiator',label:'Unser Differenzierungsargument'}]},
+    {id:'premortem',fn:'#14',title:'Einwand-Pre-Mortem',desc:'Vor dem Termin: welcher Einwand ist wahrscheinlich, welche Antwort ist geplant.',key:'kk_objection_premortem_v1',prefix:'premortem',fields:[{name:'contact',label:'Kontakt',required:true},{name:'expectedObjection',label:'Erwarteter Einwand',required:true},{name:'plannedResponse',label:'Geplante Antwort'}]},
+    {id:'comparable',fn:'#18',title:'Vergleichsobjekt-Evidenzgraph',desc:'Manuelle Vergleichsauswahl mit Ausschlussgrund statt automatischem Ähnlichkeitsgraph.',key:'kk_comparable_selections_v1',prefix:'comparable',fields:[{name:'object',label:'Eigenes Objekt',required:true},{name:'comparableAddress',label:'Vergleichsobjekt (Adresse)',required:true},{name:'reason',label:'Warum vergleichbar / Ausschlussgrund'}]},
+    {id:'scenario',fn:'#22/#23',title:'Preisrealitäts-Stresstest & Kontrafaktisches Preislabor',desc:'Manuell parametrierte Was-wäre-wenn-Szenarien statt automatischem Backtest.',key:'kk_price_scenarios_v1',prefix:'scenario',fields:[{name:'object',label:'Objekt',required:true},{name:'assumption',label:'Annahme (z.B. -5% Preis, +30 Tage Marktzeit)',required:true},{name:'resultNote',label:'Erwartetes Ergebnis'}]},
+    {id:'stagnation',fn:'#29',title:'Stagnations-Autopsie',desc:'Ursachenbaum statt nur Warnung - warum genau bewegt sich diese Chance nicht.',key:'kk_stagnation_causes_v1',prefix:'stagnation',fields:[{name:'dealContact',label:'Chance/Kontakt',required:true},{name:'cause',label:'Ursache',type:'select',options:['Preis','Kommunikation','Marketing','Eigentümerentscheidung','Sonstiges'],required:true},{name:'note',label:'Notiz'}]},
+    {id:'readiness',fn:'#33',title:'Käufer-Reife-Fingerabdruck',desc:'Strukturierter Qualifikationsbogen statt automatischer Reifestufe.',key:'kk_buyer_readiness_v1',prefix:'readiness',fields:[{name:'contact',label:'Käuferkontakt',required:true},{name:'financing',label:'Finanzierungsstand',type:'select',options:['unklar','informell geklärt','schriftliche Zusage']},{name:'timeframe',label:'Zeitrahmen'},{name:'motivation',label:'Motivation'}]},
+    {id:'profilechange',fn:'#34',title:'Suchprofil-Evolutionsdetektor',desc:'Sichtbare Änderungsnotiz statt automatischer Diff-Erkennung.',key:'kk_profile_change_log_v1',prefix:'profilechange',fields:[{name:'contact',label:'Käuferkontakt',required:true},{name:'change',label:'Was hat sich geändert',required:true}]},
+    {id:'relationship',fn:'#41',title:'Beziehungskapital-Graph',desc:'Manuelle Beziehung zwischen zwei Kontakten statt automatischem Graph.',key:'kk_relationships_v1',prefix:'relationship',fields:[{name:'contactA',label:'Kontakt A',required:true},{name:'contactB',label:'Kontakt B',required:true},{name:'note',label:'Art der Beziehung'}]},
+    {id:'cadence',fn:'#42',title:'Beziehungs-Abkühlungsalarm: Kadenz festlegen',desc:'Individuelle Soll-Kontaktfrequenz je Kontakt - Auswertung erscheint oben als Alarmliste.',key:'kk_contact_cadence_v1',prefix:'cadence',fields:[{name:'contact',label:'Kontakt',required:true},{name:'desiredDays',label:'Soll-Kontakt alle X Tage',type:'number',required:true}]},
+    {id:'refmoment',fn:'#45/#63',title:'Empfehlungsmoment-Detektor & Kundenbotschafter-Engine',desc:'Erinnerung, nach Abschluss aktiv um Empfehlung/Bewertung/Testimonial zu bitten.',key:'kk_referral_moments_v1',prefix:'refmoment',fields:[{name:'contact',label:'Kontakt',required:true},{name:'action',label:'Aktion',type:'select',options:['Empfehlung erfragt','Google-Bewertung erbeten','Testimonial erbeten']},{name:'status',label:'Status',type:'select',options:['offen','erledigt']}]},
+    {id:'reciprocity',fn:'#46',title:'Fairness- und Gegenseitigkeitsledger',desc:'Sachliche Beiträge/Gegenleistungen im Tippgeber-Netzwerk, kein Personenranking.',key:'kk_reciprocity_ledger_v1',prefix:'reciprocity',fields:[{name:'partner',label:'Tippgeber/Partner',required:true},{name:'contribution',label:'Beitrag',required:true},{name:'direction',label:'Richtung',type:'select',options:['gegeben','erhalten']}]},
+    {id:'deferral',fn:'#50',title:'Aufschubmuster-Unterbrecher',desc:'Manuelle "schwierig"-Markierung + kleinster nächster Schritt statt automatischer Mustererkennung.',key:'kk_deferral_flags_v1',prefix:'deferral',fields:[{name:'contact',label:'Kontakt/Aufgabe',required:true},{name:'note',label:'Kleinster nächster Schritt',required:true}]},
+    {id:'convfact',fn:'#52',title:'Gesprächskohärenz-Gedächtnis',desc:'Bestätigte Gesprächsfakten mit Quelle statt automatischer Transkription.',key:'kk_conversation_facts_v1',prefix:'convfact',fields:[{name:'contact',label:'Kontakt',required:true},{name:'fact',label:'Fakt/Aussage',required:true},{name:'source',label:'Quelle (z.B. Telefonat 12.07.)'}]},
+    {id:'lostdeal',fn:'#57',title:'Lost-Deal-Blackbox',desc:'Strukturiertes Abschlussinterview statt automatischer Kipppunktanalyse.',key:'kk_lost_deal_interviews_v1',prefix:'lostdeal',fields:[{name:'contact',label:'Kontakt',required:true},{name:'reason',label:'Hauptgrund',type:'select',options:['Preis','Wettbewerber','Zeitpunkt','Vertrauen','Sonstiges']},{name:'competitor',label:'An wen verloren (falls bekannt)'},{name:'wouldReconsider',label:'Später wieder ansprechbar?',type:'select',options:['ja','nein','vielleicht']}]},
+    {id:'complaint',fn:'#64',title:'Service-Recovery-Radar',desc:'Frühe Eskalation + Wiedergutmachungsplan statt automatischer SLA-Überwachung.',key:'kk_service_complaints_v1',prefix:'complaint',fields:[{name:'contact',label:'Kontakt',required:true},{name:'issue',label:'Beschwerde',required:true},{name:'escalationDate',label:'Eskalationsfrist',type:'date'}]}
+  ];
+
+  function fieldInputHtml(cardId,f){
+    var id='p1_'+cardId+'_'+f.name;
+    if(f.type==='select'){
+      return '<label>'+esc(f.label)+'<select id="'+id+'">'+f.options.map(function(o){return '<option value="'+esc(o)+'">'+esc(o)+'</option>'}).join('')+'</select></label>';
+    }
+    return '<label>'+esc(f.label)+'<input id="'+id+'" type="'+(f.type||'text')+'"'+(f.required?' required':'')+'/></label>';
+  }
+  function renderCard(card){
+    var html='<div class="kkops-card"><h3>'+esc(card.fn)+' '+esc(card.title)+'</h3><p class="kkops-muted">'+esc(card.desc)+'</p>';
+    html+='<form class="kk-form-grid" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px" data-p1-form="'+esc(card.id)+'">'+card.fields.map(function(f){return fieldInputHtml(card.id,f)}).join('')+'<div style="align-self:flex-end"><button class="kkops-btn" type="submit">Speichern</button></div></form>';
+    html+='<div class="kkops-list" id="p1_list_'+esc(card.id)+'" style="margin-top:10px"></div></div>';
+    return html;
+  }
+  function renderCardList(card){
+    var list=q('p1_list_'+card.id); if(!list)return;
+    var items=rd(card.key,[]);
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Einträge.');return}
+    list.innerHTML=items.slice().reverse().slice(0,25).map(function(x){
+      var lines=card.fields.map(function(f){return x[f.name]?('<small>'+esc(f.label)+': '+esc(x[f.name])+'</small>'):''}).join('');
+      return '<div class="kkops-item">'+lines+'</div>';
+    }).join('');
+  }
+  function bindCardForm(card){
+    var form=document.querySelector('[data-p1-form="'+card.id+'"]');
+    if(!form)return;
+    form.onsubmit=function(e){
+      e.preventDefault();
+      var item={id:uid(card.prefix),createdAt:new Date().toISOString()};
+      var missingRequired=false;
+      card.fields.forEach(function(f){
+        var el=q('p1_'+card.id+'_'+f.name);
+        var val=el?el.value.trim():'';
+        if(f.required&&!val)missingRequired=true;
+        item[f.name]=val;
+      });
+      if(missingRequired)return;
+      var items=rd(card.key,[]); items.push(item); wr(card.key,items);
+      form.reset(); notify('Gespeichert'); renderCardList(card);
+      if(card.id==='cadence')renderCadenceAlerts();
+    };
+  }
+  function renderAllCards(){
+    var container=q('p1CardsContainer'); if(!container)return;
+    if(!container.dataset.built){
+      container.innerHTML=CARDS.map(renderCard).join('');
+      CARDS.forEach(bindCardForm);
+      container.dataset.built='1';
+    }
+    CARDS.forEach(renderCardList);
+  }
+
+  /* #42 Beziehungs-Abkühlungsalarm: individuelle Soll-/Ist-Kadenz statt fester
+     Kontaktpause. Ist-Wert kommt aus echten kk_crm_activities-Eintraegen
+     (Namensabgleich, gleiches Muster wie hasAnyActivity() im CRM-Modul). */
+  function renderCadenceAlerts(){
+    var box=q('p1CadenceAlerts'); if(!box)return;
+    var rules=rd('kk_contact_cadence_v1',[]);
+    var acts=rd('kk_crm_activities',[]);
+    function lastActivityDays(contact){
+      var norm=String(contact||'').toLowerCase().trim();
+      var matching=acts.filter(function(a){return String(a.contact||'').toLowerCase().trim()===norm});
+      if(!matching.length)return null;
+      var newest=matching.reduce(function(m,a){return (!m||new Date(a.createdAt||a.date||0)>new Date(m.createdAt||m.date||0))?a:m},null);
+      return daysSince(newest.createdAt||newest.date);
+    }
+    if(!rules.length){box.innerHTML='<h3>#42 Beziehungs-Abkühlungsalarm</h3>'+emptyMsg('Noch keine individuelle Kontakt-Kadenz hinterlegt.');return}
+    var rows=rules.map(function(r){
+      var d=lastActivityDays(r.contact);
+      var overdue=d==null||d>Number(r.desiredDays||9999);
+      return {r:r,days:d,overdue:overdue};
+    });
+    var overdueCount=rows.filter(function(x){return x.overdue}).length;
+    box.innerHTML='<h3>#42 Beziehungs-Abkühlungsalarm</h3><div class="kkops-grid kkops-four"><div><b>'+rules.length+'</b><span>Kontakte mit Kadenz</span></div><div><b>'+overdueCount+'</b><span>überfällig</span></div></div>'+
+      rows.map(function(x){return '<div class="kkops-item"><strong>'+esc(x.r.contact)+' <span class="kkops-pill '+(x.overdue?'red':'')+'">'+(x.days==null?'kein Kontakt erfasst':x.days+' Tage seit letztem Kontakt')+'</span></strong><small>Sollkadenz: alle '+esc(x.r.desiredDays)+' Tage</small></div>'}).join('');
+  }
+  /* #62 Post-Closing-Lebenszyklus-Orbit: automatisch aus kk_transactions_v1
+     (Funktion #17, bereits vorhanden) abgeleitet statt manuell gepflegter
+     Terminliste - Jahrestag-Erinnerung rein aus dem echten Abschlussdatum. */
+  function renderLifecycleAlerts(){
+    var box=q('p1LifecycleAlerts'); if(!box)return;
+    var tx=rd('kk_transactions_v1',[]);
+    var upcoming=tx.map(function(t){
+      var d=daysSince(t.closedAt);
+      if(d==null)return null;
+      var yearsSince=Math.floor(d/365);
+      var dayOfYear=d-yearsSince*365;
+      var isNear=yearsSince>=1&&dayOfYear<=14;
+      return isNear?{contact:t.contact,years:yearsSince,closedAt:t.closedAt}:null;
+    }).filter(Boolean);
+    box.innerHTML='<h3>#62 Post-Closing-Lebenszyklus-Orbit</h3>'+(upcoming.length?upcoming.map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+'</strong><small>'+esc(x.years)+'. Jahrestag des Abschlusses steht bevor (Abschluss: '+esc((x.closedAt||'').slice(0,10))+') - guter Anlass für einen Servicekontakt.</small></div>'}).join(''):emptyMsg('Aktuell kein Abschluss-Jahrestag in den nächsten 14 Tagen.'));
+  }
+
+  /* #53 Tageskapazitäts-Constraint-Engine: erweitert die bestehende
+     kk_time_budget-Auswertung um einen echten Nachfragewert (heute faellige
+     Follow-ups) statt nur die eingegebenen Stunden zu zeigen. */
+  function renderCapacityView(){
+    var box=q('p1CapacityView'); if(!box)return;
+    var budget=rd('kk_time_budget',{});
+    var todayKey=new Date().toISOString().slice(0,10);
+    var todayBudget=budget[todayKey]||{};
+    var salesMinutes=(Number(todayBudget.acq)||0)+(Number(todayBudget.appointments)||0);
+    var fus=rd('kk_followups',[]);
+    var dueToday=fus.filter(function(f){return String(f.status||'offen')==='offen'&&(f.dueDate||f.date)===todayKey}).length;
+    var overdue=fus.filter(function(f){return String(f.status||'offen')==='offen'&&(f.dueDate||f.date)&&(f.dueDate||f.date)<todayKey}).length;
+    var demand=dueToday+overdue;
+    var perTaskMin=20;
+    var neededMin=demand*perTaskMin;
+    box.innerHTML='<h3>#53 Tageskapazitäts-Constraint-Engine</h3><p class="kkops-muted">Realistische Tagesplanung: eingetragene Akquise-/Termin-Zeit heute gegen tatsächlich fällige Follow-ups (Richtwert '+perTaskMin+' Minuten je Follow-up).</p><div class="kkops-grid kkops-four"><div><b>'+salesMinutes+'</b><span>Minuten geplant (Akquise+Termine)</span></div><div><b>'+demand+'</b><span>fällige Follow-ups heute</span></div><div><b>'+neededMin+'</b><span>Minuten geschätzter Bedarf</span></div><div><b>'+(neededMin>salesMinutes&&salesMinutes>0?'eng':(salesMinutes===0?'nicht geplant':'realistisch'))+'</b><span>Einschätzung</span></div></div>';
+  }
+
+  /* #30 Preisaktions-Guardrail: echtes Freigabe-Gate (wie #55), nicht nur ein
+     generisches Formular - eine Preissenkung >5% ohne Begruendung wird nicht
+     stillschweigend gespeichert, sondern erst nach bewusster Bestaetigung,
+     die selbst mitprotokolliert wird. */
+  var PRICE_ACTION_KEY='kk_price_actions_v1';
+  function renderPriceActions(){
+    var list=q('p1PriceActionList'); if(!list)return;
+    var items=rd(PRICE_ACTION_KEY,[]);
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Preisaktion erfasst.');return}
+    list.innerHTML=items.slice().reverse().slice(0,25).map(function(x){return '<div class="kkops-item"><strong>'+esc(x.object)+'</strong><small>'+(x.oldPrice?esc(x.oldPrice)+' € → ':'')+esc(x.newPrice)+' €'+(x.gated?' · Gate bestätigt':'')+'</small>'+(x.reason?'<p>'+esc(x.reason)+'</p>':'')+'</div>'}).join('');
+  }
+  function bindPriceActionForm(){
+    var form=q('p1PriceActionForm'); if(!form)return;
+    form.onsubmit=function(e){
+      e.preventDefault();
+      var object=q('p1paObject').value.trim(), oldPrice=Number(q('p1paOld').value)||null, newPrice=Number(q('p1paNew').value)||null, reason=q('p1paReason').value.trim();
+      if(!object||!newPrice)return;
+      var gated=false;
+      if(oldPrice&&newPrice<oldPrice*0.95&&!reason){
+        if(!confirm('Qualitaets-Hinweis:\n\nPreissenkung um mehr als 5% ohne Begründung ('+oldPrice+' € → '+newPrice+' €).\n\nTrotzdem speichern?')){return}
+        gated=true;
+      }
+      var items=rd(PRICE_ACTION_KEY,[]);
+      items.push({id:uid('priceaction'),object:object,oldPrice:oldPrice,newPrice:newPrice,reason:reason,gated:gated,createdAt:new Date().toISOString()});
+      wr(PRICE_ACTION_KEY,items); form.reset(); notify('Preisaktion gespeichert'); renderPriceActions();
+    };
+  }
+
+  function renderAllP1(){renderAllCards();renderCadenceAlerts();renderLifecycleAlerts();renderCapacityView();renderPriceActions()}
+
+  function init(){
+    bindPriceActionForm();
+    renderAllP1();
+    document.addEventListener('kk-app-tab-changed',function(ev){try{if(ev&&ev.detail&&ev.detail.tab==='backup')renderAllP1()}catch(e){}});
+  }
+  window.KK_P1_FUNKTIONEN=Object.freeze({version:'1.0',renderAll:renderAllP1,CARDS:CARDS});
+  if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('p1-masterprompt-funktionen',init,{priority:86});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<section class="kkops-section" id="p2funktionen"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P2 · 25 Funktionen</span><h2>Vertriebswerkzeuge (P2)</h2><p>Strukturierte Erfassung fuer die 25 P2-Funktionen. #20/#23 bereits durch bestehende Module bzw. #22 (P1) abgedeckt, #5/#40 teilen eine gemeinsame, aus echten Aktivitaetsdaten berechnete Ansicht.</p></div></div>
+<div id="p2ReactivationAlerts" class="kkops-card" style="margin-top:14px"></div>
+<div id="p2CardsContainer" style="margin-top:14px;display:grid;gap:14px"></div>
+</div></section>
+<script>
+(function(){
+  'use strict';
+  if(window.KK_P2_FUNKTIONEN&&window.KK_P2_FUNKTIONEN.version)return;
+  var U=window.KK_UTIL||{};
+  function esc(v){return U.esc?U.esc(v):String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]})}
+  function rd(k,fb){return U.readJSON?U.readJSON(k,fb):fb}
+  function wr(k,v){return U.writeJSON?U.writeJSON(k,v):false}
+  function uid(p){return U.uid?U.uid(p):(p+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10))}
+  function q(id){return document.getElementById(id)}
+  function notify(msg){try{if(U.toast)U.toast(msg)}catch(e){}}
+  function emptyMsg(t){return '<p class="kkops-empty">'+esc(t)+'</p>'}
+  function daysSince(iso){if(!iso)return null;var d=new Date(iso);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/86400000)}
+
+  /* Master-Prompt P2 (25 Funktionen): gleiches Muster wie P1 -
+     datengetriebene generische Karten-Engine statt Copy-Paste. #20/#23
+     brauchen keine eigene Karte (bereits durch die bestehende Ortsteil-
+     Auswertung bzw. die #22-Szenariokarte aus P1 abgedeckt). #5/#40 teilen
+     eine gemeinsame, aus echten kk_crm_activities-Daten berechnete Ansicht
+     (identischer Mechanismus fuer Eigentuemer- und Kaeuferkontakte). */
+  var CARDS=[
+    {id:'intentradar',fn:'#1',title:'Eigentümer-Intent-Radar',desc:'Nur interne, manuelle Signal-Markierung statt automatischer Mustererkennung.',key:'kk_intent_signals_v1',prefix:'intent',fields:[{name:'contact',label:'Eigentümer-Kontakt',required:true},{name:'signal',label:'Beobachtetes Signal',required:true},{name:'confidence',label:'Konfidenz',type:'select',options:['hoch','mittel','niedrig']}]},
+    {id:'saleswindow',fn:'#2',title:'Verkaufsfenster-Modell',desc:'Regelbasierte Nutzerbestätigung statt automatischer Kalibrierung.',key:'kk_sales_windows_v1',prefix:'saleswindow',fields:[{name:'contact',label:'Kontakt',required:true},{name:'timeframe',label:'Geschätztes Zeitfenster (z.B. 6-12 Monate)',required:true},{name:'confirmedBy',label:'Quelle',type:'select',options:['Kunde bestätigt','eigene Einschätzung']}]},
+    {id:'demandcount',fn:'#6',title:'Nachfrageüberhang-zu-Eigentümer-Engine',desc:'Manuelle Suchprofil-Zählung je Gebiet statt automatischer Aggregation.',key:'kk_demand_counts_v1',prefix:'demand',fields:[{name:'gebiet',label:'Gebiet/Ortsteil',required:true},{name:'searchProfileCount',label:'Anzahl passender Suchprofile',type:'number',required:true}]},
+    {id:'areachance',fn:'#7',title:'Nachbarschafts-Chancenkarte',desc:'Manuelle Gebiets-Chancen-Notiz statt automatischer Signalkarte.',key:'kk_area_chances_v1',prefix:'areachance',fields:[{name:'gebiet',label:'Gebiet/Ortsteil',required:true},{name:'chance',label:'Chance',required:true}]},
+    {id:'warroom',fn:'#9',title:'Verkäufertermin-War-Room',desc:'Druckbare Checkliste/Briefingnotiz statt automatischem Aggregator.',key:'kk_meeting_briefings_v1',prefix:'briefing',fields:[{name:'contact',label:'Kontakt',required:true},{name:'briefingNote',label:'Briefing-Notiz vor dem Termin',required:true}]},
+    {id:'decisiontwin',fn:'#10',title:'Eigentümer-Entscheidungszwilling',desc:'Regelbasierte Präferenzfelder statt KI-Hypothesen.',key:'kk_decision_preferences_v1',prefix:'decision',fields:[{name:'contact',label:'Kontakt',required:true},{name:'preference',label:'Beobachtete Präferenz'},{name:'hypothesis',label:'Arbeitshypothese'}]},
+    {id:'evidence',fn:'#11',title:'Beweis-Architekt',desc:'Manuelle Beleg-/Quellenliste statt automatischem Evidenzgraph.',key:'kk_evidence_notes_v1',prefix:'evidence',fields:[{name:'contact',label:'Kontakt/Chance',required:true},{name:'claim',label:'Behauptung/Argument',required:true},{name:'source',label:'Quelle/Beleg'}]},
+    {id:'microarea',fn:'#19',title:'Mikrolagen-DNA',desc:'Maklernotizen je Ortsteil statt automatischem Feature-Profil.',key:'kk_microarea_notes_v1',prefix:'microarea',fields:[{name:'ortsteil',label:'Ortsteil',required:true},{name:'note',label:'Notiz',required:true}]},
+    {id:'absorption',fn:'#21',title:'Marktabsorptions-Simulator',desc:'Einfache Bestands-/Nachfragezähler statt automatischer Zeitreihen-Simulation.',key:'kk_absorption_counts_v1',prefix:'absorption',fields:[{name:'gebiet',label:'Gebiet',required:true},{name:'inventoryCount',label:'Aktueller Bestand',type:'number'},{name:'demandCount',label:'Aktuelle Nachfrage',type:'number'}]},
+    {id:'marketingtwin',fn:'#25',title:'Vermarktungs-Digitalzwilling',desc:'Manuelles Vermarktungs-Aktivitätenledger je Objekt.',key:'kk_marketing_activities_v1',prefix:'marketing',fields:[{name:'object',label:'Objekt',required:true},{name:'activity',label:'Vermarktungsaktivität',required:true},{name:'outcome',label:'Ergebnis/Reaktion'}]},
+    {id:'targetfit',fn:'#27',title:'Zielgruppen-Fit-Engine',desc:'Manuelle Zielgruppen-Notiz statt automatischer Passungskriterien.',key:'kk_target_group_notes_v1',prefix:'targetfit',fields:[{name:'object',label:'Objekt',required:true},{name:'targetGroupNote',label:'Zielgruppen-Notiz',required:true}]},
+    {id:'buyersignal',fn:'#28',title:'Käufer-Signal-Heatmap',desc:'Manuelle Signal-Buttons statt automatischer Event-Erfassung.',key:'kk_buyer_signals_v1',prefix:'buyersignal',fields:[{name:'contact',label:'Käuferkontakt',required:true},{name:'signal',label:'Signal',type:'select',options:['Besichtigung erneut angefragt','Unterlagen erneut angefordert','Direkt nachgefragt','Sonstiges']}]},
+    {id:'ownerstrategy',fn:'#32',title:'Eigentümer-Strategierat',desc:'Druckbarer Wochenbericht statt automatischem StrategyReview.',key:'kk_owner_strategy_notes_v1',prefix:'strategy',fields:[{name:'contact',label:'Kontakt',required:true},{name:'weeklyNote',label:'Wochennotiz',required:true}]},
+    {id:'matchrescue',fn:'#35',title:'Verpasste-Matches-Rettung',desc:'Manueller Suchprofil-Recheck-Reminder statt automatischer Delta-Matches.',key:'kk_match_rescue_v1',prefix:'matchrescue',fields:[{name:'contact',label:'Kontakt',required:true},{name:'note',label:'Notiz (welches Objekt erneut prüfen)',required:true}]},
+    {id:'decisionwindow',fn:'#38',title:'Entscheidungsfenster-Orchestrator',desc:'Manuelles Entscheidungsfrist-Feld statt automatischer Next-Best-Action.',key:'kk_decision_deadlines_v1',prefix:'deadline',fields:[{name:'contact',label:'Käuferkontakt',required:true},{name:'deadline',label:'Entscheidungsfrist',type:'date'},{name:'note',label:'Notiz'}]},
+    {id:'multiplier',fn:'#43',title:'Lokaler Multiplikatorenindex',desc:'Manuelle Markierung ohne Personenranking.',key:'kk_multiplier_notes_v1',prefix:'multiplier',fields:[{name:'contact',label:'Kontakt',required:true},{name:'note',label:'Warum guter Multiplikator',required:true}]},
+    {id:'pathfinder',fn:'#44',title:'Introduction Pathfinder',desc:'Manuelle Verbindungssuche statt automatischem Pfad-Algorithmus.',key:'kk_intro_paths_v1',prefix:'pathfinder',fields:[{name:'contact',label:'Zielkontakt',required:true},{name:'connectionVia',label:'Erreichbar über',required:true}]},
+    {id:'community',fn:'#47',title:'Community-Connector-Map',desc:'Listenansicht ohne exakte Adressen (Datenschutz).',key:'kk_community_connectors_v1',prefix:'community',fields:[{name:'gebiet',label:'Gebiet',required:true},{name:'connectorNote',label:'Vernetzungsnotiz (keine exakte Adresse)',required:true}]},
+    {id:'ambassador',fn:'#48',title:'Nachbarschafts-Botschafterkreislauf',desc:'Manuelle Anlassliste statt automatischer Campaign-Attribution.',key:'kk_ambassador_occasions_v1',prefix:'ambassador',fields:[{name:'contact',label:'Kontakt',required:true},{name:'occasion',label:'Anlass für Ansprache',required:true}]},
+    {id:'revenuenav',fn:'#49',title:'Umsatzwirkungs-Navigator',desc:'Regelbasierte Top-3-Aufgabenliste statt automatischer Rangfolge.',key:'kk_revenue_priorities_v1',prefix:'revenuenav',fields:[{name:'task',label:'Aufgabe',required:true},{name:'priorityReason',label:'Warum jetzt wichtig',required:true}]}
+  ];
+
+  function fieldInputHtml(cardId,f){
+    var id='p2_'+cardId+'_'+f.name;
+    if(f.type==='select'){
+      return '<label>'+esc(f.label)+'<select id="'+id+'">'+f.options.map(function(o){return '<option value="'+esc(o)+'">'+esc(o)+'</option>'}).join('')+'</select></label>';
+    }
+    return '<label>'+esc(f.label)+'<input id="'+id+'" type="'+(f.type||'text')+'"'+(f.required?' required':'')+'/></label>';
+  }
+  function renderCard(card){
+    var html='<div class="kkops-card"><h3>'+esc(card.fn)+' '+esc(card.title)+'</h3><p class="kkops-muted">'+esc(card.desc)+'</p>';
+    html+='<form class="kk-form-grid" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px" data-p2-form="'+esc(card.id)+'">'+card.fields.map(function(f){return fieldInputHtml(card.id,f)}).join('')+'<div style="align-self:flex-end"><button class="kkops-btn" type="submit">Speichern</button></div></form>';
+    html+='<div class="kkops-list" id="p2_list_'+esc(card.id)+'" style="margin-top:10px"></div></div>';
+    return html;
+  }
+  function renderCardList(card){
+    var list=q('p2_list_'+card.id); if(!list)return;
+    var items=rd(card.key,[]);
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Einträge.');return}
+    list.innerHTML=items.slice().reverse().slice(0,25).map(function(x){
+      var lines=card.fields.map(function(f){return x[f.name]?('<small>'+esc(f.label)+': '+esc(x[f.name])+'</small>'):''}).join('');
+      return '<div class="kkops-item">'+lines+'</div>';
+    }).join('');
+  }
+  function bindCardForm(card){
+    var form=document.querySelector('[data-p2-form="'+card.id+'"]');
+    if(!form)return;
+    form.onsubmit=function(e){
+      e.preventDefault();
+      var item={id:uid(card.prefix),createdAt:new Date().toISOString()};
+      var missingRequired=false;
+      card.fields.forEach(function(f){
+        var el=q('p2_'+card.id+'_'+f.name);
+        var val=el?el.value.trim():'';
+        if(f.required&&!val)missingRequired=true;
+        item[f.name]=val;
+      });
+      if(missingRequired)return;
+      var items=rd(card.key,[]); items.push(item); wr(card.key,items);
+      form.reset(); notify('Gespeichert'); renderCardList(card);
+    };
+  }
+  function renderAllCards(){
+    var container=q('p2CardsContainer'); if(!container)return;
+    if(!container.dataset.built){
+      container.innerHTML=CARDS.map(renderCard).join('');
+      CARDS.forEach(bindCardForm);
+      container.dataset.built='1';
+    }
+    CARDS.forEach(renderCardList);
+  }
+
+  /* #5 Kontaktreaktivierungs-Seismograf + #40 Käufer-Abwanderungsfrühwarnung:
+     identischer Mechanismus (Tage seit letzter echter Aktivität aus
+     kk_crm_activities, fester Schwellwert statt individueller Kadenz wie
+     #42), auf Eigentuemer- bzw. Kaeuferkontakte angewendet - eine
+     gemeinsame Ansicht statt zweier fast identischer Karten. */
+  var REACTIVATION_THRESHOLD_DAYS=45;
+  function renderReactivationAlerts(){
+    var box=q('p2ReactivationAlerts'); if(!box)return;
+    var contacts=rd('kk_crm_contacts',[]);
+    var acts=rd('kk_crm_activities',[]);
+    function lastActivityDays(contact){
+      var norm=String(contact||'').toLowerCase().trim(); if(!norm)return null;
+      var matching=acts.filter(function(a){return String(a.contact||'').toLowerCase().trim()===norm});
+      if(!matching.length)return null;
+      var newest=matching.reduce(function(m,a){return (!m||new Date(a.createdAt||a.date||0)>new Date(m.createdAt||m.date||0))?a:m},null);
+      return daysSince(newest.createdAt||newest.date);
+    }
+    var stale=contacts.map(function(c){
+      var d=lastActivityDays(c.name);
+      return {contact:c,days:d};
+    }).filter(function(x){return x.days!=null&&x.days>REACTIVATION_THRESHOLD_DAYS}).sort(function(a,b){return b.days-a.days}).slice(0,15);
+    box.innerHTML='<h3>#5/#40 Kontaktreaktivierungs-/Abwanderungsradar</h3><p class="kkops-muted">Kontakte ohne Aktivität seit mehr als '+REACTIVATION_THRESHOLD_DAYS+' Tagen (Top 15, aus echten kk_crm_activities-Daten berechnet).</p>'+
+      (stale.length?stale.map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact.name||'Ohne Name')+'</strong><small>'+esc(x.days)+' Tage ohne Aktivität</small></div>'}).join(''):emptyMsg('Keine Kontakte über dem Schwellwert - oder keine Aktivitäten mit Namensbezug vorhanden.'));
+  }
+
+  function renderAllP2(){renderAllCards();renderReactivationAlerts()}
+
+  function init(){
+    renderAllP2();
+    document.addEventListener('kk-app-tab-changed',function(ev){try{if(ev&&ev.detail&&ev.detail.tab==='backup')renderAllP2()}catch(e){}});
+  }
+  window.KK_P2_FUNKTIONEN=Object.freeze({version:'1.0',renderAll:renderAllP2,CARDS:CARDS});
+  if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('p2-masterprompt-funktionen',init,{priority:87});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<section class="kkops-section" id="p3funktionen"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P3 · 5 Funktionen</span><h2>Vertriebswerkzeuge (P3)</h2><p>Fallback-Versionen der letzten 5 Funktionen. Die vollen Ausprägungen von #3/#26/#31 brauchen einen bezahlten externen Provider (Immobilien-/Marktdaten-API bzw. Portal-Webhooks) - das ist eine echte, dokumentierte Grenze, keine Verzögerung.</p></div></div>
+<div id="p3LaunchPulseAlerts" class="kkops-card" style="margin-top:14px"></div>
+<div id="p3LostDealRetro" class="kkops-card" style="margin-top:14px"></div>
+<div id="p3ConversionTwin" class="kkops-card" style="margin-top:14px"></div>
+<div id="p3CardsContainer" style="margin-top:14px;display:grid;gap:14px"></div>
+</div></section>
+<script>
+(function(){
+  'use strict';
+  if(window.KK_P3_FUNKTIONEN&&window.KK_P3_FUNKTIONEN.version)return;
+  var U=window.KK_UTIL||{};
+  function esc(v){return U.esc?U.esc(v):String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]})}
+  function rd(k,fb){return U.readJSON?U.readJSON(k,fb):fb}
+  function wr(k,v){return U.writeJSON?U.writeJSON(k,v):false}
+  function uid(p){return U.uid?U.uid(p):(p+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10))}
+  function q(id){return document.getElementById(id)}
+  function notify(msg){try{if(U.toast)U.toast(msg)}catch(e){}}
+  function emptyMsg(t){return '<p class="kkops-empty">'+esc(t)+'</p>'}
+  function daysSince(iso){if(!iso)return null;var d=new Date(iso);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/86400000)}
+
+  /* Master-Prompt P3 (letzte 5 Funktionen). #3/#26/#31 haben eine volle
+     Auspraegung, die zwingend einen bezahlten externen Provider braucht
+     (Immobilien-/Marktdatenprovider bzw. Portal-Webhooks/-APIs) - das ist
+     eine echte, im Dokument selbst benannte Grenze (ED = "nur mit
+     externem Dienst moeglich"), keine Verzoegerung dieser Session. Die
+     hier gebauten Fallback-Versionen (manueller Import/Buchung) sind
+     jedoch echt benutzbar. */
+  var CARDS=[
+    {id:'watchtower',fn:'#3',title:'Fremdvermarktungs-Watchtower (Fallback)',desc:'Manueller URL-/CSV-Import statt Live-Provider-API. Volle Ausprägung braucht einen bezahlten Immobilien-/Marktdatenprovider (Kevins Entscheidung, siehe Backlog).',key:'kk_watchtower_findings_v1',prefix:'watchtower',fields:[{name:'object',label:'Eigenes Objekt',required:true},{name:'foundUrl',label:'Gefundene Fremdvermarktung (URL/Plattform)',required:true},{name:'foundDate',label:'Gefunden am',type:'date'},{name:'note',label:'Notiz'}]},
+    {id:'channelcost',fn:'#31',title:'Kanal-Grenznutzen-Analyst (Fallback)',desc:'Manuelle Kanal-/Kostenbuchung statt automatischer Attribution. Volle Ausprägung braucht Portal-/Ad-Analytics-API (Kevins Entscheidung).',key:'kk_channel_costs_v1',prefix:'channelcost',fields:[{name:'channel',label:'Kanal',required:true},{name:'cost',label:'Kosten (€)',type:'number',required:true},{name:'period',label:'Zeitraum (z.B. Juli 2026)'},{name:'note',label:'Notiz'}]}
+  ];
+
+  function fieldInputHtml(cardId,f){
+    var id='p3_'+cardId+'_'+f.name;
+    return '<label>'+esc(f.label)+'<input id="'+id+'" type="'+(f.type||'text')+'"'+(f.required?' required':'')+'/></label>';
+  }
+  function renderCard(card){
+    var html='<div class="kkops-card"><h3>'+esc(card.fn)+' '+esc(card.title)+'</h3><p class="kkops-muted">'+esc(card.desc)+'</p>';
+    html+='<form class="kk-form-grid" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px" data-p3-form="'+esc(card.id)+'">'+card.fields.map(function(f){return fieldInputHtml(card.id,f)}).join('')+'<div style="align-self:flex-end"><button class="kkops-btn" type="submit">Speichern</button></div></form>';
+    html+='<div class="kkops-list" id="p3_list_'+esc(card.id)+'" style="margin-top:10px"></div></div>';
+    return html;
+  }
+  function renderCardList(card){
+    var list=q('p3_list_'+card.id); if(!list)return;
+    var items=rd(card.key,[]);
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Einträge.');return}
+    list.innerHTML=items.slice().reverse().slice(0,25).map(function(x){
+      var lines=card.fields.map(function(f){return x[f.name]?('<small>'+esc(f.label)+': '+esc(x[f.name])+'</small>'):''}).join('');
+      return '<div class="kkops-item">'+lines+'</div>';
+    }).join('');
+  }
+  function bindCardForm(card){
+    var form=document.querySelector('[data-p3-form="'+card.id+'"]');
+    if(!form)return;
+    form.onsubmit=function(e){
+      e.preventDefault();
+      var item={id:uid(card.prefix),createdAt:new Date().toISOString()};
+      var missingRequired=false;
+      card.fields.forEach(function(f){
+        var el=q('p3_'+card.id+'_'+f.name);
+        var val=el?el.value.trim():'';
+        if(f.required&&!val)missingRequired=true;
+        item[f.name]=val;
+      });
+      if(missingRequired)return;
+      var items=rd(card.key,[]); items.push(item); wr(card.key,items);
+      form.reset(); notify('Gespeichert'); renderCardList(card);
+    };
+  }
+  function renderAllCards(){
+    var container=q('p3CardsContainer'); if(!container)return;
+    if(!container.dataset.built){
+      container.innerHTML=CARDS.map(renderCard).join('');
+      CARDS.forEach(bindCardForm);
+      container.dataset.built='1';
+    }
+    CARDS.forEach(renderCardList);
+  }
+
+  /* #26 72-Stunden-Launch-Puls: aus den echten Vermarktungsaktivitaeten
+     (#25, kk_marketing_activities_v1 aus P2) abgeleitet statt manueller
+     Terminliste - meldet, wenn eine geloggte Aktivitaet 24/48/72h alt ist
+     und noch keinen Folge-Check-in (weiteren Eintrag zum selben Objekt
+     danach) hat. */
+  function renderLaunchPulse(){
+    var box=q('p3LaunchPulseAlerts'); if(!box)return;
+    var acts=rd('kk_marketing_activities_v1',[]);
+    var byObject={};
+    acts.forEach(function(a){(byObject[a.object]=byObject[a.object]||[]).push(a)});
+    var checkpoints=[24,48,72];
+    var due=[];
+    Object.keys(byObject).forEach(function(obj){
+      var list=byObject[obj].slice().sort(function(a,b){return new Date(a.createdAt)-new Date(b.createdAt)});
+      var first=list[0];
+      var d=daysSince(first.createdAt);
+      if(d==null)return;
+      var hours=d*24;
+      checkpoints.forEach(function(cp){
+        if(hours>=cp&&list.length<checkpoints.indexOf(cp)+2){
+          due.push({object:obj,checkpoint:cp,firstAt:first.createdAt});
+        }
+      });
+    });
+    box.innerHTML='<h3>#26 72-Stunden-Launch-Puls</h3><p class="kkops-muted">Aus echten Vermarktungsaktivitäten (#25) abgeleitet: 24/48/72h-Check-in fällig, wenn seit der ersten geloggten Aktivität entsprechend Zeit vergangen ist, aber kein weiterer Check-in folgte.</p>'+
+      (due.length?due.map(function(x){return '<div class="kkops-item"><strong>'+esc(x.object)+'</strong><small>'+esc(x.checkpoint)+'h-Check-in fällig (Start: '+esc((x.firstAt||'').slice(0,10))+')</small></div>'}).join(''):emptyMsg('Kein Launch-Check-in aktuell fällig (oder noch keine Vermarktungsaktivitäten unter #25 erfasst).'));
+  }
+
+  /* #58 Kontrafaktischer Vertriebscoach: regelbasierte Retrospektive aus
+     echten #57-Lost-Deal-Daten (kk_lost_deal_interviews_v1 aus P1) - zeigt
+     die haeufigsten Verlustgruende, kein KI-Modell noetig. */
+  function renderLostDealRetro(){
+    var box=q('p3LostDealRetro'); if(!box)return;
+    var items=rd('kk_lost_deal_interviews_v1',[]);
+    if(!items.length){box.innerHTML='<h3>#58 Kontrafaktischer Vertriebscoach (regelbasierte Retrospektive)</h3>'+emptyMsg('Noch keine Lost-Deal-Interviews (#57) erfasst.');return}
+    var counts={};
+    items.forEach(function(x){var r=x.reason||'unbekannt';counts[r]=(counts[r]||0)+1});
+    var sorted=Object.keys(counts).map(function(r){return {reason:r,count:counts[r]}}).sort(function(a,b){return b.count-a.count});
+    var reconsiderable=items.filter(function(x){return x.wouldReconsider==='ja'}).length;
+    box.innerHTML='<h3>#58 Kontrafaktischer Vertriebscoach (regelbasierte Retrospektive)</h3><p class="kkops-muted">Häufigste Verlustgründe aus '+items.length+' erfassten Lost-Deal-Interviews (#57) - keine KI, reine Häufigkeitsauswertung echter Daten.</p><div class="kkops-grid kkops-four">'+sorted.slice(0,4).map(function(x){return '<div><b>'+x.count+'</b><span>'+esc(x.reason)+'</span></div>'}).join('')+'</div>'+(reconsiderable?'<p>'+reconsiderable+' Kontakt(e) sind laut Interview später wieder ansprechbar.</p>':'');
+  }
+
+  /* #61 Persoenlicher Conversion-Zwilling: nutzt die bestehende
+     kk_conversion_metrics (bereits vorhandene Funnel-Zahlen aus dem
+     Kennzahlen-Modul) fuer einen einfachen, erklaerbaren Szenario-
+     Rechner statt eines kalibrierten KI-Modells. */
+  function renderConversionTwin(){
+    var box=q('p3ConversionTwin'); if(!box)return;
+    var v=rd('kk_conversion_metrics',{});
+    var contacts=Number(v.contacts)||0, talks=Number(v.talks)||0, appointments=Number(v.appointments)||0, won=Number(v.won)||0;
+    if(!contacts){box.innerHTML='<h3>#61 Persönlicher Conversion-Zwilling (Szenario-Rechner)</h3>'+emptyMsg('Noch keine Konversions-Kennzahlen erfasst (siehe KPI-Tab).');return}
+    var r1=talks/contacts, r2=appointments/(talks||1), r3=won/(appointments||1);
+    var improvedR1=Math.min(1,r1*1.1);
+    var projectedTalks=Math.round(contacts*improvedR1);
+    var projectedAppointments=Math.round(projectedTalks*r2);
+    var projectedWon=Math.round(projectedAppointments*r3);
+    box.innerHTML='<h3>#61 Persönlicher Conversion-Zwilling (Szenario-Rechner)</h3><p class="kkops-muted">Auf Basis der eigenen, bereits erfassten Kennzahlen (KPI-Tab): Was passiert, wenn sich die Kontakt→Gespräch-Quote um 10% relativ verbessert? Alle anderen Quoten bleiben unverändert - erklärbar, kein KI-Modell.</p><div class="kkops-grid kkops-four"><div><b>'+won+'</b><span>Aufträge aktuell</span></div><div><b>'+projectedWon+'</b><span>Aufträge im Szenario (+10% Gesprächsquote)</span></div><div><b>'+Math.round(r1*1000)/10+'%</b><span>Kontakt→Gespräch aktuell</span></div><div><b>'+Math.round(improvedR1*1000)/10+'%</b><span>Kontakt→Gespräch im Szenario</span></div></div>';
+  }
+
+  function renderAllP3(){renderAllCards();renderLaunchPulse();renderLostDealRetro();renderConversionTwin()}
+
+  function init(){
+    renderAllP3();
+    document.addEventListener('kk-app-tab-changed',function(ev){try{if(ev&&ev.detail&&ev.detail.tab==='backup')renderAllP3()}catch(e){}});
+  }
+  window.KK_P3_FUNKTIONEN=Object.freeze({version:'1.0',renderAll:renderAllP3,CARDS:CARDS});
+  if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('p3-masterprompt-funktionen',init,{priority:88});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<dialog class="kkimp-preview-dialog" id="kkImportPreviewDialog" aria-labelledby="kkImportPreviewTitle">
 <div class="kkimp-preview-head">
 <div><h3 id="kkImportPreviewTitle">Import prüfen</h3><p class="kkimp-preview-sub" id="kkImportPreviewSubtitle"></p></div>
 <button aria-label="Schließen" class="kkh-btn light" id="kkImportPreviewCloseBtn" type="button">✕</button>
@@ -11891,7 +12607,24 @@ function syncPipelineExternal(data){try{window.KKPipelineIntelligenceRefresh=ren
 function upsertExternalHost(panelSel,id,html){var panel=$(panelSel); if(!panel)return; var box=$('#'+id); if(!box){box=document.createElement('div'); box.id=id; box.className='kk-pipeline-mini-host'; var anchor=panel.querySelector('.kk-heute-shell,.kkrev-shell,.kkops-shell,.kk11-shell,.kk12-shell')||panel.firstElementChild||panel; anchor.insertBefore(box,anchor.firstChild)} box.innerHTML=html}
 function externalMini(issue,deal,title){if(!issue&&!deal)return '<strong>'+esc(title)+'</strong><span>Keine kritischen Pipeline-Engpässe erkannt.</span>'; return '<strong>'+esc(title)+': '+esc(issue?issue.headline:(deal.name||'Deal bewegen'))+'</strong><span>'+(deal?esc(deal.name||'ohne Name')+' · '+esc(deal.area||'')+' · '+euro(expected(deal))+' gewichtet · '+esc(deal.nextStep||'nächster Schritt fehlt'):'Heute priorisieren')+'</span><div class="kk-heute-actions"><button class="kk-heute-btn light" data-kk-open-tab="pipeline" type="button">Pipeline öffnen</button></div>'}
 function externalKpi(data,issues){var open=data.filter(function(x){return !isSoldSale(x)}), weighted=open.reduce(function(t,x){return t+expected(x)},0), noNext=open.filter(function(x){return !String(x.nextStep||'').trim()}).length, overdueCount=open.filter(function(x){return overdue(x.deadline||x.followUpDate)}).length; return '<strong>Pipeline-Abschlusssteuerung</strong><span>'+open.length+' offene Deals · '+euro(weighted)+' gewichtet · '+issues.length+' Engpässe</span><span>Qualitäts-KPI: '+noNext+' ohne nächsten Schritt · '+overdueCount+' überfällige Deadlines</span><div class="kk-nba-actions"><button class="kk-heute-btn light" data-kk-open-tab="pipeline" type="button">Pipeline prüfen</button></div>'}
-function handleSalesForm(){var f=$('#salesForm');if(!f)return;f.onsubmit=function(e){e.preventDefault();var id=$('#salesId').value||uid(),deadline=$('#salesFollow').value,old=sales().find(function(x){return x.id===id})||{};var item=Object.assign({},old,{id:id,name:$('#salesName').value,phone:$('#salesPhone').value,email:$('#salesEmail').value,area:$('#salesArea').value,objectLabel:($('#salesObjectLabel')?$('#salesObjectLabel').value:''),objectType:$('#salesObjectType').value,objectValue:num($('#salesObjectValue').value),commission:num($('#salesCommission').value),expectedCommission:num($('#salesCommission').value),probability:num($('#salesProbability').value),stage:normalizeSalesStage($('#salesStage').value),timeframe:$('#salesTimeframe').value,source:$('#salesSource').value,lastContact:$('#salesLast').value,lastActivity:($('#salesLastActivity')?$('#salesLastActivity').value:''),nextStep:$('#salesNext').value,followUpDate:deadline,deadline:deadline,risk:($('#salesRisk')?$('#salesRisk').value:''),blocker:($('#salesBlocker')?$('#salesBlocker').value:''),notes:$('#salesNotes').value,lossReason:$('#salesLoss').value,updatedAt:new Date().toISOString()});delete item.priority;item.manualRisk=!!item.risk;item.expectedRevenue=expected(item);if(old.stage&&old.stage!==item.stage){item.stageHistory=(old.stageHistory||[]).concat([{from:old.stage,to:item.stage,date:new Date().toISOString()}]).slice(-20);}else{item.stageHistory=old.stageHistory||[];}var data=sales().filter(function(x){return x.id!==id});data.push(item);write('kk_sales_pipeline',data);f.reset();$('#salesId').value='';$('#salesCommission').value=6000;$('#salesProbability').value=25;if($('#salesRisk'))$('#salesRisk').value='';renderAll()}}
+function handleSalesForm(){var f=$('#salesForm');if(!f)return;f.onsubmit=function(e){e.preventDefault();var id=$('#salesId').value||uid(),deadline=$('#salesFollow').value,old=sales().find(function(x){return x.id===id})||{};var item=Object.assign({},old,{id:id,name:$('#salesName').value,phone:$('#salesPhone').value,email:$('#salesEmail').value,area:$('#salesArea').value,objectLabel:($('#salesObjectLabel')?$('#salesObjectLabel').value:''),objectType:$('#salesObjectType').value,objectValue:num($('#salesObjectValue').value),commission:num($('#salesCommission').value),expectedCommission:num($('#salesCommission').value),probability:num($('#salesProbability').value),stage:normalizeSalesStage($('#salesStage').value),timeframe:$('#salesTimeframe').value,source:$('#salesSource').value,lastContact:$('#salesLast').value,lastActivity:($('#salesLastActivity')?$('#salesLastActivity').value:''),nextStep:$('#salesNext').value,followUpDate:deadline,deadline:deadline,risk:($('#salesRisk')?$('#salesRisk').value:''),blocker:($('#salesBlocker')?$('#salesBlocker').value:''),notes:$('#salesNotes').value,lossReason:$('#salesLoss').value,updatedAt:new Date().toISOString()});delete item.priority;item.manualRisk=!!item.risk;item.expectedRevenue=expected(item);
+      /* Master-Prompt Funktion #55 "Qualitaets-Gatekeeper" (P0, Fallback:
+         "Checkliste + protokollierte Entscheidung"): beim Wechsel in eine
+         kritische Stufe ohne die dafuer noetigen Pflichtangaben wird die
+         Konsequenz VOR dem Speichern gezeigt statt stillschweigend zu
+         speichern. Kein hartes Blockieren ohne Ausweg - bewusstes Bestaetigen
+         speichert trotzdem, aber die Entscheidung wird protokolliert
+         (kk_crm_activities), nicht nur die Blockade umgangen. */
+      if(old.stage!==item.stage){
+        var gateIssue='';
+        if(item.stage==='Verkaufsauftrag angeboten'&&!String(item.nextStep||'').trim())gateIssue='Verkaufsauftrag wird als "angeboten" gespeichert, aber es ist kein naechster Schritt hinterlegt - die Chance verliert damit sofort ihre Sichtbarkeit im Heute-Tab.';
+        else if(item.stage==='Verkauft'&&!num(item.commission||item.expectedCommission))gateIssue='Chance wird als "Verkauft" markiert, aber keine Provision hinterlegt - taucht dann nirgends im Umsatz-Forecast auf.';
+        if(gateIssue){
+          if(!confirm('Qualitaets-Hinweis:\n\n'+gateIssue+'\n\nTrotzdem speichern?')){return}
+          try{var gateActs=arr('kk_crm_activities');gateActs.unshift({id:uid('act'),date:new Date().toISOString().slice(0,10),contactId:'',contact:item.name||'',type:'Qualitaets-Gate uebersteuert',channel:'',result:gateIssue,nextStep:'',followUpDate:'',note:'Bewusst ohne Pflichtangabe gespeichert (Stufe: '+item.stage+').',createdAt:new Date().toISOString()});write('kk_crm_activities',gateActs)}catch(e){}
+        }
+      }
+      if(old.stage&&old.stage!==item.stage){item.stageHistory=(old.stageHistory||[]).concat([{from:old.stage,to:item.stage,date:new Date().toISOString()}]).slice(-20);}else{item.stageHistory=old.stageHistory||[];}var data=sales().filter(function(x){return x.id!==id});data.push(item);write('kk_sales_pipeline',data);f.reset();$('#salesId').value='';$('#salesCommission').value=6000;$('#salesProbability').value=25;if($('#salesRisk'))$('#salesRisk').value='';renderAll()}}
 function bindSalesActions(){$all('[data-del-sales]').forEach(function(b){b.onclick=function(){if(confirm('Diese Verkaufschance wirklich löschen? Dieser Schritt kann nicht rückgängig gemacht werden.')){write('kk_sales_pipeline',sales().filter(function(x){return x.id!==b.dataset.delSales}));renderAll()}}});$all('[data-edit-sales]').forEach(function(b){b.onclick=function(){var x=sales().find(function(y){return y.id===b.dataset.editSales});if(!x)return;var map={salesId:'id',salesName:'name',salesPhone:'phone',salesEmail:'email',salesArea:'area',salesObjectLabel:'objectLabel',salesObjectType:'objectType',salesObjectValue:'objectValue',salesCommission:'commission',salesProbability:'probability',salesStage:'stage',salesTimeframe:'timeframe',salesSource:'source',salesLast:'lastContact',salesLastActivity:'lastActivity',salesNext:'nextStep',salesFollow:'deadline',salesBlocker:'blocker',salesNotes:'notes',salesLoss:'lossReason'};Object.keys(map).forEach(function(id){var el=$('#'+id);if(el)el.value=x[map[id]]||''});if($('#salesRisk'))$('#salesRisk').value=x.manualRisk?(x.risk||''):'';location.hash='#verkaufsauftrags-pipeline'}})}
 function renderValuations(){var data=valuations().sort(function(a,b){return (overdue(a.followUpDate)?0:1)-(overdue(b.followUpDate)?0:1)}); var risk=data.filter(function(x){return x.status==='durchgeführt'&&!x.followUpDate}); $('#valuationStats')&&($('#valuationStats').innerHTML=[statCard(data.length,'Termine gesamt'),statCard(data.filter(function(x){return x.status==='vereinbart'}).length,'vereinbart'),statCard(risk.length,'durchgeführt ohne Nachfassung'),statCard(euro(data.reduce(function(t,x){return t+expected(x)},0)),'gewichteter Forecast')].join('')); var el=$('#valuationList'); if(el)el.innerHTML=data.length?data.map(function(x){var risk=x.status==='durchgeführt'&&!x.followUpDate; return '<div class="kkops-item"><strong>'+esc(x.name||'Ohne Name')+' <span class="kkops-pill '+(risk?'red':'')+'">'+esc(x.status||'')+'</span></strong><small>'+esc(x.area||'')+' · '+esc(x.date||'kein Datum')+' · '+euro(expected(x))+'</small><p>Nächster Schritt: '+esc(x.nextStep||'FEHLT')+' · Follow-up: '+esc(x.followUpDate||'FEHLT')+'</p>'+(risk?'<div class="kkops-alert">Bewertung durchgeführt, aber kein nächstes Follow-up eingetragen. Vorschlag: +1 Tag Danke, +3 Tage Vorgehen, +7 Tage Entscheidung, +14 Tage Einwand, +30 Tage Reaktivierung.</div>':'')+'<div class="kkops-item-actions"><button class="kkops-btn light" data-edit-val="'+esc(x.id)+'">Bearbeiten</button><button class="kkops-btn danger" data-del-val="'+esc(x.id)+'">Löschen</button></div></div>'}).join(''):empty('Noch keine Bewertungstermine erfasst.'); bindValActions()}
 function handleValuationForm(){var f=$('#valuationForm'); if(!f)return; f.onsubmit=function(e){e.preventDefault(); var id=$('#valuationId').value||uid(); var item={id:id,name:$('#valuationName').value,address:$('#valuationAddress').value,area:$('#valuationArea').value,objectType:$('#valuationObject').value,status:$('#valuationStatus').value,date:$('#valuationDate').value,value:num($('#valuationValue').value),motivation:$('#valuationMotivation').value,timeframe:$('#valuationTimeframe').value,competitor:$('#valuationCompetitor').value,docs:$('#valuationDocs').value,followUpDate:$('#valuationFollow').value,nextStep:$('#valuationNext').value,commission:num($('#valuationCommission').value),probability:num($('#valuationProbability').value),lossReason:$('#valuationLoss').value,notes:$('#valuationNotes').value,updatedAt:new Date().toISOString()}; var data=valuations().filter(function(x){return x.id!==id}); data.push(item); write('kk_valuation_pipeline',data); f.reset(); $('#valuationId').value=''; $('#valuationCommission').value=6000; $('#valuationProbability').value=25; renderAll()}}
@@ -11905,7 +12638,15 @@ function renderConversion(){var v=read('kk_conversion_metrics',{}); var r1=rate(
 function handleReviews(){handleSimpleReview('weekForm','kk_weekly_reviews',['weekKey','weekCalls','weekContacts','weekTalks','weekAppointments','weekOpportunities','weekFollowups','weekReferrals','weekWon','weekBottleneck','weekBestSource','weekDecisive'],'weekList'); handleSimpleReview('monthForm','kk_monthly_reviews',['monthKey','monthWon','monthLost','monthTopSource','monthWeakSource','monthBestArea','monthWeakArea','monthWaste','monthImprove'],'monthList')}
 function handleSimpleReview(formId,key,ids,listId){var f=$('#'+formId); if(!f)return; f.onsubmit=function(e){e.preventDefault(); var o={id:uid(),createdAt:new Date().toISOString()}; ids.forEach(function(id){var el=$('#'+id); o[id]=el?el.value:''}); var d=arr(key); d.unshift(o); write(key,d); f.reset(); renderSimpleReview(key,ids,listId)}; renderSimpleReview(key,ids,listId)}
 function renderSimpleReview(key,ids,listId){var d=arr(key); var el=$('#'+listId); if(!el)return; el.innerHTML=d.length?d.slice(0,10).map(function(x){return '<div class="kkops-item"><strong>'+esc(x[ids[0]]||'Review')+'</strong><small>'+esc(x.createdAt||'')+'</small><p>'+esc((x[ids[ids.length-1]]||x[ids[ids.length-2]]||'').slice(0,240))+'</p><div class="kkops-item-actions"><button class="kkops-btn danger" data-del-review="'+esc(key)+'|'+esc(x.id)+'">Löschen</button></div></div>'}).join(''):empty('Noch keine Reviews gespeichert.'); $all('[data-del-review]').forEach(function(b){b.onclick=function(){var parts=b.dataset.delReview.split('|'); write(parts[0],arr(parts[0]).filter(function(x){return x.id!==parts[1]})); renderAll()}})}
-function scanData(){var crm=arr('kk_crm_contacts'); var queue=[]; var badWords=/\[prüfen\]|\[ergänzen\]|unbekannt|keine Angabe|vor Kontakt prüfen/i; crm.forEach(function(c,i){var name=c.name||c.Name||c.firma||c.company||''; var phone=c.phone||c.telefon||c.Telefon||''; var email=c.email||c.mail||c['E-Mail']||''; var area=c.area||c.gebiet||c.Gebiet||''; var category=c.category||c.kategorie||c.Kategorie||''; var notes=[c.notes,c.notizen,c.Notizen,c.nextAction,c.nextStep].join(' '); function add(problem,prio){queue.push({id:'dq_'+i+'_'+queue.length,contact:name||('Kontakt '+(i+1)),problem:problem,action:'Recherche / CRM korrigieren',priority:prio||'B',done:false})} if(!name)add('Name fehlt','A'); if(!phone)add('Telefonnummer fehlt','A'); if(phone&&String(phone).replace(/\D/g,'').length<6)add('Telefonnummer wirkt ungültig','A'); if(!email)add('E-Mail fehlt','B'); if(/https?:|www\./i.test(email))add('Website steht vermutlich im E-Mail-Feld','A'); if(!area)add('Gebiet fehlt','B'); if(!category)add('Kategorie fehlt','B'); if(badWords.test(notes)||badWords.test(String(phone))||badWords.test(String(email)))add('Platzhalterdaten / prüfen-Markierung vorhanden','A'); if(!(c.nextStep||c.nextAction))add('Kein nächster Schritt','B'); if(!(c.followUpDate||c.wiedervorlage))add('Kein Follow-up-Datum','B')}); write('kk_data_quality_queue',queue); renderDataQuality()}
+function scanData(){var crm=arr('kk_crm_contacts'); var queue=[]; var badWords=/\[prüfen\]|\[ergänzen\]|unbekannt|keine Angabe|vor Kontakt prüfen/i; crm.forEach(function(c,i){var name=c.name||c.Name||c.firma||c.company||''; var phone=c.phone||c.telefon||c.Telefon||''; var email=c.email||c.mail||c['E-Mail']||''; var area=c.area||c.gebiet||c.Gebiet||''; var category=c.category||c.kategorie||c.Kategorie||''; var notes=[c.notes,c.notizen,c.Notizen,c.nextAction,c.nextStep].join(' '); function add(problem,prio,src){queue.push({id:'dq_'+i+'_'+queue.length,contact:name||('Kontakt '+(i+1)),problem:problem,action:'Recherche / CRM korrigieren',priority:prio||'B',source:src||'kontakt',done:false})} if(!name)add('Name fehlt','A'); if(!phone)add('Telefonnummer fehlt','A'); if(phone&&String(phone).replace(/\D/g,'').length<6)add('Telefonnummer wirkt ungültig','A'); if(!email)add('E-Mail fehlt','B'); if(/https?:|www\./i.test(email))add('Website steht vermutlich im E-Mail-Feld','A'); if(!area)add('Gebiet fehlt','B'); if(!category)add('Kategorie fehlt','B'); if(badWords.test(notes)||badWords.test(String(phone))||badWords.test(String(email)))add('Platzhalterdaten / prüfen-Markierung vorhanden','A'); if(!(c.nextStep||c.nextAction))add('Kein nächster Schritt','B'); if(!(c.followUpDate||c.wiedervorlage))add('Kein Follow-up-Datum','B')});
+  /* Master-Prompt Funktion #54 "Datenintegritaets-Sentinel": read-only,
+     entitaetsuebergreifende Referenz-/Duplikatpruefung obendrauf, statt eines
+     zweiten parallelen Moduls. Keine destruktiven Auto-Fixes (nur Meldung). */
+  var crmIds=Object.create(null); crm.forEach(function(c){if(c.id)crmIds[c.id]=c.name||c.Name||''});
+  var phoneGroups=Object.create(null); crm.forEach(function(c,i){var p=String(c.phone||c.telefon||c.Telefon||'').replace(/\D/g,''); if(p.length<6)return; (phoneGroups[p]=phoneGroups[p]||[]).push({i:i,name:c.name||c.Name||('Kontakt '+(i+1))})});
+  Object.keys(phoneGroups).forEach(function(p){var g=phoneGroups[p]; if(g.length<2)return; g.forEach(function(entry){var others=g.filter(function(e){return e.i!==entry.i}).map(function(e){return e.name}).join(', '); queue.push({id:'dq_dup_'+p+'_'+entry.i,contact:entry.name,problem:'Telefonnummer identisch mit: '+others+' (mögliches Duplikat)',action:'Kontakte pruefen und ggf. zusammenfuehren',priority:'B',source:'duplikat',done:false})})});
+  var fus=arr('kk_followups'); fus.forEach(function(f,i){if(!f.contactId)return; if(crmIds[f.contactId]!=null)return; queue.push({id:'dq_fu_'+i,contact:f.name||f.contactName||f.contact||('Follow-up '+(i+1)),problem:'Follow-up verweist auf unbekannten/geloeschten Kontakt (contactId "'+f.contactId+'")',action:'Follow-up pruefen: Kontakt wiederherstellen oder Follow-up bereinigen',priority:'A',source:'follow-up',done:false})});
+  write('kk_data_quality_queue',queue); renderDataQuality()}
 function renderDataQuality(){var q=arr('kk_data_quality_queue'); $('#dataStats')&&($('#dataStats').innerHTML=[statCard(q.length,'Probleme gesamt'),statCard(q.filter(function(x){return x.priority==='A'}).length,'A-Priorität'),statCard(q.filter(function(x){return x.done}).length,'erledigt'),statCard(Math.max(0,q.length-q.filter(function(x){return x.done}).length),'offen')].join('')); var el=$('#dataQueue'); if(el)el.innerHTML=q.length?q.map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+' <span class="kkops-pill '+(x.priority==='A'?'red':'')+'">'+esc(x.priority)+'</span></strong><small>'+esc(x.problem)+'</small><p>'+esc(x.action)+'</p></div>'}).join(''):empty('Noch keine Recherche-Warteschlange. Klicke auf „CRM prüfen“.')}
 function handleTime(){var f=$('#timeForm'); var key='kk_time_budget'; var elDate=$('#timeDate'); if(elDate)elDate.value=todayKey; if(f)f.onsubmit=function(e){e.preventDefault(); var d=read(key,{}); d[$('#timeDate').value||todayKey]={acq:num($('#timeAcq').value),appointments:num($('#timeAppointments').value),system:num($('#timeSystem').value),network:num($('#timeNetwork').value),admin:num($('#timeAdmin').value),learning:num($('#timeLearning').value),updatedAt:new Date().toISOString()}; write(key,d); renderTime()}; renderTime()}
 function renderTime(){var d=read('kk_time_budget',{}); var x=d[$('#timeDate')?$('#timeDate').value:todayKey]||{}; var total=['acq','appointments','system','network','admin','learning'].reduce(function(t,k){return t+num(x[k])},0); var salesTime=num(x.acq)+num(x.appointments); var salesPct=total?salesTime/total*100:0; var warnings=[]; if(num(x.system)>num(x.acq))warnings.push('Achtung: Du verwaltest mehr als du verkaufst.'); if(num(x.learning)>0&&num(x.acq)===0)warnings.push('Achtung: Strategie ersetzt keine Eigentümergespräche.'); var el=$('#timeResult'); if(el)el.innerHTML='<h3>Auswertung heute</h3><p>Akquise + Termine: <b>'+pct(salesPct)+'</b> der erfassten Zeit. Ziel in der Aufbauphase: 60–70 %.</p>'+(warnings.length?warnings.map(function(w){return '<div class="kkops-alert">'+esc(w)+'</div>'}).join(''):'<div class="kkops-alert green">Zeitbudget aktuell unkritisch.</div>')}
@@ -12793,7 +13534,7 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
        secondary steuert ausschliesslich, wo er im Desktop-Menü erscheint. */
     {id:'ki-prompts',label:'KI-Prompts',panelId:'kk-app-panel-ki-prompts',primary:true,secondary:true,mobile:false,anchors:['ki-prompt-assistent','kkaiForm']},
     {id:'kpis',label:'KPIs',panelId:'kk-app-panel-kpis',primary:true,secondary:true,mobile:false,anchors:['conversion-cockpit','wochenreview','monatsreview','monatsmodus','zeitbudget','kpi','business','conversionForm','weekForm','monthForm','timeForm']},
-    {id:'backup',label:'Backup',panelId:'kk-app-panel-backup',primary:true,secondary:true,mobile:false,anchors:['kk-technical-backup','master-os','datenqualitaet','kkTechExportFull','kkTechExportModule','kkTechSmokeTest','kkTechImportFile','kkTechImportMode','kkTechImportRun','kkTechStatus','kkTechToast']},
+    {id:'backup',label:'Backup',panelId:'kk-app-panel-backup',primary:true,secondary:true,mobile:false,anchors:['kk-technical-backup','master-os','datenqualitaet','p0funktionen','p0transaktionen','p0besichtigung','p0finanzierung','p0schnellerfassung','p0einwaende','p1funktionen','p2funktionen','p3funktionen','kkTechExportFull','kkTechExportModule','kkTechSmokeTest','kkTechImportFile','kkTechImportMode','kkTechImportRun','kkTechStatus','kkTechToast']},
     {id:'skripte',label:'Archiv: Skripte',panelId:'kk-app-panel-skripte',primary:false,mobile:false,anchors:['skripte','einwaende','kk_scripts_module']},
     /* KK-PHASE1-SICHTBARKEIT: primary:true, damit "Archiv: Wissen" im regulären Hauptmenü erscheint statt nur
        versteckt unter dem Backup-Tab erreichbar zu sein. Label, Panel, Anchors und Archiv-Charakter unverändert. */
@@ -16725,7 +17466,7 @@ var configs={
   tippgeber:{title:'Tippgeber',desc:'Netzwerkpartner, Empfehlungen und laufende Tippgeberkontakte verwalten.',color:'#182C46',soft:'#EAEDF2',icon:'network',sections:[['tippgeber-pipeline','Pipeline'],['kk-referral-machine-v20','Tippgeber-Maschine'],['netzwerk','Netzwerk'],['tippgeber-system','System']]},
   'ki-prompts':{title:'KI-Prompts',desc:'Nachrichten, Gesprächsvorbereitung und Formulierungen aus echten Situationen erzeugen.',color:'#182C46',soft:'#EAEDF2',icon:'spark',sections:[['ki-prompt-assistent','Promptgenerator']]},
   kpis:{title:'KPIs & Zielkontrolle',desc:'Aktivität, Conversion, Wochen- und Monatsleistung in einer kompakten Übersicht.',color:'#182C46',soft:'#EAEDF2',icon:'chart',sections:[['kk-command-center-overview','Übersicht'],['conversion-cockpit','Conversion'],['wochenreview','Woche'],['monatsreview','Monat'],['zeitbudget','Zeitbudget'],['kpi','Ziele'],['business','Business'],['monatsmodus','Monatsmodus']]},
-  backup:{title:'Backup & System',desc:'Daten sichern, importieren, prüfen und technische Werkzeuge kontrolliert nutzen.',color:'#182C46',soft:'#EAEDF2',icon:'shield',sections:[['kk-technical-backup','Sicherung'],['datenqualitaet','Datenqualität'],['master-os','Master-OS'],['kk-akademie-archiv-handoff','Archiv']]}
+  backup:{title:'Backup & System',desc:'Daten sichern, importieren, prüfen und technische Werkzeuge kontrolliert nutzen.',color:'#182C46',soft:'#EAEDF2',icon:'shield',sections:[['kk-technical-backup','Sicherung'],['datenqualitaet','Datenqualität'],['p0funktionen','Zusagen & Vertriebswerkzeuge'],['p1funktionen','Vertriebswerkzeuge P1'],['p2funktionen','Vertriebswerkzeuge P2'],['p3funktionen','Vertriebswerkzeuge P3'],['master-os','Master-OS'],['kk-akademie-archiv-handoff','Archiv']]}
 };
 function icon(name){var p={
  target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M22 12h-3M12 22v-3M2 12h3"/>',

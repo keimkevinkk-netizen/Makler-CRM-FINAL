@@ -22,6 +22,12 @@ jobs:
       - name: Syntax-check Netlify Functions
         run: npm run check:functions
 
+      - name: Lint (netlify/functions + tests)
+        run: npm run lint
+
+      - name: Dependency audit (fails on high/critical)
+        run: npm audit --audit-level=high
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
@@ -55,3 +61,18 @@ jobs:
 
       - name: E2E - test-chart-canvas-reuse.js
         run: node tests/e2e/test-chart-canvas-reuse.js
+
+      - name: E2E - test-data-quality-sentinel.js
+        run: node tests/e2e/test-data-quality-sentinel.js
+
+      - name: E2E - test-masterprompt-p0.js
+        run: node tests/e2e/test-masterprompt-p0.js
+
+      - name: E2E - test-masterprompt-p1.js
+        run: node tests/e2e/test-masterprompt-p1.js
+
+      - name: E2E - test-masterprompt-p2.js
+        run: node tests/e2e/test-masterprompt-p2.js
+
+      - name: E2E - test-masterprompt-p3.js
+        run: node tests/e2e/test-masterprompt-p3.js

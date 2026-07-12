@@ -487,6 +487,466 @@
       "notes": "BORIS-/ALKIS-WMS-Layerauswahl-Cache (kk-official-gis-v1-js, PR #7). v2 statt v1, weil der Layer-Parser nach dem Live-Test grundlegend gefixt wurde und ein alter v1-Cache-Eintrag mit dem damaligen fehlerhaften Ergebnis nicht weiterverwendet werden darf. Nachtraeglich in die Registry aufgenommen (Master-Prompt-Live-Audit vom 11.07.2026 fand die Luecke)."
     },
     {
+      "key": "kk_commitments_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "Commitment[] ({id, contact, text, due, status, createdAt, fulfilledAt, fulfillmentNote})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #16/#51 (Zusagen-Ledger / Kontaktversprechen-Waechter). Inhalt nach Anlage nicht editierbar, nur Status bewegt sich einmalig vorwaerts (offen -> erfuellt/gebrochen)."
+    },
+    {
+      "key": "kk_transactions_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "Transaction[] ({id, dealId, contact, area, objectLabel, price, commission, source, closedAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #17 (Transaktionswahrheits-Ledger). Automatisch aus kk_sales_pipeline abgeleitet, sobald eine Chance die Stufe 'Verkauft' erreicht - getrennt von Angebotspreisen in KK_MARKET_OBS."
+    },
+    {
+      "key": "kk_viewing_debriefs_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "ViewingDebrief[] ({id, contact, object, interest, objection, next, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #36 (Besichtigungs-Intelligence-Capture)."
+    },
+    {
+      "key": "kk_financing_status_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "FinancingStatus[] ({id, contact, status, blocker, updatedAt}) - je Kontakt ein aktueller Stand",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #39 (Finanzierungs-Reibungsradar). Bewusst nur Status+Blocker, keine Bank-/Kreditdetails."
+    },
+    {
+      "key": "kk_quick_capture_inbox_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "QuickCaptureItem[] ({id, text, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #56 (Feldsignal-Sofortfaenger). Unzugeordneter Text-Eingang, spaeter manuell einem Kontakt zuordenbar."
+    },
+    {
+      "key": "kk_objection_outcomes_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "ObjectionOutcome[] ({id, objectionId, objectionText, contact, outcome, usedAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #59/#60 (Einwand-Genom / Interventionsgedaechtnis). Kuratierte Einwand-Bibliothek selbst ist eine statische Konstante im Code, nicht Teil dieses Storage-Keys."
+    },
+    {
+      "key": "kk_owner_portfolios_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "OwnerPortfolioEntry[] ({id, contact, property, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #4 Portfolio-Eigentuemer-Graph. Manuelle Liste statt automatischer Graph-Query."
+    },
+    {
+      "key": "kk_intro_chains_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "IntroChainEntry[] ({id, contact, introducedBy, date, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #8 Empfehlungs-Kettenradar. Manuelle Intro-Verknuepfung."
+    },
+    {
+      "key": "kk_competitor_notes_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "CompetitorNote[] ({id, contact, competitor, differentiator, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #13 Wettbewerber-Abwehrkarte."
+    },
+    {
+      "key": "kk_objection_premortem_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ObjectionPremortem[] ({id, contact, expectedObjection, plannedResponse, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #14 Einwand-Pre-Mortem."
+    },
+    {
+      "key": "kk_comparable_selections_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ComparableSelection[] ({id, object, comparableAddress, reason, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #18 Vergleichsobjekt-Evidenzgraph."
+    },
+    {
+      "key": "kk_price_scenarios_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "PriceScenario[] ({id, object, assumption, resultNote, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #22 Preisrealitaets-Stresstest / #23 Kontrafaktisches Preislabor (kombiniert)."
+    },
+    {
+      "key": "kk_stagnation_causes_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "StagnationCause[] ({id, dealContact, cause, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #29 Stagnations-Autopsie."
+    },
+    {
+      "key": "kk_price_actions_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "PriceAction[] ({id, object, oldPrice, newPrice, reason, gated, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #30 Preisaktions-Guardrail. Echtes Freigabe-Gate: Preissenkung >5% ohne Begruendung erfordert bewusste Bestaetigung (gated:true)."
+    },
+    {
+      "key": "kk_buyer_readiness_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "BuyerReadiness[] ({id, contact, financing, timeframe, motivation, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #33 Kaeufer-Reife-Fingerabdruck."
+    },
+    {
+      "key": "kk_profile_change_log_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ProfileChange[] ({id, contact, change, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #34 Suchprofil-Evolutionsdetektor."
+    },
+    {
+      "key": "kk_relationships_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "Relationship[] ({id, contactA, contactB, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #41 Beziehungskapital-Graph."
+    },
+    {
+      "key": "kk_contact_cadence_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ContactCadence[] ({id, contact, desiredDays, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #42 Beziehungs-Abkuehlungsalarm. Ist-Wert wird aus kk_crm_activities live berechnet, nicht gespeichert."
+    },
+    {
+      "key": "kk_referral_moments_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ReferralMoment[] ({id, contact, action, status, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #45 Empfehlungsmoment-Detektor / #63 Kundenbotschafter-Engine (kombiniert)."
+    },
+    {
+      "key": "kk_reciprocity_ledger_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ReciprocityEntry[] ({id, partner, contribution, direction, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #46 Fairness- und Gegenseitigkeitsledger."
+    },
+    {
+      "key": "kk_deferral_flags_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "DeferralFlag[] ({id, contact, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #50 Aufschubmuster-Unterbrecher."
+    },
+    {
+      "key": "kk_conversation_facts_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ConversationFact[] ({id, contact, fact, source, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #52 Gespraechskohaerenz-Gedaechtnis."
+    },
+    {
+      "key": "kk_lost_deal_interviews_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "LostDealInterview[] ({id, contact, reason, competitor, wouldReconsider, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #57 Lost-Deal-Blackbox."
+    },
+    {
+      "key": "kk_service_complaints_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ServiceComplaint[] ({id, contact, issue, escalationDate, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #64 Service-Recovery-Radar."
+    },
+    {
+      "key": "kk_intent_signals_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "IntentSignal[] ({id, contact, signal, confidence, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #1 Eigentuemer-Intent-Radar."
+    },
+    {
+      "key": "kk_sales_windows_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "SalesWindow[] ({id, contact, timeframe, confirmedBy, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #2 Verkaufsfenster-Modell."
+    },
+    {
+      "key": "kk_demand_counts_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "DemandCount[] ({id, gebiet, searchProfileCount, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #6 Nachfrageueberhang-zu-Eigentuemer-Engine."
+    },
+    {
+      "key": "kk_area_chances_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "AreaChance[] ({id, gebiet, chance, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #7 Nachbarschafts-Chancenkarte."
+    },
+    {
+      "key": "kk_meeting_briefings_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "MeetingBriefing[] ({id, contact, briefingNote, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #9 Verkaeufertermin-War-Room."
+    },
+    {
+      "key": "kk_decision_preferences_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "DecisionPreference[] ({id, contact, preference, hypothesis, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #10 Eigentuemer-Entscheidungszwilling."
+    },
+    {
+      "key": "kk_evidence_notes_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "EvidenceNote[] ({id, contact, claim, source, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #11 Beweis-Architekt."
+    },
+    {
+      "key": "kk_microarea_notes_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "MicroAreaNote[] ({id, ortsteil, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #19 Mikrolagen-DNA."
+    },
+    {
+      "key": "kk_absorption_counts_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "AbsorptionCount[] ({id, gebiet, inventoryCount, demandCount, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #21 Marktabsorptions-Simulator."
+    },
+    {
+      "key": "kk_marketing_activities_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "MarketingActivity[] ({id, object, activity, outcome, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #25 Vermarktungs-Digitalzwilling."
+    },
+    {
+      "key": "kk_target_group_notes_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "TargetGroupNote[] ({id, object, targetGroupNote, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #27 Zielgruppen-Fit-Engine."
+    },
+    {
+      "key": "kk_buyer_signals_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "BuyerSignal[] ({id, contact, signal, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #28 Kaeufer-Signal-Heatmap."
+    },
+    {
+      "key": "kk_owner_strategy_notes_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "OwnerStrategyNote[] ({id, contact, weeklyNote, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #32 Eigentuemer-Strategierat."
+    },
+    {
+      "key": "kk_match_rescue_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "MatchRescueNote[] ({id, contact, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #35 Verpasste-Matches-Rettung."
+    },
+    {
+      "key": "kk_decision_deadlines_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "DecisionDeadline[] ({id, contact, deadline, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #38 Entscheidungsfenster-Orchestrator."
+    },
+    {
+      "key": "kk_multiplier_notes_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "MultiplierNote[] ({id, contact, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #43 Lokaler Multiplikatorenindex. Bewusst ohne Ranking-Feld (Fairness-Anforderung des Master-Prompts)."
+    },
+    {
+      "key": "kk_intro_paths_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "IntroPath[] ({id, contact, connectionVia, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #44 Introduction Pathfinder."
+    },
+    {
+      "key": "kk_community_connectors_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "CommunityConnectorNote[] ({id, gebiet, connectorNote, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #47 Community-Connector-Map. Bewusst ohne exakte Adressfelder (Datenschutz)."
+    },
+    {
+      "key": "kk_ambassador_occasions_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "AmbassadorOccasion[] ({id, contact, occasion, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #48 Nachbarschafts-Botschafterkreislauf."
+    },
+    {
+      "key": "kk_revenue_priorities_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "RevenuePriority[] ({id, task, priorityReason, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #49 Umsatzwirkungs-Navigator."
+    },
+    {
+      "key": "kk_watchtower_findings_v1",
+      "owner": "p3-masterprompt-funktionen",
+      "entity": "WatchtowerFinding[] ({id, object, foundUrl, foundDate, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #3 Fremdvermarktungs-Watchtower (Fallback: manueller URL-/CSV-Import). Volle Auspraegung braucht bezahlten Immobilien-/Marktdatenprovider - echt blockiert, siehe docs/prd/08-masterprompt-backlog.md."
+    },
+    {
+      "key": "kk_channel_costs_v1",
+      "owner": "p3-masterprompt-funktionen",
+      "entity": "ChannelCost[] ({id, channel, cost, period, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #31 Kanal-Grenznutzen-Analyst (Fallback: manuelle Kanal-/Kostenbuchung). Volle Auspraegung braucht Portal-/Ad-Analytics-API - echt blockiert."
+    },
+    {
       "key": "kk_owner_opportunities",
       "owner": "pipeline",
       "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
