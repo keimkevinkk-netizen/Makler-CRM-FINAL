@@ -22,6 +22,12 @@ jobs:
       - name: Syntax-check Netlify Functions
         run: npm run check:functions
 
+      - name: Lint (netlify/functions + tests)
+        run: npm run lint
+
+      - name: Dependency audit (fails on high/critical)
+        run: npm audit --audit-level=high
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
