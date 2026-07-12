@@ -11991,6 +11991,155 @@ Wenn du eine Immobilie im Main-Kinzig-Kreis besitzt und nicht sicher bist, ob od
   if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('p2-masterprompt-funktionen',init,{priority:87});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+<section class="kkops-section" id="p3funktionen"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P3 · 5 Funktionen</span><h2>Vertriebswerkzeuge (P3)</h2><p>Fallback-Versionen der letzten 5 Funktionen. Die vollen Ausprägungen von #3/#26/#31 brauchen einen bezahlten externen Provider (Immobilien-/Marktdaten-API bzw. Portal-Webhooks) - das ist eine echte, dokumentierte Grenze, keine Verzögerung.</p></div></div>
+<div id="p3LaunchPulseAlerts" class="kkops-card" style="margin-top:14px"></div>
+<div id="p3LostDealRetro" class="kkops-card" style="margin-top:14px"></div>
+<div id="p3ConversionTwin" class="kkops-card" style="margin-top:14px"></div>
+<div id="p3CardsContainer" style="margin-top:14px;display:grid;gap:14px"></div>
+</div></section>
+<script>
+(function(){
+  'use strict';
+  if(window.KK_P3_FUNKTIONEN&&window.KK_P3_FUNKTIONEN.version)return;
+  var U=window.KK_UTIL||{};
+  function esc(v){return U.esc?U.esc(v):String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]})}
+  function rd(k,fb){return U.readJSON?U.readJSON(k,fb):fb}
+  function wr(k,v){return U.writeJSON?U.writeJSON(k,v):false}
+  function uid(p){return U.uid?U.uid(p):(p+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10))}
+  function q(id){return document.getElementById(id)}
+  function notify(msg){try{if(U.toast)U.toast(msg)}catch(e){}}
+  function emptyMsg(t){return '<p class="kkops-empty">'+esc(t)+'</p>'}
+  function daysSince(iso){if(!iso)return null;var d=new Date(iso);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/86400000)}
+
+  /* Master-Prompt P3 (letzte 5 Funktionen). #3/#26/#31 haben eine volle
+     Auspraegung, die zwingend einen bezahlten externen Provider braucht
+     (Immobilien-/Marktdatenprovider bzw. Portal-Webhooks/-APIs) - das ist
+     eine echte, im Dokument selbst benannte Grenze (ED = "nur mit
+     externem Dienst moeglich"), keine Verzoegerung dieser Session. Die
+     hier gebauten Fallback-Versionen (manueller Import/Buchung) sind
+     jedoch echt benutzbar. */
+  var CARDS=[
+    {id:'watchtower',fn:'#3',title:'Fremdvermarktungs-Watchtower (Fallback)',desc:'Manueller URL-/CSV-Import statt Live-Provider-API. Volle Ausprägung braucht einen bezahlten Immobilien-/Marktdatenprovider (Kevins Entscheidung, siehe Backlog).',key:'kk_watchtower_findings_v1',prefix:'watchtower',fields:[{name:'object',label:'Eigenes Objekt',required:true},{name:'foundUrl',label:'Gefundene Fremdvermarktung (URL/Plattform)',required:true},{name:'foundDate',label:'Gefunden am',type:'date'},{name:'note',label:'Notiz'}]},
+    {id:'channelcost',fn:'#31',title:'Kanal-Grenznutzen-Analyst (Fallback)',desc:'Manuelle Kanal-/Kostenbuchung statt automatischer Attribution. Volle Ausprägung braucht Portal-/Ad-Analytics-API (Kevins Entscheidung).',key:'kk_channel_costs_v1',prefix:'channelcost',fields:[{name:'channel',label:'Kanal',required:true},{name:'cost',label:'Kosten (€)',type:'number',required:true},{name:'period',label:'Zeitraum (z.B. Juli 2026)'},{name:'note',label:'Notiz'}]}
+  ];
+
+  function fieldInputHtml(cardId,f){
+    var id='p3_'+cardId+'_'+f.name;
+    return '<label>'+esc(f.label)+'<input id="'+id+'" type="'+(f.type||'text')+'"'+(f.required?' required':'')+'/></label>';
+  }
+  function renderCard(card){
+    var html='<div class="kkops-card"><h3>'+esc(card.fn)+' '+esc(card.title)+'</h3><p class="kkops-muted">'+esc(card.desc)+'</p>';
+    html+='<form class="kk-form-grid" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px" data-p3-form="'+esc(card.id)+'">'+card.fields.map(function(f){return fieldInputHtml(card.id,f)}).join('')+'<div style="align-self:flex-end"><button class="kkops-btn" type="submit">Speichern</button></div></form>';
+    html+='<div class="kkops-list" id="p3_list_'+esc(card.id)+'" style="margin-top:10px"></div></div>';
+    return html;
+  }
+  function renderCardList(card){
+    var list=q('p3_list_'+card.id); if(!list)return;
+    var items=rd(card.key,[]);
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Einträge.');return}
+    list.innerHTML=items.slice().reverse().slice(0,25).map(function(x){
+      var lines=card.fields.map(function(f){return x[f.name]?('<small>'+esc(f.label)+': '+esc(x[f.name])+'</small>'):''}).join('');
+      return '<div class="kkops-item">'+lines+'</div>';
+    }).join('');
+  }
+  function bindCardForm(card){
+    var form=document.querySelector('[data-p3-form="'+card.id+'"]');
+    if(!form)return;
+    form.onsubmit=function(e){
+      e.preventDefault();
+      var item={id:uid(card.prefix),createdAt:new Date().toISOString()};
+      var missingRequired=false;
+      card.fields.forEach(function(f){
+        var el=q('p3_'+card.id+'_'+f.name);
+        var val=el?el.value.trim():'';
+        if(f.required&&!val)missingRequired=true;
+        item[f.name]=val;
+      });
+      if(missingRequired)return;
+      var items=rd(card.key,[]); items.push(item); wr(card.key,items);
+      form.reset(); notify('Gespeichert'); renderCardList(card);
+    };
+  }
+  function renderAllCards(){
+    var container=q('p3CardsContainer'); if(!container)return;
+    if(!container.dataset.built){
+      container.innerHTML=CARDS.map(renderCard).join('');
+      CARDS.forEach(bindCardForm);
+      container.dataset.built='1';
+    }
+    CARDS.forEach(renderCardList);
+  }
+
+  /* #26 72-Stunden-Launch-Puls: aus den echten Vermarktungsaktivitaeten
+     (#25, kk_marketing_activities_v1 aus P2) abgeleitet statt manueller
+     Terminliste - meldet, wenn eine geloggte Aktivitaet 24/48/72h alt ist
+     und noch keinen Folge-Check-in (weiteren Eintrag zum selben Objekt
+     danach) hat. */
+  function renderLaunchPulse(){
+    var box=q('p3LaunchPulseAlerts'); if(!box)return;
+    var acts=rd('kk_marketing_activities_v1',[]);
+    var byObject={};
+    acts.forEach(function(a){(byObject[a.object]=byObject[a.object]||[]).push(a)});
+    var checkpoints=[24,48,72];
+    var due=[];
+    Object.keys(byObject).forEach(function(obj){
+      var list=byObject[obj].slice().sort(function(a,b){return new Date(a.createdAt)-new Date(b.createdAt)});
+      var first=list[0];
+      var d=daysSince(first.createdAt);
+      if(d==null)return;
+      var hours=d*24;
+      checkpoints.forEach(function(cp){
+        if(hours>=cp&&list.length<checkpoints.indexOf(cp)+2){
+          due.push({object:obj,checkpoint:cp,firstAt:first.createdAt});
+        }
+      });
+    });
+    box.innerHTML='<h3>#26 72-Stunden-Launch-Puls</h3><p class="kkops-muted">Aus echten Vermarktungsaktivitäten (#25) abgeleitet: 24/48/72h-Check-in fällig, wenn seit der ersten geloggten Aktivität entsprechend Zeit vergangen ist, aber kein weiterer Check-in folgte.</p>'+
+      (due.length?due.map(function(x){return '<div class="kkops-item"><strong>'+esc(x.object)+'</strong><small>'+esc(x.checkpoint)+'h-Check-in fällig (Start: '+esc((x.firstAt||'').slice(0,10))+')</small></div>'}).join(''):emptyMsg('Kein Launch-Check-in aktuell fällig (oder noch keine Vermarktungsaktivitäten unter #25 erfasst).'));
+  }
+
+  /* #58 Kontrafaktischer Vertriebscoach: regelbasierte Retrospektive aus
+     echten #57-Lost-Deal-Daten (kk_lost_deal_interviews_v1 aus P1) - zeigt
+     die haeufigsten Verlustgruende, kein KI-Modell noetig. */
+  function renderLostDealRetro(){
+    var box=q('p3LostDealRetro'); if(!box)return;
+    var items=rd('kk_lost_deal_interviews_v1',[]);
+    if(!items.length){box.innerHTML='<h3>#58 Kontrafaktischer Vertriebscoach (regelbasierte Retrospektive)</h3>'+emptyMsg('Noch keine Lost-Deal-Interviews (#57) erfasst.');return}
+    var counts={};
+    items.forEach(function(x){var r=x.reason||'unbekannt';counts[r]=(counts[r]||0)+1});
+    var sorted=Object.keys(counts).map(function(r){return {reason:r,count:counts[r]}}).sort(function(a,b){return b.count-a.count});
+    var reconsiderable=items.filter(function(x){return x.wouldReconsider==='ja'}).length;
+    box.innerHTML='<h3>#58 Kontrafaktischer Vertriebscoach (regelbasierte Retrospektive)</h3><p class="kkops-muted">Häufigste Verlustgründe aus '+items.length+' erfassten Lost-Deal-Interviews (#57) - keine KI, reine Häufigkeitsauswertung echter Daten.</p><div class="kkops-grid kkops-four">'+sorted.slice(0,4).map(function(x){return '<div><b>'+x.count+'</b><span>'+esc(x.reason)+'</span></div>'}).join('')+'</div>'+(reconsiderable?'<p>'+reconsiderable+' Kontakt(e) sind laut Interview später wieder ansprechbar.</p>':'');
+  }
+
+  /* #61 Persoenlicher Conversion-Zwilling: nutzt die bestehende
+     kk_conversion_metrics (bereits vorhandene Funnel-Zahlen aus dem
+     Kennzahlen-Modul) fuer einen einfachen, erklaerbaren Szenario-
+     Rechner statt eines kalibrierten KI-Modells. */
+  function renderConversionTwin(){
+    var box=q('p3ConversionTwin'); if(!box)return;
+    var v=rd('kk_conversion_metrics',{});
+    var contacts=Number(v.contacts)||0, talks=Number(v.talks)||0, appointments=Number(v.appointments)||0, won=Number(v.won)||0;
+    if(!contacts){box.innerHTML='<h3>#61 Persönlicher Conversion-Zwilling (Szenario-Rechner)</h3>'+emptyMsg('Noch keine Konversions-Kennzahlen erfasst (siehe KPI-Tab).');return}
+    var r1=talks/contacts, r2=appointments/(talks||1), r3=won/(appointments||1);
+    var improvedR1=Math.min(1,r1*1.1);
+    var projectedTalks=Math.round(contacts*improvedR1);
+    var projectedAppointments=Math.round(projectedTalks*r2);
+    var projectedWon=Math.round(projectedAppointments*r3);
+    box.innerHTML='<h3>#61 Persönlicher Conversion-Zwilling (Szenario-Rechner)</h3><p class="kkops-muted">Auf Basis der eigenen, bereits erfassten Kennzahlen (KPI-Tab): Was passiert, wenn sich die Kontakt→Gespräch-Quote um 10% relativ verbessert? Alle anderen Quoten bleiben unverändert - erklärbar, kein KI-Modell.</p><div class="kkops-grid kkops-four"><div><b>'+won+'</b><span>Aufträge aktuell</span></div><div><b>'+projectedWon+'</b><span>Aufträge im Szenario (+10% Gesprächsquote)</span></div><div><b>'+Math.round(r1*1000)/10+'%</b><span>Kontakt→Gespräch aktuell</span></div><div><b>'+Math.round(improvedR1*1000)/10+'%</b><span>Kontakt→Gespräch im Szenario</span></div></div>';
+  }
+
+  function renderAllP3(){renderAllCards();renderLaunchPulse();renderLostDealRetro();renderConversionTwin()}
+
+  function init(){
+    renderAllP3();
+    document.addEventListener('kk-app-tab-changed',function(ev){try{if(ev&&ev.detail&&ev.detail.tab==='backup')renderAllP3()}catch(e){}});
+  }
+  window.KK_P3_FUNKTIONEN=Object.freeze({version:'1.0',renderAll:renderAllP3,CARDS:CARDS});
+  if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('p3-masterprompt-funktionen',init,{priority:88});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
 <dialog class="kkimp-preview-dialog" id="kkImportPreviewDialog" aria-labelledby="kkImportPreviewTitle">
 <div class="kkimp-preview-head">
 <div><h3 id="kkImportPreviewTitle">Import prüfen</h3><p class="kkimp-preview-sub" id="kkImportPreviewSubtitle"></p></div>
@@ -13385,7 +13534,7 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
        secondary steuert ausschliesslich, wo er im Desktop-Menü erscheint. */
     {id:'ki-prompts',label:'KI-Prompts',panelId:'kk-app-panel-ki-prompts',primary:true,secondary:true,mobile:false,anchors:['ki-prompt-assistent','kkaiForm']},
     {id:'kpis',label:'KPIs',panelId:'kk-app-panel-kpis',primary:true,secondary:true,mobile:false,anchors:['conversion-cockpit','wochenreview','monatsreview','monatsmodus','zeitbudget','kpi','business','conversionForm','weekForm','monthForm','timeForm']},
-    {id:'backup',label:'Backup',panelId:'kk-app-panel-backup',primary:true,secondary:true,mobile:false,anchors:['kk-technical-backup','master-os','datenqualitaet','p0funktionen','p0transaktionen','p0besichtigung','p0finanzierung','p0schnellerfassung','p0einwaende','p1funktionen','p2funktionen','kkTechExportFull','kkTechExportModule','kkTechSmokeTest','kkTechImportFile','kkTechImportMode','kkTechImportRun','kkTechStatus','kkTechToast']},
+    {id:'backup',label:'Backup',panelId:'kk-app-panel-backup',primary:true,secondary:true,mobile:false,anchors:['kk-technical-backup','master-os','datenqualitaet','p0funktionen','p0transaktionen','p0besichtigung','p0finanzierung','p0schnellerfassung','p0einwaende','p1funktionen','p2funktionen','p3funktionen','kkTechExportFull','kkTechExportModule','kkTechSmokeTest','kkTechImportFile','kkTechImportMode','kkTechImportRun','kkTechStatus','kkTechToast']},
     {id:'skripte',label:'Archiv: Skripte',panelId:'kk-app-panel-skripte',primary:false,mobile:false,anchors:['skripte','einwaende','kk_scripts_module']},
     /* KK-PHASE1-SICHTBARKEIT: primary:true, damit "Archiv: Wissen" im regulären Hauptmenü erscheint statt nur
        versteckt unter dem Backup-Tab erreichbar zu sein. Label, Panel, Anchors und Archiv-Charakter unverändert. */
@@ -17317,7 +17466,7 @@ var configs={
   tippgeber:{title:'Tippgeber',desc:'Netzwerkpartner, Empfehlungen und laufende Tippgeberkontakte verwalten.',color:'#182C46',soft:'#EAEDF2',icon:'network',sections:[['tippgeber-pipeline','Pipeline'],['kk-referral-machine-v20','Tippgeber-Maschine'],['netzwerk','Netzwerk'],['tippgeber-system','System']]},
   'ki-prompts':{title:'KI-Prompts',desc:'Nachrichten, Gesprächsvorbereitung und Formulierungen aus echten Situationen erzeugen.',color:'#182C46',soft:'#EAEDF2',icon:'spark',sections:[['ki-prompt-assistent','Promptgenerator']]},
   kpis:{title:'KPIs & Zielkontrolle',desc:'Aktivität, Conversion, Wochen- und Monatsleistung in einer kompakten Übersicht.',color:'#182C46',soft:'#EAEDF2',icon:'chart',sections:[['kk-command-center-overview','Übersicht'],['conversion-cockpit','Conversion'],['wochenreview','Woche'],['monatsreview','Monat'],['zeitbudget','Zeitbudget'],['kpi','Ziele'],['business','Business'],['monatsmodus','Monatsmodus']]},
-  backup:{title:'Backup & System',desc:'Daten sichern, importieren, prüfen und technische Werkzeuge kontrolliert nutzen.',color:'#182C46',soft:'#EAEDF2',icon:'shield',sections:[['kk-technical-backup','Sicherung'],['datenqualitaet','Datenqualität'],['p0funktionen','Zusagen & Vertriebswerkzeuge'],['p1funktionen','Vertriebswerkzeuge P1'],['p2funktionen','Vertriebswerkzeuge P2'],['master-os','Master-OS'],['kk-akademie-archiv-handoff','Archiv']]}
+  backup:{title:'Backup & System',desc:'Daten sichern, importieren, prüfen und technische Werkzeuge kontrolliert nutzen.',color:'#182C46',soft:'#EAEDF2',icon:'shield',sections:[['kk-technical-backup','Sicherung'],['datenqualitaet','Datenqualität'],['p0funktionen','Zusagen & Vertriebswerkzeuge'],['p1funktionen','Vertriebswerkzeuge P1'],['p2funktionen','Vertriebswerkzeuge P2'],['p3funktionen','Vertriebswerkzeuge P3'],['master-os','Master-OS'],['kk-akademie-archiv-handoff','Archiv']]}
 };
 function icon(name){var p={
  target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M22 12h-3M12 22v-3M2 12h3"/>',

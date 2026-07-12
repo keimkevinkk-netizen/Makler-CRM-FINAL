@@ -90,11 +90,11 @@ Für jede Funktion:
 
 | # | Funktion | Verdikt |
 |---|---|---|
-| 3 | Fremdvermarktungs-Watchtower | Fallback jetzt umsetzbar (manueller URL-/CSV-Import statt Live-API) — volle Ausprägung **echt blockiert**: braucht bezahlten Immobilien-/Marktdatenprovider |
-| 26 | 72-Stunden-Launch-Puls | Fallback jetzt umsetzbar (manuelle 24/48/72h-Check-in-Erinnerung) — volle Ausprägung **echt blockiert**: braucht Portal-Webhook-/API-Zugang |
-| 31 | Kanal-Grenznutzen-Analyst | Fallback jetzt umsetzbar (manuelle Kanal-/Kostenbuchung) — volle Ausprägung **echt blockiert**: braucht Portal-/Ad-Analytics-API |
-| 58 | Kontrafaktischer Vertriebscoach | Fallback jetzt umsetzbar (regelbasierte Retrospektive auf #57-Daten) — volle Ausprägung optional auf KI, nicht zwingend blockiert, aber XL-Aufwand, niedrige Priorität |
-| 61 | Persönlicher Conversion-Zwilling | Bereits teilweise abgedeckt (bestehender Conversion-Funnel `renderConversion`); Szenario-Rechner als Fallback jetzt erweiterbar |
+| 3 | Fremdvermarktungs-Watchtower | Fallback jetzt umsetzbar (manueller URL-/CSV-Import statt Live-API) — volle Ausprägung **echt blockiert**: braucht bezahlten Immobilien-/Marktdatenprovider | 🟡 Fallback erledigt, volle Ausprägung echt blockiert (bezahlter Provider) |
+| 26 | 72-Stunden-Launch-Puls | Fallback jetzt umsetzbar (manuelle 24/48/72h-Check-in-Erinnerung) — volle Ausprägung **echt blockiert**: braucht Portal-Webhook-/API-Zugang | 🟡 Fallback erledigt, volle Ausprägung echt blockiert (bezahlter Provider) |
+| 31 | Kanal-Grenznutzen-Analyst | Fallback jetzt umsetzbar (manuelle Kanal-/Kostenbuchung) — volle Ausprägung **echt blockiert**: braucht Portal-/Ad-Analytics-API | 🟡 Fallback erledigt, volle Ausprägung echt blockiert (bezahlter Provider) |
+| 58 | Kontrafaktischer Vertriebscoach | Fallback jetzt umsetzbar (regelbasierte Retrospektive auf #57-Daten) — volle Ausprägung optional auf KI, nicht zwingend blockiert, aber XL-Aufwand, niedrige Priorität | ✅ Erledigt |
+| 61 | Persönlicher Conversion-Zwilling | Bereits teilweise abgedeckt (bestehender Conversion-Funnel `renderConversion`); Szenario-Rechner als Fallback jetzt erweiterbar | ✅ Erledigt |
 
 ---
 
@@ -102,4 +102,4 @@ Für jede Funktion:
 
 **Keine der 64 Funktionen ist wirklich vollständig blockiert.** Nur 3 (#3, #26, #31) haben eine volle Ausprägung, die zwingend einen bezahlten externen Provider braucht — deren *Fallback-Version* ist trotzdem jetzt baubar. Alle anderen 61 bekommen entweder die volle empfohlene Lösung oder eine echte, benutzbare Fallback-Version **ohne** Auth/Datenbank.
 
-**Umsetzungsreihenfolge:** P0 (11/11 erledigt) → P1 (22/22 erledigt) → P2 (25/25 erledigt) → P3 (5, naechster und letzter Schritt fuer den Fallback-Teil). Wird fortlaufend abgearbeitet, committet und getestet — siehe Commit-Historie fuer den jeweils aktuellen Stand. Wo eine "volle Ausprägung" (echte Multi-Device-Synchronisation, serverseitige Auswertung über alle Nutzer, KI-Modell-Integration) über die Fallback-Version hinausgeht, bleibt das explizit als spätere Erweiterung vermerkt — keine dieser späteren Erweiterungen wird als "erledigt" geführt.
+**Umsetzungsreihenfolge: ABGESCHLOSSEN.** P0 (11/11) → P1 (22/22) → P2 (25/25) → P3 (5/5, davon 3 vollstaendig erledigt und 3 mit Fallback erledigt + echt blockierter Vollausprägung: #3/#26/#31 brauchen einen bezahlten externen Provider). Alle 64 Funktionen haben jetzt einen ehrlichen, verifizierten Status - keine mehr pauschal auf Phase 2 verschoben. Wo eine "volle Ausprägung" (echte Multi-Device-Synchronisation, serverseitige Auswertung über alle Nutzer, KI-Modell-Integration) über die Fallback-Version hinausgeht, bleibt das explizit als spätere Erweiterung vermerkt — keine dieser späteren Erweiterungen wird als "erledigt" geführt.

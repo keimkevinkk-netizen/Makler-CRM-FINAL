@@ -115,5 +115,14 @@ Rest bewusst NICHT als neue Karte gebaut, sondern wiederverwendet/kombiniert:
 
 **Gate erfuellt:** neue Testdatei `test-masterprompt-p2.js` (8/8, echte synthetische Daten inkl. echtem False-Positive-Test fuer die Reaktivierungsansicht), volle Regression nach der Aenderung gruen, `npm run lint` 0 Fehler. Backlog-Stand: 58 von 64 Funktionen erledigt (P0 11/11, P1 22/22, P2 25/25), nur noch P3 (5 Funktionen, Fallback-Teil) offen.
 
+## Phase 21 — Master-Prompt P3-Batch: letzte 5 Funktionen real umgesetzt ✅ ABGESCHLOSSEN (Commit folgt)
+Abschluss von Phase 19/20. #3 (Fremdvermarktungs-Watchtower) und #31 (Kanal-Grenznutzen-Analyst) ueber die generische Karten-Engine (manueller URL-/CSV-Import bzw. manuelle Kanal-/Kostenbuchung) - die volle Auspraegung beider Funktionen braucht zwingend einen bezahlten externen Provider (Immobilien-/Marktdatenprovider bzw. Portal-/Ad-Analytics-API) und bleibt bewusst und dokumentiert blockiert (Kevins Entscheidung, keine autonome Kostenaktivierung). #26 (72-Stunden-Launch-Puls), #58 (Kontrafaktischer Vertriebscoach) und #61 (Persoenlicher Conversion-Zwilling) als echte, aus bereits vorhandenen Daten berechnete Ansichten statt manueller Formulare: Launch-Puls aus den #25-Vermarktungsaktivitaeten (P2), Retrospektive aus den #57-Lost-Deal-Interviews (P1), Szenario-Rechner aus den bestehenden kk_conversion_metrics.
+
+2 neue kk_*-Storage-Keys, Schema-Registry aktualisiert (inkl. expliziter Blocker-Begruendung fuer #3/#31), Navigation synchron gehalten.
+
+**Gate erfuellt:** neue Testdatei `test-masterprompt-p3.js` (7/7, echte Cross-Modul-Datenableitung ueber P1/P2-Storage-Keys hinweg geprueft), volle Regression (11 E2E-Dateien) nach der Aenderung gruen, `npm run lint` 0 Fehler.
+
+**Gesamtergebnis Master-Prompt-Backlog: 64 von 64 Funktionen mit ehrlichem, verifiziertem Status.** 61 voll oder als echte Fallback-Version umgesetzt (P0 11/11, P1 22/22, P2 25/25, P3 5/5), davon 3 (#3/#26/#31 volle Auspraegung) explizit und einzeln begruendet auf eine bezahlte Provider-Entscheidung wartend - keine pauschale Verschiebung auf "Phase 2/Datenbank" mehr. Siehe `docs/prd/08-masterprompt-backlog.md` fuer die vollstaendige, funktionsweise Zuordnung.
+
 ## Nicht in diesem Umsetzungsplan
 Vollständige Quellcode-Modularisierung (`src/core/...`, Teil 3 §40) — laut PRD selbst erst sinnvoll, wenn Datenverträge stabil sind; wird nicht vorgezogen.

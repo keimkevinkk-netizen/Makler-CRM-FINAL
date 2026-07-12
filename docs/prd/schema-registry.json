@@ -927,6 +927,26 @@
       "notes": "Master-Prompt #49 Umsatzwirkungs-Navigator."
     },
     {
+      "key": "kk_watchtower_findings_v1",
+      "owner": "p3-masterprompt-funktionen",
+      "entity": "WatchtowerFinding[] ({id, object, foundUrl, foundDate, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #3 Fremdvermarktungs-Watchtower (Fallback: manueller URL-/CSV-Import). Volle Auspraegung braucht bezahlten Immobilien-/Marktdatenprovider - echt blockiert, siehe docs/prd/08-masterprompt-backlog.md."
+    },
+    {
+      "key": "kk_channel_costs_v1",
+      "owner": "p3-masterprompt-funktionen",
+      "entity": "ChannelCost[] ({id, channel, cost, period, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #31 Kanal-Grenznutzen-Analyst (Fallback: manuelle Kanal-/Kostenbuchung). Volle Auspraegung braucht Portal-/Ad-Analytics-API - echt blockiert."
+    },
+    {
       "key": "kk_owner_opportunities",
       "owner": "pipeline",
       "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
