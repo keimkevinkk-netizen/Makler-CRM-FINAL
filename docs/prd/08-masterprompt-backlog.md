@@ -33,28 +33,28 @@ Für jede Funktion:
 
 | # | Funktion | Verdikt |
 |---|---|---|
-| 4 | Portfolio-Eigentümer-Graph | Fallback jetzt umsetzbar (manuelle Portfolio-Liste pro Kontakt) |
-| 8 | Empfehlungs-Kettenradar | Fallback jetzt umsetzbar (manuelle Intro-Verknüpfung, `KK_REFERRAL_NETWORK_V1` vorhanden) |
-| 12 | Preis-Erwartungs-Brücke | Bereits weitgehend abgedeckt durch `KK_VALUATION` (Preiskorridore, Konfidenz) aus früherer Phase |
-| 13 | Wettbewerber-Abwehrkarte | Voll jetzt umsetzbar (kein externer Dienst, KP/M) |
-| 14 | Einwand-Pre-Mortem | Fallback jetzt umsetzbar (regelbasierte Checkliste statt KI) |
-| 18 | Vergleichsobjekt-Evidenzgraph | Fallback jetzt umsetzbar (manuelle Vergleichsauswahl auf `KK_VALUATION` aufbauend) |
-| 22 | Preisrealitäts-Stresstest | Fallback jetzt umsetzbar (manuell parametrierte Szenarien auf `KK_VALUATION`) |
-| 29 | Stagnations-Autopsie | Fallback jetzt umsetzbar (bestehende Pipeline-Stagnationslogik um Ursachenbaum erweitern) |
-| 30 | Preisaktions-Guardrail | Voll jetzt umsetzbar (kein externer Dienst, KP/M) |
-| 33 | Käufer-Reife-Fingerabdruck | Fallback jetzt umsetzbar (strukturierter Qualifikationsbogen) |
-| 34 | Suchprofil-Evolutionsdetektor | Fallback jetzt umsetzbar (manuelle Änderungsnotiz-Historie) |
-| 41 | Beziehungskapital-Graph | Fallback jetzt umsetzbar (manuelle Beziehungsnotizen zwischen Kontakten) |
-| 42 | Beziehungs-Abkühlungsalarm | Voll jetzt umsetzbar (kein externer Dienst, KP/M) |
-| 45 | Empfehlungsmoment-Detektor | Fallback jetzt umsetzbar (manuelle Referral-Checkliste nach Abschluss) |
-| 46 | Fairness- und Gegenseitigkeitsledger | Voll jetzt umsetzbar (kein externer Dienst, KP/M) |
-| 50 | Aufschubmuster-Unterbrecher | Voll jetzt umsetzbar (kein externer Dienst, KP/L) |
-| 52 | Gesprächskohärenz-Gedächtnis | Fallback jetzt umsetzbar (strukturierte statt freie Gesprächszusammenfassung) |
-| 53 | Tageskapazitäts-Constraint-Engine | Voll jetzt umsetzbar (`kk_time_budget` existiert bereits, Kalender/Maps nur optional) |
-| 57 | Lost-Deal-Blackbox | Fallback jetzt umsetzbar (strukturiertes Abschlussinterview-Formular) |
-| 62 | Post-Closing-Lebenszyklus-Orbit | Fallback jetzt umsetzbar (manuelle Jahrestermine, Kalender/E-Mail nur optional) |
-| 63 | Kundenbotschafter-Engine | Fallback jetzt umsetzbar (manuelle Empfehlungsfrage-Erinnerung) |
-| 64 | Service-Recovery-Radar | Fallback jetzt umsetzbar (manuelle Beschwerde-Markierung + Eskalationsfrist) |
+| 4 | Portfolio-Eigentümer-Graph | Fallback jetzt umsetzbar (manuelle Portfolio-Liste pro Kontakt) | ✅ Erledigt |
+| 8 | Empfehlungs-Kettenradar | Fallback jetzt umsetzbar (manuelle Intro-Verknüpfung, `KK_REFERRAL_NETWORK_V1` vorhanden) | ✅ Erledigt |
+| 12 | Preis-Erwartungs-Brücke | Bereits weitgehend abgedeckt durch `KK_VALUATION` (Preiskorridore, Konfidenz) aus früherer Phase | ✅ Erledigt |
+| 13 | Wettbewerber-Abwehrkarte | Voll jetzt umsetzbar (kein externer Dienst, KP/M) | ✅ Erledigt |
+| 14 | Einwand-Pre-Mortem | Fallback jetzt umsetzbar (regelbasierte Checkliste statt KI) | ✅ Erledigt |
+| 18 | Vergleichsobjekt-Evidenzgraph | Fallback jetzt umsetzbar (manuelle Vergleichsauswahl auf `KK_VALUATION` aufbauend) | ✅ Erledigt |
+| 22 | Preisrealitäts-Stresstest | Fallback jetzt umsetzbar (manuell parametrierte Szenarien auf `KK_VALUATION`) | ✅ Erledigt |
+| 29 | Stagnations-Autopsie | Fallback jetzt umsetzbar (bestehende Pipeline-Stagnationslogik um Ursachenbaum erweitern) | ✅ Erledigt |
+| 30 | Preisaktions-Guardrail | Voll jetzt umsetzbar (kein externer Dienst, KP/M) | ✅ Erledigt |
+| 33 | Käufer-Reife-Fingerabdruck | Fallback jetzt umsetzbar (strukturierter Qualifikationsbogen) | ✅ Erledigt |
+| 34 | Suchprofil-Evolutionsdetektor | Fallback jetzt umsetzbar (manuelle Änderungsnotiz-Historie) | ✅ Erledigt |
+| 41 | Beziehungskapital-Graph | Fallback jetzt umsetzbar (manuelle Beziehungsnotizen zwischen Kontakten) | ✅ Erledigt |
+| 42 | Beziehungs-Abkühlungsalarm | Voll jetzt umsetzbar (kein externer Dienst, KP/M) | ✅ Erledigt |
+| 45 | Empfehlungsmoment-Detektor | Fallback jetzt umsetzbar (manuelle Referral-Checkliste nach Abschluss) | ✅ Erledigt |
+| 46 | Fairness- und Gegenseitigkeitsledger | Voll jetzt umsetzbar (kein externer Dienst, KP/M) | ✅ Erledigt |
+| 50 | Aufschubmuster-Unterbrecher | Voll jetzt umsetzbar (kein externer Dienst, KP/L) | ✅ Erledigt |
+| 52 | Gesprächskohärenz-Gedächtnis | Fallback jetzt umsetzbar (strukturierte statt freie Gesprächszusammenfassung) | ✅ Erledigt |
+| 53 | Tageskapazitäts-Constraint-Engine | Voll jetzt umsetzbar (`kk_time_budget` existiert bereits, Kalender/Maps nur optional) | ✅ Erledigt |
+| 57 | Lost-Deal-Blackbox | Fallback jetzt umsetzbar (strukturiertes Abschlussinterview-Formular) | ✅ Erledigt |
+| 62 | Post-Closing-Lebenszyklus-Orbit | Fallback jetzt umsetzbar (manuelle Jahrestermine, Kalender/E-Mail nur optional) | ✅ Erledigt |
+| 63 | Kundenbotschafter-Engine | Fallback jetzt umsetzbar (manuelle Empfehlungsfrage-Erinnerung) | ✅ Erledigt |
+| 64 | Service-Recovery-Radar | Fallback jetzt umsetzbar (manuelle Beschwerde-Markierung + Eskalationsfrist) | ✅ Erledigt |
 
 ## P2 (25 Funktionen)
 
@@ -102,4 +102,4 @@ Für jede Funktion:
 
 **Keine der 64 Funktionen ist wirklich vollständig blockiert.** Nur 3 (#3, #26, #31) haben eine volle Ausprägung, die zwingend einen bezahlten externen Provider braucht — deren *Fallback-Version* ist trotzdem jetzt baubar. Alle anderen 61 bekommen entweder die volle empfohlene Lösung oder eine echte, benutzbare Fallback-Version **ohne** Auth/Datenbank.
 
-**Umsetzungsreihenfolge:** P0 (11 von 11 erledigt, 2 davon bereits vorher) → P1 (22, naechster Schritt) → P2 (25) → P3 (5, Fallback-Teil). Wird fortlaufend abgearbeitet, committet und getestet — siehe Commit-Historie fuer den jeweils aktuellen Stand. Wo eine "volle Ausprägung" (echte Multi-Device-Synchronisation, serverseitige Auswertung über alle Nutzer, KI-Modell-Integration) über die Fallback-Version hinausgeht, bleibt das explizit als spätere Erweiterung vermerkt — keine dieser späteren Erweiterungen wird als "erledigt" geführt.
+**Umsetzungsreihenfolge:** P0 (11/11 erledigt) → P1 (22/22 erledigt) → P2 (25, naechster Schritt) → P3 (5, Fallback-Teil). Wird fortlaufend abgearbeitet, committet und getestet — siehe Commit-Historie fuer den jeweils aktuellen Stand. Wo eine "volle Ausprägung" (echte Multi-Device-Synchronisation, serverseitige Auswertung über alle Nutzer, KI-Modell-Integration) über die Fallback-Version hinausgeht, bleibt das explizit als spätere Erweiterung vermerkt — keine dieser späteren Erweiterungen wird als "erledigt" geführt.

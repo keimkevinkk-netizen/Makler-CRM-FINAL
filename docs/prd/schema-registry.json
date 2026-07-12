@@ -547,6 +547,186 @@
       "notes": "Master-Prompt Funktion #59/#60 (Einwand-Genom / Interventionsgedaechtnis). Kuratierte Einwand-Bibliothek selbst ist eine statische Konstante im Code, nicht Teil dieses Storage-Keys."
     },
     {
+      "key": "kk_owner_portfolios_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "OwnerPortfolioEntry[] ({id, contact, property, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #4 Portfolio-Eigentuemer-Graph. Manuelle Liste statt automatischer Graph-Query."
+    },
+    {
+      "key": "kk_intro_chains_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "IntroChainEntry[] ({id, contact, introducedBy, date, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #8 Empfehlungs-Kettenradar. Manuelle Intro-Verknuepfung."
+    },
+    {
+      "key": "kk_competitor_notes_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "CompetitorNote[] ({id, contact, competitor, differentiator, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #13 Wettbewerber-Abwehrkarte."
+    },
+    {
+      "key": "kk_objection_premortem_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ObjectionPremortem[] ({id, contact, expectedObjection, plannedResponse, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #14 Einwand-Pre-Mortem."
+    },
+    {
+      "key": "kk_comparable_selections_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ComparableSelection[] ({id, object, comparableAddress, reason, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #18 Vergleichsobjekt-Evidenzgraph."
+    },
+    {
+      "key": "kk_price_scenarios_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "PriceScenario[] ({id, object, assumption, resultNote, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #22 Preisrealitaets-Stresstest / #23 Kontrafaktisches Preislabor (kombiniert)."
+    },
+    {
+      "key": "kk_stagnation_causes_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "StagnationCause[] ({id, dealContact, cause, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #29 Stagnations-Autopsie."
+    },
+    {
+      "key": "kk_price_actions_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "PriceAction[] ({id, object, oldPrice, newPrice, reason, gated, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #30 Preisaktions-Guardrail. Echtes Freigabe-Gate: Preissenkung >5% ohne Begruendung erfordert bewusste Bestaetigung (gated:true)."
+    },
+    {
+      "key": "kk_buyer_readiness_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "BuyerReadiness[] ({id, contact, financing, timeframe, motivation, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #33 Kaeufer-Reife-Fingerabdruck."
+    },
+    {
+      "key": "kk_profile_change_log_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ProfileChange[] ({id, contact, change, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #34 Suchprofil-Evolutionsdetektor."
+    },
+    {
+      "key": "kk_relationships_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "Relationship[] ({id, contactA, contactB, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #41 Beziehungskapital-Graph."
+    },
+    {
+      "key": "kk_contact_cadence_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ContactCadence[] ({id, contact, desiredDays, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #42 Beziehungs-Abkuehlungsalarm. Ist-Wert wird aus kk_crm_activities live berechnet, nicht gespeichert."
+    },
+    {
+      "key": "kk_referral_moments_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ReferralMoment[] ({id, contact, action, status, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #45 Empfehlungsmoment-Detektor / #63 Kundenbotschafter-Engine (kombiniert)."
+    },
+    {
+      "key": "kk_reciprocity_ledger_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ReciprocityEntry[] ({id, partner, contribution, direction, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #46 Fairness- und Gegenseitigkeitsledger."
+    },
+    {
+      "key": "kk_deferral_flags_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "DeferralFlag[] ({id, contact, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #50 Aufschubmuster-Unterbrecher."
+    },
+    {
+      "key": "kk_conversation_facts_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ConversationFact[] ({id, contact, fact, source, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #52 Gespraechskohaerenz-Gedaechtnis."
+    },
+    {
+      "key": "kk_lost_deal_interviews_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "LostDealInterview[] ({id, contact, reason, competitor, wouldReconsider, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #57 Lost-Deal-Blackbox."
+    },
+    {
+      "key": "kk_service_complaints_v1",
+      "owner": "p1-masterprompt-funktionen",
+      "entity": "ServiceComplaint[] ({id, contact, issue, escalationDate, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #64 Service-Recovery-Radar."
+    },
+    {
       "key": "kk_owner_opportunities",
       "owner": "pipeline",
       "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
