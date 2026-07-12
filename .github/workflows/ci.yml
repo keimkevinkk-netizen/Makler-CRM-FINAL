@@ -61,3 +61,6 @@ jobs:
 
       - name: E2E - test-chart-canvas-reuse.js
         run: node tests/e2e/test-chart-canvas-reuse.js
+
+      - name: E2E - test-data-quality-sentinel.js
+        run: node tests/e2e/test-data-quality-sentinel.js
