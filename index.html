@@ -11442,7 +11442,7 @@ Wenn du eine Immobilie im Main-Kinzig-Kreis besitzt und nicht sicher bist, ob od
 <section class="kkops-section" id="p0besichtigung"><div class="kkops-shell">
 <div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 36</span><h2>Besichtigungs-Debrief</h2><p>Strukturierte Nachbereitung statt Freitext: Interesselevel, Einwände und nächster Schritt in festen Feldern, direkt nach der Besichtigung erfassbar.</p></div><div class="kkops-actions"><button class="kkops-btn" id="p0ViewingAddBtn" type="button">Neues Debrief</button><button class="kkops-btn light" data-export="kk_viewing_debriefs_v1" type="button">Export</button></div></div>
 <form class="kkops-card" id="p0ViewingForm" style="margin-top:14px;display:none">
-<div style="display:flex;flex-wrap:wrap;gap:12px" class="kk-form-grid"><label>Kontakt<input id="p0vContact" placeholder="Name" required type="text"/></label><label>Objekt/Adresse<input id="p0vObject" placeholder="Objektbezeichnung" type="text"/></label><label>Interesselevel<select id="p0vInterest"><option value="hoch">Hoch</option><option value="mittel">Mittel</option><option value="niedrig">Niedrig</option></select></label><label>Einwand<input id="p0vObjection" placeholder="z.B. Preis, Zuschnitt, Lage" type="text"/></label><label>Nächster Schritt<input id="p0vNext" placeholder="z.B. Finanzierungsbestätigung anfordern" type="text"/></label></div>
+<div style="display:flex;flex-wrap:wrap;gap:12px" class="kk-form-grid"><label>Kontakt<input id="p0vContact" placeholder="Name" required type="text"/></label><label>Objekt/Adresse<input id="p0vObject" placeholder="Objektbezeichnung" type="text"/></label><label>Interesselevel<select id="p0vInterest"><option value="hoch">Hoch</option><option value="mittel">Mittel</option><option value="niedrig">Niedrig</option></select></label><label>Einwand<input id="p0vObjection" placeholder="z.B. Preis, Zuschnitt, Lage" type="text"/></label><label>Raum-Feedback (#37)<select id="p0vRoomFeedback"><option value="">–</option><option value="Küche positiv">Küche positiv</option><option value="Bad negativ">Bad negativ</option><option value="Zuschnitt positiv">Zuschnitt positiv</option><option value="Zuschnitt negativ">Zuschnitt negativ</option><option value="Licht/Aussicht positiv">Licht/Aussicht positiv</option><option value="Lärm negativ">Lärm negativ</option><option value="Garten/Balkon positiv">Garten/Balkon positiv</option></select></label><label>Nächster Schritt<input id="p0vNext" placeholder="z.B. Finanzierungsbestätigung anfordern" type="text"/></label></div>
 <div class="kkops-item-actions" style="margin-top:10px"><button class="kkops-btn" type="submit">Debrief speichern</button><button class="kkops-btn light" id="p0ViewingCancelBtn" type="button">Abbrechen</button></div>
 </form>
 <div class="kkops-card" style="margin-top:14px"><div class="kkops-list" id="p0ViewingList"></div></div>
@@ -11557,7 +11557,7 @@ Wenn du eine Immobilie im Main-Kinzig-Kreis besitzt und nicht sicher bist, ob od
     var items=rd(VIEW_KEY,[]);
     var list=q('p0ViewingList'); if(!list)return;
     if(!items.length){list.innerHTML=emptyMsg('Noch keine Besichtigungs-Debriefs erfasst.');return}
-    list.innerHTML=items.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+' <span class="kkops-pill '+(x.interest==='hoch'?'':(x.interest==='niedrig'?'red':'orange'))+'">Interesse: '+esc(x.interest)+'</span></strong><small>'+esc(x.object||'')+' · '+esc((x.createdAt||'').slice(0,10))+'</small>'+(x.objection?'<p>Einwand: '+esc(x.objection)+'</p>':'')+(x.next?'<p>Nächster Schritt: '+esc(x.next)+'</p>':'')+'</div>'}).join('');
+    list.innerHTML=items.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+' <span class="kkops-pill '+(x.interest==='hoch'?'':(x.interest==='niedrig'?'red':'orange'))+'">Interesse: '+esc(x.interest)+'</span></strong><small>'+esc(x.object||'')+' · '+esc((x.createdAt||'').slice(0,10))+'</small>'+(x.objection?'<p>Einwand: '+esc(x.objection)+'</p>':'')+(x.roomFeedback?'<p>Raum-Feedback: '+esc(x.roomFeedback)+'</p>':'')+(x.next?'<p>Nächster Schritt: '+esc(x.next)+'</p>':'')+'</div>'}).join('');
   }
   function bindViewingForm(){
     var addBtn=q('p0ViewingAddBtn'), form=q('p0ViewingForm'), cancel=q('p0ViewingCancelBtn');
@@ -11566,7 +11566,7 @@ Wenn du eine Immobilie im Main-Kinzig-Kreis besitzt und nicht sicher bist, ob od
     if(form)form.onsubmit=function(e){e.preventDefault();
       var contact=q('p0vContact').value.trim(); if(!contact)return;
       var items=rd(VIEW_KEY,[]);
-      items.push({id:uid('viewing'),contact:contact,object:q('p0vObject').value.trim(),interest:q('p0vInterest').value,objection:q('p0vObjection').value.trim(),next:q('p0vNext').value.trim(),createdAt:new Date().toISOString()});
+      items.push({id:uid('viewing'),contact:contact,object:q('p0vObject').value.trim(),interest:q('p0vInterest').value,objection:q('p0vObjection').value.trim(),roomFeedback:q('p0vRoomFeedback').value,next:q('p0vNext').value.trim(),createdAt:new Date().toISOString()});
       wr(VIEW_KEY,items); form.reset(); form.style.display='none'; notify('Debrief gespeichert'); renderViewings();
     };
   }
@@ -11856,6 +11856,139 @@ Wenn du eine Immobilie im Main-Kinzig-Kreis besitzt und nicht sicher bist, ob od
   }
   window.KK_P1_FUNKTIONEN=Object.freeze({version:'1.0',renderAll:renderAllP1,CARDS:CARDS});
   if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('p1-masterprompt-funktionen',init,{priority:86});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<section class="kkops-section" id="p2funktionen"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P2 · 25 Funktionen</span><h2>Vertriebswerkzeuge (P2)</h2><p>Strukturierte Erfassung fuer die 25 P2-Funktionen. #20/#23 bereits durch bestehende Module bzw. #22 (P1) abgedeckt, #5/#40 teilen eine gemeinsame, aus echten Aktivitaetsdaten berechnete Ansicht.</p></div></div>
+<div id="p2ReactivationAlerts" class="kkops-card" style="margin-top:14px"></div>
+<div id="p2CardsContainer" style="margin-top:14px;display:grid;gap:14px"></div>
+</div></section>
+<script>
+(function(){
+  'use strict';
+  if(window.KK_P2_FUNKTIONEN&&window.KK_P2_FUNKTIONEN.version)return;
+  var U=window.KK_UTIL||{};
+  function esc(v){return U.esc?U.esc(v):String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]})}
+  function rd(k,fb){return U.readJSON?U.readJSON(k,fb):fb}
+  function wr(k,v){return U.writeJSON?U.writeJSON(k,v):false}
+  function uid(p){return U.uid?U.uid(p):(p+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10))}
+  function q(id){return document.getElementById(id)}
+  function notify(msg){try{if(U.toast)U.toast(msg)}catch(e){}}
+  function emptyMsg(t){return '<p class="kkops-empty">'+esc(t)+'</p>'}
+  function daysSince(iso){if(!iso)return null;var d=new Date(iso);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/86400000)}
+
+  /* Master-Prompt P2 (25 Funktionen): gleiches Muster wie P1 -
+     datengetriebene generische Karten-Engine statt Copy-Paste. #20/#23
+     brauchen keine eigene Karte (bereits durch die bestehende Ortsteil-
+     Auswertung bzw. die #22-Szenariokarte aus P1 abgedeckt). #5/#40 teilen
+     eine gemeinsame, aus echten kk_crm_activities-Daten berechnete Ansicht
+     (identischer Mechanismus fuer Eigentuemer- und Kaeuferkontakte). */
+  var CARDS=[
+    {id:'intentradar',fn:'#1',title:'Eigentümer-Intent-Radar',desc:'Nur interne, manuelle Signal-Markierung statt automatischer Mustererkennung.',key:'kk_intent_signals_v1',prefix:'intent',fields:[{name:'contact',label:'Eigentümer-Kontakt',required:true},{name:'signal',label:'Beobachtetes Signal',required:true},{name:'confidence',label:'Konfidenz',type:'select',options:['hoch','mittel','niedrig']}]},
+    {id:'saleswindow',fn:'#2',title:'Verkaufsfenster-Modell',desc:'Regelbasierte Nutzerbestätigung statt automatischer Kalibrierung.',key:'kk_sales_windows_v1',prefix:'saleswindow',fields:[{name:'contact',label:'Kontakt',required:true},{name:'timeframe',label:'Geschätztes Zeitfenster (z.B. 6-12 Monate)',required:true},{name:'confirmedBy',label:'Quelle',type:'select',options:['Kunde bestätigt','eigene Einschätzung']}]},
+    {id:'demandcount',fn:'#6',title:'Nachfrageüberhang-zu-Eigentümer-Engine',desc:'Manuelle Suchprofil-Zählung je Gebiet statt automatischer Aggregation.',key:'kk_demand_counts_v1',prefix:'demand',fields:[{name:'gebiet',label:'Gebiet/Ortsteil',required:true},{name:'searchProfileCount',label:'Anzahl passender Suchprofile',type:'number',required:true}]},
+    {id:'areachance',fn:'#7',title:'Nachbarschafts-Chancenkarte',desc:'Manuelle Gebiets-Chancen-Notiz statt automatischer Signalkarte.',key:'kk_area_chances_v1',prefix:'areachance',fields:[{name:'gebiet',label:'Gebiet/Ortsteil',required:true},{name:'chance',label:'Chance',required:true}]},
+    {id:'warroom',fn:'#9',title:'Verkäufertermin-War-Room',desc:'Druckbare Checkliste/Briefingnotiz statt automatischem Aggregator.',key:'kk_meeting_briefings_v1',prefix:'briefing',fields:[{name:'contact',label:'Kontakt',required:true},{name:'briefingNote',label:'Briefing-Notiz vor dem Termin',required:true}]},
+    {id:'decisiontwin',fn:'#10',title:'Eigentümer-Entscheidungszwilling',desc:'Regelbasierte Präferenzfelder statt KI-Hypothesen.',key:'kk_decision_preferences_v1',prefix:'decision',fields:[{name:'contact',label:'Kontakt',required:true},{name:'preference',label:'Beobachtete Präferenz'},{name:'hypothesis',label:'Arbeitshypothese'}]},
+    {id:'evidence',fn:'#11',title:'Beweis-Architekt',desc:'Manuelle Beleg-/Quellenliste statt automatischem Evidenzgraph.',key:'kk_evidence_notes_v1',prefix:'evidence',fields:[{name:'contact',label:'Kontakt/Chance',required:true},{name:'claim',label:'Behauptung/Argument',required:true},{name:'source',label:'Quelle/Beleg'}]},
+    {id:'microarea',fn:'#19',title:'Mikrolagen-DNA',desc:'Maklernotizen je Ortsteil statt automatischem Feature-Profil.',key:'kk_microarea_notes_v1',prefix:'microarea',fields:[{name:'ortsteil',label:'Ortsteil',required:true},{name:'note',label:'Notiz',required:true}]},
+    {id:'absorption',fn:'#21',title:'Marktabsorptions-Simulator',desc:'Einfache Bestands-/Nachfragezähler statt automatischer Zeitreihen-Simulation.',key:'kk_absorption_counts_v1',prefix:'absorption',fields:[{name:'gebiet',label:'Gebiet',required:true},{name:'inventoryCount',label:'Aktueller Bestand',type:'number'},{name:'demandCount',label:'Aktuelle Nachfrage',type:'number'}]},
+    {id:'marketingtwin',fn:'#25',title:'Vermarktungs-Digitalzwilling',desc:'Manuelles Vermarktungs-Aktivitätenledger je Objekt.',key:'kk_marketing_activities_v1',prefix:'marketing',fields:[{name:'object',label:'Objekt',required:true},{name:'activity',label:'Vermarktungsaktivität',required:true},{name:'outcome',label:'Ergebnis/Reaktion'}]},
+    {id:'targetfit',fn:'#27',title:'Zielgruppen-Fit-Engine',desc:'Manuelle Zielgruppen-Notiz statt automatischer Passungskriterien.',key:'kk_target_group_notes_v1',prefix:'targetfit',fields:[{name:'object',label:'Objekt',required:true},{name:'targetGroupNote',label:'Zielgruppen-Notiz',required:true}]},
+    {id:'buyersignal',fn:'#28',title:'Käufer-Signal-Heatmap',desc:'Manuelle Signal-Buttons statt automatischer Event-Erfassung.',key:'kk_buyer_signals_v1',prefix:'buyersignal',fields:[{name:'contact',label:'Käuferkontakt',required:true},{name:'signal',label:'Signal',type:'select',options:['Besichtigung erneut angefragt','Unterlagen erneut angefordert','Direkt nachgefragt','Sonstiges']}]},
+    {id:'ownerstrategy',fn:'#32',title:'Eigentümer-Strategierat',desc:'Druckbarer Wochenbericht statt automatischem StrategyReview.',key:'kk_owner_strategy_notes_v1',prefix:'strategy',fields:[{name:'contact',label:'Kontakt',required:true},{name:'weeklyNote',label:'Wochennotiz',required:true}]},
+    {id:'matchrescue',fn:'#35',title:'Verpasste-Matches-Rettung',desc:'Manueller Suchprofil-Recheck-Reminder statt automatischer Delta-Matches.',key:'kk_match_rescue_v1',prefix:'matchrescue',fields:[{name:'contact',label:'Kontakt',required:true},{name:'note',label:'Notiz (welches Objekt erneut prüfen)',required:true}]},
+    {id:'decisionwindow',fn:'#38',title:'Entscheidungsfenster-Orchestrator',desc:'Manuelles Entscheidungsfrist-Feld statt automatischer Next-Best-Action.',key:'kk_decision_deadlines_v1',prefix:'deadline',fields:[{name:'contact',label:'Käuferkontakt',required:true},{name:'deadline',label:'Entscheidungsfrist',type:'date'},{name:'note',label:'Notiz'}]},
+    {id:'multiplier',fn:'#43',title:'Lokaler Multiplikatorenindex',desc:'Manuelle Markierung ohne Personenranking.',key:'kk_multiplier_notes_v1',prefix:'multiplier',fields:[{name:'contact',label:'Kontakt',required:true},{name:'note',label:'Warum guter Multiplikator',required:true}]},
+    {id:'pathfinder',fn:'#44',title:'Introduction Pathfinder',desc:'Manuelle Verbindungssuche statt automatischem Pfad-Algorithmus.',key:'kk_intro_paths_v1',prefix:'pathfinder',fields:[{name:'contact',label:'Zielkontakt',required:true},{name:'connectionVia',label:'Erreichbar über',required:true}]},
+    {id:'community',fn:'#47',title:'Community-Connector-Map',desc:'Listenansicht ohne exakte Adressen (Datenschutz).',key:'kk_community_connectors_v1',prefix:'community',fields:[{name:'gebiet',label:'Gebiet',required:true},{name:'connectorNote',label:'Vernetzungsnotiz (keine exakte Adresse)',required:true}]},
+    {id:'ambassador',fn:'#48',title:'Nachbarschafts-Botschafterkreislauf',desc:'Manuelle Anlassliste statt automatischer Campaign-Attribution.',key:'kk_ambassador_occasions_v1',prefix:'ambassador',fields:[{name:'contact',label:'Kontakt',required:true},{name:'occasion',label:'Anlass für Ansprache',required:true}]},
+    {id:'revenuenav',fn:'#49',title:'Umsatzwirkungs-Navigator',desc:'Regelbasierte Top-3-Aufgabenliste statt automatischer Rangfolge.',key:'kk_revenue_priorities_v1',prefix:'revenuenav',fields:[{name:'task',label:'Aufgabe',required:true},{name:'priorityReason',label:'Warum jetzt wichtig',required:true}]}
+  ];
+
+  function fieldInputHtml(cardId,f){
+    var id='p2_'+cardId+'_'+f.name;
+    if(f.type==='select'){
+      return '<label>'+esc(f.label)+'<select id="'+id+'">'+f.options.map(function(o){return '<option value="'+esc(o)+'">'+esc(o)+'</option>'}).join('')+'</select></label>';
+    }
+    return '<label>'+esc(f.label)+'<input id="'+id+'" type="'+(f.type||'text')+'"'+(f.required?' required':'')+'/></label>';
+  }
+  function renderCard(card){
+    var html='<div class="kkops-card"><h3>'+esc(card.fn)+' '+esc(card.title)+'</h3><p class="kkops-muted">'+esc(card.desc)+'</p>';
+    html+='<form class="kk-form-grid" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px" data-p2-form="'+esc(card.id)+'">'+card.fields.map(function(f){return fieldInputHtml(card.id,f)}).join('')+'<div style="align-self:flex-end"><button class="kkops-btn" type="submit">Speichern</button></div></form>';
+    html+='<div class="kkops-list" id="p2_list_'+esc(card.id)+'" style="margin-top:10px"></div></div>';
+    return html;
+  }
+  function renderCardList(card){
+    var list=q('p2_list_'+card.id); if(!list)return;
+    var items=rd(card.key,[]);
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Einträge.');return}
+    list.innerHTML=items.slice().reverse().slice(0,25).map(function(x){
+      var lines=card.fields.map(function(f){return x[f.name]?('<small>'+esc(f.label)+': '+esc(x[f.name])+'</small>'):''}).join('');
+      return '<div class="kkops-item">'+lines+'</div>';
+    }).join('');
+  }
+  function bindCardForm(card){
+    var form=document.querySelector('[data-p2-form="'+card.id+'"]');
+    if(!form)return;
+    form.onsubmit=function(e){
+      e.preventDefault();
+      var item={id:uid(card.prefix),createdAt:new Date().toISOString()};
+      var missingRequired=false;
+      card.fields.forEach(function(f){
+        var el=q('p2_'+card.id+'_'+f.name);
+        var val=el?el.value.trim():'';
+        if(f.required&&!val)missingRequired=true;
+        item[f.name]=val;
+      });
+      if(missingRequired)return;
+      var items=rd(card.key,[]); items.push(item); wr(card.key,items);
+      form.reset(); notify('Gespeichert'); renderCardList(card);
+    };
+  }
+  function renderAllCards(){
+    var container=q('p2CardsContainer'); if(!container)return;
+    if(!container.dataset.built){
+      container.innerHTML=CARDS.map(renderCard).join('');
+      CARDS.forEach(bindCardForm);
+      container.dataset.built='1';
+    }
+    CARDS.forEach(renderCardList);
+  }
+
+  /* #5 Kontaktreaktivierungs-Seismograf + #40 Käufer-Abwanderungsfrühwarnung:
+     identischer Mechanismus (Tage seit letzter echter Aktivität aus
+     kk_crm_activities, fester Schwellwert statt individueller Kadenz wie
+     #42), auf Eigentuemer- bzw. Kaeuferkontakte angewendet - eine
+     gemeinsame Ansicht statt zweier fast identischer Karten. */
+  var REACTIVATION_THRESHOLD_DAYS=45;
+  function renderReactivationAlerts(){
+    var box=q('p2ReactivationAlerts'); if(!box)return;
+    var contacts=rd('kk_crm_contacts',[]);
+    var acts=rd('kk_crm_activities',[]);
+    function lastActivityDays(contact){
+      var norm=String(contact||'').toLowerCase().trim(); if(!norm)return null;
+      var matching=acts.filter(function(a){return String(a.contact||'').toLowerCase().trim()===norm});
+      if(!matching.length)return null;
+      var newest=matching.reduce(function(m,a){return (!m||new Date(a.createdAt||a.date||0)>new Date(m.createdAt||m.date||0))?a:m},null);
+      return daysSince(newest.createdAt||newest.date);
+    }
+    var stale=contacts.map(function(c){
+      var d=lastActivityDays(c.name);
+      return {contact:c,days:d};
+    }).filter(function(x){return x.days!=null&&x.days>REACTIVATION_THRESHOLD_DAYS}).sort(function(a,b){return b.days-a.days}).slice(0,15);
+    box.innerHTML='<h3>#5/#40 Kontaktreaktivierungs-/Abwanderungsradar</h3><p class="kkops-muted">Kontakte ohne Aktivität seit mehr als '+REACTIVATION_THRESHOLD_DAYS+' Tagen (Top 15, aus echten kk_crm_activities-Daten berechnet).</p>'+
+      (stale.length?stale.map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact.name||'Ohne Name')+'</strong><small>'+esc(x.days)+' Tage ohne Aktivität</small></div>'}).join(''):emptyMsg('Keine Kontakte über dem Schwellwert - oder keine Aktivitäten mit Namensbezug vorhanden.'));
+  }
+
+  function renderAllP2(){renderAllCards();renderReactivationAlerts()}
+
+  function init(){
+    renderAllP2();
+    document.addEventListener('kk-app-tab-changed',function(ev){try{if(ev&&ev.detail&&ev.detail.tab==='backup')renderAllP2()}catch(e){}});
+  }
+  window.KK_P2_FUNKTIONEN=Object.freeze({version:'1.0',renderAll:renderAllP2,CARDS:CARDS});
+  if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('p2-masterprompt-funktionen',init,{priority:87});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
 <dialog class="kkimp-preview-dialog" id="kkImportPreviewDialog" aria-labelledby="kkImportPreviewTitle">
@@ -13252,7 +13385,7 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
        secondary steuert ausschliesslich, wo er im Desktop-Menü erscheint. */
     {id:'ki-prompts',label:'KI-Prompts',panelId:'kk-app-panel-ki-prompts',primary:true,secondary:true,mobile:false,anchors:['ki-prompt-assistent','kkaiForm']},
     {id:'kpis',label:'KPIs',panelId:'kk-app-panel-kpis',primary:true,secondary:true,mobile:false,anchors:['conversion-cockpit','wochenreview','monatsreview','monatsmodus','zeitbudget','kpi','business','conversionForm','weekForm','monthForm','timeForm']},
-    {id:'backup',label:'Backup',panelId:'kk-app-panel-backup',primary:true,secondary:true,mobile:false,anchors:['kk-technical-backup','master-os','datenqualitaet','p0funktionen','p0transaktionen','p0besichtigung','p0finanzierung','p0schnellerfassung','p0einwaende','p1funktionen','kkTechExportFull','kkTechExportModule','kkTechSmokeTest','kkTechImportFile','kkTechImportMode','kkTechImportRun','kkTechStatus','kkTechToast']},
+    {id:'backup',label:'Backup',panelId:'kk-app-panel-backup',primary:true,secondary:true,mobile:false,anchors:['kk-technical-backup','master-os','datenqualitaet','p0funktionen','p0transaktionen','p0besichtigung','p0finanzierung','p0schnellerfassung','p0einwaende','p1funktionen','p2funktionen','kkTechExportFull','kkTechExportModule','kkTechSmokeTest','kkTechImportFile','kkTechImportMode','kkTechImportRun','kkTechStatus','kkTechToast']},
     {id:'skripte',label:'Archiv: Skripte',panelId:'kk-app-panel-skripte',primary:false,mobile:false,anchors:['skripte','einwaende','kk_scripts_module']},
     /* KK-PHASE1-SICHTBARKEIT: primary:true, damit "Archiv: Wissen" im regulären Hauptmenü erscheint statt nur
        versteckt unter dem Backup-Tab erreichbar zu sein. Label, Panel, Anchors und Archiv-Charakter unverändert. */
@@ -17184,7 +17317,7 @@ var configs={
   tippgeber:{title:'Tippgeber',desc:'Netzwerkpartner, Empfehlungen und laufende Tippgeberkontakte verwalten.',color:'#182C46',soft:'#EAEDF2',icon:'network',sections:[['tippgeber-pipeline','Pipeline'],['kk-referral-machine-v20','Tippgeber-Maschine'],['netzwerk','Netzwerk'],['tippgeber-system','System']]},
   'ki-prompts':{title:'KI-Prompts',desc:'Nachrichten, Gesprächsvorbereitung und Formulierungen aus echten Situationen erzeugen.',color:'#182C46',soft:'#EAEDF2',icon:'spark',sections:[['ki-prompt-assistent','Promptgenerator']]},
   kpis:{title:'KPIs & Zielkontrolle',desc:'Aktivität, Conversion, Wochen- und Monatsleistung in einer kompakten Übersicht.',color:'#182C46',soft:'#EAEDF2',icon:'chart',sections:[['kk-command-center-overview','Übersicht'],['conversion-cockpit','Conversion'],['wochenreview','Woche'],['monatsreview','Monat'],['zeitbudget','Zeitbudget'],['kpi','Ziele'],['business','Business'],['monatsmodus','Monatsmodus']]},
-  backup:{title:'Backup & System',desc:'Daten sichern, importieren, prüfen und technische Werkzeuge kontrolliert nutzen.',color:'#182C46',soft:'#EAEDF2',icon:'shield',sections:[['kk-technical-backup','Sicherung'],['datenqualitaet','Datenqualität'],['p0funktionen','Zusagen & Vertriebswerkzeuge'],['p1funktionen','Vertriebswerkzeuge P1'],['master-os','Master-OS'],['kk-akademie-archiv-handoff','Archiv']]}
+  backup:{title:'Backup & System',desc:'Daten sichern, importieren, prüfen und technische Werkzeuge kontrolliert nutzen.',color:'#182C46',soft:'#EAEDF2',icon:'shield',sections:[['kk-technical-backup','Sicherung'],['datenqualitaet','Datenqualität'],['p0funktionen','Zusagen & Vertriebswerkzeuge'],['p1funktionen','Vertriebswerkzeuge P1'],['p2funktionen','Vertriebswerkzeuge P2'],['master-os','Master-OS'],['kk-akademie-archiv-handoff','Archiv']]}
 };
 function icon(name){var p={
  target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M22 12h-3M12 22v-3M2 12h3"/>',

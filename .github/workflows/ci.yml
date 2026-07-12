@@ -70,3 +70,6 @@ jobs:
 
       - name: E2E - test-masterprompt-p1.js
         run: node tests/e2e/test-masterprompt-p1.js
+
+      - name: E2E - test-masterprompt-p2.js
+        run: node tests/e2e/test-masterprompt-p2.js

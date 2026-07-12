@@ -103,5 +103,17 @@ Kevin hat nach der ersten Backlog-Fassung zurecht bemaengelt, dass zu viele Funk
 
 **Gate erfuellt:** 2 neue Testdateien (`test-masterprompt-p0.js` 15/15, `test-masterprompt-p1.js` 11/11, beide mit echten synthetischen Daten und echter Dialog-/Gate-Interaktion), volle Regression (9 E2E-Dateien) nach jeder Aenderung gruen, `npm run lint` 0 Fehler. Backlog-Stand: 33 von 64 Funktionen erledigt (P0 11/11, P1 22/22), P2 (25) und P3 (5, Fallback-Teil) folgen direkt im Anschluss.
 
+## Phase 20 — Master-Prompt P2-Batch: 25 weitere Funktionen real umgesetzt ✅ ABGESCHLOSSEN (Commit folgt)
+Direkte Fortsetzung von Phase 19. 20 der 25 P2-Funktionen ueber eine zweite generische Karten-Engine (`window.KK_P2_FUNKTIONEN.CARDS`, gleiches Muster wie P1): Eigentuemer-Intent-Radar (#1), Verkaufsfenster-Modell (#2), Nachfrageueberhang-zu-Eigentuemer-Engine (#6), Nachbarschafts-Chancenkarte (#7), Verkaeufertermin-War-Room (#9), Eigentuemer-Entscheidungszwilling (#10), Beweis-Architekt (#11), Mikrolagen-DNA (#19), Marktabsorptions-Simulator (#21), Vermarktungs-Digitalzwilling (#25), Zielgruppen-Fit-Engine (#27), Kaeufer-Signal-Heatmap (#28), Eigentuemer-Strategierat (#32), Verpasste-Matches-Rettung (#35), Entscheidungsfenster-Orchestrator (#38), Lokaler Multiplikatorenindex (#43), Introduction Pathfinder (#44), Community-Connector-Map (#47), Nachbarschafts-Botschafterkreislauf (#48), Umsatzwirkungs-Navigator (#49).
+
+Rest bewusst NICHT als neue Karte gebaut, sondern wiederverwendet/kombiniert:
+- **#5/#40** (Kontaktreaktivierungs-Seismograf / Kaeufer-Abwanderungsfruehwarnung): identischer Mechanismus, eine gemeinsame Ansicht statt zweier Karten - Tage seit letzter Aktivitaet aus echten kk_crm_activities-Daten, fester Schwellwert (45 Tage).
+- **#37** (Emotionale-Reibungslandkarte): vordefinierte Raum-Feedback-Tags als zusaetzliches Feld in der bereits bestehenden Besichtigungs-Debrief-Form (#36 aus P0) ergaenzt, statt eines separaten Moduls.
+- **#20** (Strassen-Liquiditaetsindex) und **#23** (Kontrafaktisches Preislabor): bereits durch die bestehende Ortsteil-Auswertung bzw. die #22-Szenariokarte aus P1 abgedeckt.
+
+20 neue kk_*-Storage-Keys, Schema-Registry aktualisiert, Navigation synchron gehalten.
+
+**Gate erfuellt:** neue Testdatei `test-masterprompt-p2.js` (8/8, echte synthetische Daten inkl. echtem False-Positive-Test fuer die Reaktivierungsansicht), volle Regression nach der Aenderung gruen, `npm run lint` 0 Fehler. Backlog-Stand: 58 von 64 Funktionen erledigt (P0 11/11, P1 22/22, P2 25/25), nur noch P3 (5 Funktionen, Fallback-Teil) offen.
+
 ## Nicht in diesem Umsetzungsplan
 Vollständige Quellcode-Modularisierung (`src/core/...`, Teil 3 §40) — laut PRD selbst erst sinnvoll, wenn Datenverträge stabil sind; wird nicht vorgezogen.

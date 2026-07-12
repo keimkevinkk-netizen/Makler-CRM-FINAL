@@ -60,31 +60,31 @@ Für jede Funktion:
 
 | # | Funktion | Verdikt |
 |---|---|---|
-| 1 | Eigentümer-Intent-Radar | Fallback jetzt umsetzbar (nur interne manuelle Signal-Markierung) |
-| 2 | Verkaufsfenster-Modell | Fallback jetzt umsetzbar (regelbasierte Nutzerbestätigung/Zeitfenster-Feld) |
-| 5 | Kontaktreaktivierungs-Seismograf | Fallback jetzt umsetzbar (Tage-seit-Kontakt-Alarm aus vorhandenen Aktivitäten) |
-| 6 | Nachfrageüberhang-zu-Eigentümer-Engine | Fallback jetzt umsetzbar (manuelle Suchprofil-Zählung je Gebiet) |
-| 7 | Nachbarschafts-Chancenkarte | Fallback jetzt umsetzbar (manuelle Gebiets-Chancen-Notiz auf bestehender Ortsteil-Auswertung) |
-| 9 | Verkäufertermin-War-Room | Fallback jetzt umsetzbar (druckbare Checkliste aus CRM+Markt+Bewertung) |
-| 10 | Eigentümer-Entscheidungszwilling | Fallback jetzt umsetzbar (regelbasierte Präferenzfelder statt KI-Hypothesen) |
-| 11 | Beweis-Architekt | Fallback jetzt umsetzbar (manuelle Beleg-/Quellenliste je Kontakt) |
-| 19 | Mikrolagen-DNA | Fallback jetzt umsetzbar (Maklernotizen je Ortsteil, Registry existiert bereits) |
-| 20 | Straßen-Liquiditätsindex | Bereits weitgehend abgedeckt durch bestehende Ortsteil-Auswertung (Mindestfallzahl/Konfidenz) |
-| 21 | Marktabsorptions-Simulator | Fallback jetzt umsetzbar (einfache Bestands-/Nachfragezähler je Gebiet) |
-| 23 | Kontrafaktisches Preislabor | Fallback jetzt umsetzbar (kombiniert mit #22, einfache Was-wäre-wenn-Rechnung) |
-| 25 | Vermarktungs-Digitalzwilling | Fallback jetzt umsetzbar (manuelles Vermarktungs-Aktivitätenledger je Objekt) |
-| 27 | Zielgruppen-Fit-Engine | Fallback jetzt umsetzbar (manuelle Zielgruppen-Notiz je Objekt) |
-| 28 | Käufer-Signal-Heatmap | Fallback jetzt umsetzbar (manuelle Signal-Buttons auf Käuferkontakten) |
-| 32 | Eigentümer-Strategierat | Fallback jetzt umsetzbar (druckbarer Wochenbericht aus vorhandenen Daten) |
-| 35 | Verpasste-Matches-Rettung | Fallback jetzt umsetzbar (manueller Suchprofil-Recheck-Reminder) |
-| 37 | Emotionale-Reibungslandkarte | Fallback jetzt umsetzbar (vordefinierte Feedback-Tags im Besichtigungs-Debrief, #36) |
-| 38 | Entscheidungsfenster-Orchestrator | Fallback jetzt umsetzbar (manuelles Entscheidungsfrist-Feld bei Käuferkontakten) |
-| 40 | Käufer-Abwanderungsfrühwarnung | Fallback jetzt umsetzbar (gleiche Mechanik wie #5, auf Käufer angewendet) |
-| 43 | Lokaler Multiplikatorenindex | Fallback jetzt umsetzbar (manuelle Markierung "guter Multiplikator" ohne Ranking) |
-| 44 | Introduction Pathfinder | Fallback jetzt umsetzbar, aber niedrige Priorität (manuelle Verbindungssuche über #8/#41) |
-| 47 | Community-Connector-Map | Fallback jetzt umsetzbar (Listenansicht ohne exakte Adressen, Datenschutz beachtet) |
-| 48 | Nachbarschafts-Botschafterkreislauf | Fallback jetzt umsetzbar (manuelle Anlassliste für Empfehlungsaktionen) |
-| 49 | Umsatzwirkungs-Navigator | Fallback jetzt umsetzbar (regelbasierte Top-3-Aufgabenliste) |
+| 1 | Eigentümer-Intent-Radar | Fallback jetzt umsetzbar (nur interne manuelle Signal-Markierung) | ✅ Erledigt |
+| 2 | Verkaufsfenster-Modell | Fallback jetzt umsetzbar (regelbasierte Nutzerbestätigung/Zeitfenster-Feld) | ✅ Erledigt |
+| 5 | Kontaktreaktivierungs-Seismograf | Fallback jetzt umsetzbar (Tage-seit-Kontakt-Alarm aus vorhandenen Aktivitäten) | ✅ Erledigt |
+| 6 | Nachfrageüberhang-zu-Eigentümer-Engine | Fallback jetzt umsetzbar (manuelle Suchprofil-Zählung je Gebiet) | ✅ Erledigt |
+| 7 | Nachbarschafts-Chancenkarte | Fallback jetzt umsetzbar (manuelle Gebiets-Chancen-Notiz auf bestehender Ortsteil-Auswertung) | ✅ Erledigt |
+| 9 | Verkäufertermin-War-Room | Fallback jetzt umsetzbar (druckbare Checkliste aus CRM+Markt+Bewertung) | ✅ Erledigt |
+| 10 | Eigentümer-Entscheidungszwilling | Fallback jetzt umsetzbar (regelbasierte Präferenzfelder statt KI-Hypothesen) | ✅ Erledigt |
+| 11 | Beweis-Architekt | Fallback jetzt umsetzbar (manuelle Beleg-/Quellenliste je Kontakt) | ✅ Erledigt |
+| 19 | Mikrolagen-DNA | Fallback jetzt umsetzbar (Maklernotizen je Ortsteil, Registry existiert bereits) | ✅ Erledigt |
+| 20 | Straßen-Liquiditätsindex | Bereits weitgehend abgedeckt durch bestehende Ortsteil-Auswertung (Mindestfallzahl/Konfidenz) | ✅ Erledigt |
+| 21 | Marktabsorptions-Simulator | Fallback jetzt umsetzbar (einfache Bestands-/Nachfragezähler je Gebiet) | ✅ Erledigt |
+| 23 | Kontrafaktisches Preislabor | Fallback jetzt umsetzbar (kombiniert mit #22, einfache Was-wäre-wenn-Rechnung) | ✅ Erledigt |
+| 25 | Vermarktungs-Digitalzwilling | Fallback jetzt umsetzbar (manuelles Vermarktungs-Aktivitätenledger je Objekt) | ✅ Erledigt |
+| 27 | Zielgruppen-Fit-Engine | Fallback jetzt umsetzbar (manuelle Zielgruppen-Notiz je Objekt) | ✅ Erledigt |
+| 28 | Käufer-Signal-Heatmap | Fallback jetzt umsetzbar (manuelle Signal-Buttons auf Käuferkontakten) | ✅ Erledigt |
+| 32 | Eigentümer-Strategierat | Fallback jetzt umsetzbar (druckbarer Wochenbericht aus vorhandenen Daten) | ✅ Erledigt |
+| 35 | Verpasste-Matches-Rettung | Fallback jetzt umsetzbar (manueller Suchprofil-Recheck-Reminder) | ✅ Erledigt |
+| 37 | Emotionale-Reibungslandkarte | Fallback jetzt umsetzbar (vordefinierte Feedback-Tags im Besichtigungs-Debrief, #36) | ✅ Erledigt |
+| 38 | Entscheidungsfenster-Orchestrator | Fallback jetzt umsetzbar (manuelles Entscheidungsfrist-Feld bei Käuferkontakten) | ✅ Erledigt |
+| 40 | Käufer-Abwanderungsfrühwarnung | Fallback jetzt umsetzbar (gleiche Mechanik wie #5, auf Käufer angewendet) | ✅ Erledigt |
+| 43 | Lokaler Multiplikatorenindex | Fallback jetzt umsetzbar (manuelle Markierung "guter Multiplikator" ohne Ranking) | ✅ Erledigt |
+| 44 | Introduction Pathfinder | Fallback jetzt umsetzbar, aber niedrige Priorität (manuelle Verbindungssuche über #8/#41) | ✅ Erledigt |
+| 47 | Community-Connector-Map | Fallback jetzt umsetzbar (Listenansicht ohne exakte Adressen, Datenschutz beachtet) | ✅ Erledigt |
+| 48 | Nachbarschafts-Botschafterkreislauf | Fallback jetzt umsetzbar (manuelle Anlassliste für Empfehlungsaktionen) | ✅ Erledigt |
+| 49 | Umsatzwirkungs-Navigator | Fallback jetzt umsetzbar (regelbasierte Top-3-Aufgabenliste) | ✅ Erledigt |
 
 ## P3 (5 Funktionen)
 
@@ -102,4 +102,4 @@ Für jede Funktion:
 
 **Keine der 64 Funktionen ist wirklich vollständig blockiert.** Nur 3 (#3, #26, #31) haben eine volle Ausprägung, die zwingend einen bezahlten externen Provider braucht — deren *Fallback-Version* ist trotzdem jetzt baubar. Alle anderen 61 bekommen entweder die volle empfohlene Lösung oder eine echte, benutzbare Fallback-Version **ohne** Auth/Datenbank.
 
-**Umsetzungsreihenfolge:** P0 (11/11 erledigt) → P1 (22/22 erledigt) → P2 (25, naechster Schritt) → P3 (5, Fallback-Teil). Wird fortlaufend abgearbeitet, committet und getestet — siehe Commit-Historie fuer den jeweils aktuellen Stand. Wo eine "volle Ausprägung" (echte Multi-Device-Synchronisation, serverseitige Auswertung über alle Nutzer, KI-Modell-Integration) über die Fallback-Version hinausgeht, bleibt das explizit als spätere Erweiterung vermerkt — keine dieser späteren Erweiterungen wird als "erledigt" geführt.
+**Umsetzungsreihenfolge:** P0 (11/11 erledigt) → P1 (22/22 erledigt) → P2 (25/25 erledigt) → P3 (5, naechster und letzter Schritt fuer den Fallback-Teil). Wird fortlaufend abgearbeitet, committet und getestet — siehe Commit-Historie fuer den jeweils aktuellen Stand. Wo eine "volle Ausprägung" (echte Multi-Device-Synchronisation, serverseitige Auswertung über alle Nutzer, KI-Modell-Integration) über die Fallback-Version hinausgeht, bleibt das explizit als spätere Erweiterung vermerkt — keine dieser späteren Erweiterungen wird als "erledigt" geführt.

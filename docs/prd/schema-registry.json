@@ -727,6 +727,206 @@
       "notes": "Master-Prompt #64 Service-Recovery-Radar."
     },
     {
+      "key": "kk_intent_signals_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "IntentSignal[] ({id, contact, signal, confidence, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #1 Eigentuemer-Intent-Radar."
+    },
+    {
+      "key": "kk_sales_windows_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "SalesWindow[] ({id, contact, timeframe, confirmedBy, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #2 Verkaufsfenster-Modell."
+    },
+    {
+      "key": "kk_demand_counts_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "DemandCount[] ({id, gebiet, searchProfileCount, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #6 Nachfrageueberhang-zu-Eigentuemer-Engine."
+    },
+    {
+      "key": "kk_area_chances_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "AreaChance[] ({id, gebiet, chance, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #7 Nachbarschafts-Chancenkarte."
+    },
+    {
+      "key": "kk_meeting_briefings_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "MeetingBriefing[] ({id, contact, briefingNote, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #9 Verkaeufertermin-War-Room."
+    },
+    {
+      "key": "kk_decision_preferences_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "DecisionPreference[] ({id, contact, preference, hypothesis, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #10 Eigentuemer-Entscheidungszwilling."
+    },
+    {
+      "key": "kk_evidence_notes_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "EvidenceNote[] ({id, contact, claim, source, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #11 Beweis-Architekt."
+    },
+    {
+      "key": "kk_microarea_notes_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "MicroAreaNote[] ({id, ortsteil, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #19 Mikrolagen-DNA."
+    },
+    {
+      "key": "kk_absorption_counts_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "AbsorptionCount[] ({id, gebiet, inventoryCount, demandCount, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #21 Marktabsorptions-Simulator."
+    },
+    {
+      "key": "kk_marketing_activities_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "MarketingActivity[] ({id, object, activity, outcome, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #25 Vermarktungs-Digitalzwilling."
+    },
+    {
+      "key": "kk_target_group_notes_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "TargetGroupNote[] ({id, object, targetGroupNote, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #27 Zielgruppen-Fit-Engine."
+    },
+    {
+      "key": "kk_buyer_signals_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "BuyerSignal[] ({id, contact, signal, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #28 Kaeufer-Signal-Heatmap."
+    },
+    {
+      "key": "kk_owner_strategy_notes_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "OwnerStrategyNote[] ({id, contact, weeklyNote, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #32 Eigentuemer-Strategierat."
+    },
+    {
+      "key": "kk_match_rescue_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "MatchRescueNote[] ({id, contact, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #35 Verpasste-Matches-Rettung."
+    },
+    {
+      "key": "kk_decision_deadlines_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "DecisionDeadline[] ({id, contact, deadline, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #38 Entscheidungsfenster-Orchestrator."
+    },
+    {
+      "key": "kk_multiplier_notes_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "MultiplierNote[] ({id, contact, note, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #43 Lokaler Multiplikatorenindex. Bewusst ohne Ranking-Feld (Fairness-Anforderung des Master-Prompts)."
+    },
+    {
+      "key": "kk_intro_paths_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "IntroPath[] ({id, contact, connectionVia, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #44 Introduction Pathfinder."
+    },
+    {
+      "key": "kk_community_connectors_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "CommunityConnectorNote[] ({id, gebiet, connectorNote, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #47 Community-Connector-Map. Bewusst ohne exakte Adressfelder (Datenschutz)."
+    },
+    {
+      "key": "kk_ambassador_occasions_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "AmbassadorOccasion[] ({id, contact, occasion, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #48 Nachbarschafts-Botschafterkreislauf."
+    },
+    {
+      "key": "kk_revenue_priorities_v1",
+      "owner": "p2-masterprompt-funktionen",
+      "entity": "RevenuePriority[] ({id, task, priorityReason, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt #49 Umsatzwirkungs-Navigator."
+    },
+    {
       "key": "kk_owner_opportunities",
       "owner": "pipeline",
       "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",
