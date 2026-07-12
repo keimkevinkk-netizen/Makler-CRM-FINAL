@@ -487,6 +487,66 @@
       "notes": "BORIS-/ALKIS-WMS-Layerauswahl-Cache (kk-official-gis-v1-js, PR #7). v2 statt v1, weil der Layer-Parser nach dem Live-Test grundlegend gefixt wurde und ein alter v1-Cache-Eintrag mit dem damaligen fehlerhaften Ergebnis nicht weiterverwendet werden darf. Nachtraeglich in die Registry aufgenommen (Master-Prompt-Live-Audit vom 11.07.2026 fand die Luecke)."
     },
     {
+      "key": "kk_commitments_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "Commitment[] ({id, contact, text, due, status, createdAt, fulfilledAt, fulfillmentNote})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #16/#51 (Zusagen-Ledger / Kontaktversprechen-Waechter). Inhalt nach Anlage nicht editierbar, nur Status bewegt sich einmalig vorwaerts (offen -> erfuellt/gebrochen)."
+    },
+    {
+      "key": "kk_transactions_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "Transaction[] ({id, dealId, contact, area, objectLabel, price, commission, source, closedAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #17 (Transaktionswahrheits-Ledger). Automatisch aus kk_sales_pipeline abgeleitet, sobald eine Chance die Stufe 'Verkauft' erreicht - getrennt von Angebotspreisen in KK_MARKET_OBS."
+    },
+    {
+      "key": "kk_viewing_debriefs_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "ViewingDebrief[] ({id, contact, object, interest, objection, next, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #36 (Besichtigungs-Intelligence-Capture)."
+    },
+    {
+      "key": "kk_financing_status_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "FinancingStatus[] ({id, contact, status, blocker, updatedAt}) - je Kontakt ein aktueller Stand",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #39 (Finanzierungs-Reibungsradar). Bewusst nur Status+Blocker, keine Bank-/Kreditdetails."
+    },
+    {
+      "key": "kk_quick_capture_inbox_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "QuickCaptureItem[] ({id, text, createdAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #56 (Feldsignal-Sofortfaenger). Unzugeordneter Text-Eingang, spaeter manuell einem Kontakt zuordenbar."
+    },
+    {
+      "key": "kk_objection_outcomes_v1",
+      "owner": "p0-masterprompt-funktionen",
+      "entity": "ObjectionOutcome[] ({id, objectionId, objectionText, contact, outcome, usedAt})",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "Master-Prompt Funktion #59/#60 (Einwand-Genom / Interventionsgedaechtnis). Kuratierte Einwand-Bibliothek selbst ist eine statische Konstante im Code, nicht Teil dieses Storage-Keys."
+    },
+    {
       "key": "kk_owner_opportunities",
       "owner": "pipeline",
       "entity": "(unstrukturiert / Legacy, in spaeterer Phase pruefen)",

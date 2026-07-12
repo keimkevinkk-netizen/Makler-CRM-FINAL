@@ -11424,7 +11424,241 @@ Wenn du eine Immobilie im Main-Kinzig-Kreis besitzt und nicht sicher bist, ob od
 <article class="kk11-card" id="global-backup"><h3>Globaler Export / Import / Backup</h3><p>Verwendet dieselbe zentrale V28.2-Backup-Engine wie die technische Sicherung darüber. CRM, Follow-ups, Pipeline, Tippgeber, Markt- und Tagesdaten werden über eine gemeinsame Key-Registry exportiert und validiert importiert.</p><div class="kk11-backupbar"><button class="kk11-btn" data-kk11-action="backup" type="button">Vollständiges Produktionssystem sichern</button><label class="kk11-btn light">Backup importieren <input accept="application/json" aria-label="Backup importieren" hidden="" id="kk11ImportFile" type="file"/></label><button class="kk11-btn light" data-kk11-action="schema" type="button">Schema speichern</button></div><div class="kk11-status" id="kk11BackupStatus">Bereit.</div></article>
 </div>
 </div>
-</section><section class="kkops-section" id="datenqualitaet"><div class="kkops-shell"><div class="kkops-head"><div><span class="kkops-kicker">Ebene 2 · Datenqualität</span><h2>Datenqualität / Recherche-Warteschlange</h2><p>Kontakte mit fehlender Telefonnummer, fehlender E-Mail, Platzhaltern, falschen Feldern oder fehlendem nächsten Schritt werden vor der Akquise sichtbar. Prüft zusätzlich entitätsübergreifend: Follow-ups mit verwaistem Kontaktbezug, mögliche Telefonnummer-Duplikate.</p></div><div class="kkops-actions"><button class="kkops-btn" id="dataScanBtn" type="button">CRM + Referenzen prüfen</button><button class="kkops-btn light" data-export="kk_data_quality_queue" type="button">Export</button></div></div><div class="kkops-grid kkops-four" id="dataStats"></div><div class="kkops-card" style="margin-top:14px"><h3>Recherche-Warteschlange</h3><div class="kkops-list" id="dataQueue"></div></div></div></section><dialog class="kkimp-preview-dialog" id="kkImportPreviewDialog" aria-labelledby="kkImportPreviewTitle">
+</section><section class="kkops-section" id="datenqualitaet"><div class="kkops-shell"><div class="kkops-head"><div><span class="kkops-kicker">Ebene 2 · Datenqualität</span><h2>Datenqualität / Recherche-Warteschlange</h2><p>Kontakte mit fehlender Telefonnummer, fehlender E-Mail, Platzhaltern, falschen Feldern oder fehlendem nächsten Schritt werden vor der Akquise sichtbar. Prüft zusätzlich entitätsübergreifend: Follow-ups mit verwaistem Kontaktbezug, mögliche Telefonnummer-Duplikate.</p></div><div class="kkops-actions"><button class="kkops-btn" id="dataScanBtn" type="button">CRM + Referenzen prüfen</button><button class="kkops-btn light" data-export="kk_data_quality_queue" type="button">Export</button></div></div><div class="kkops-grid kkops-four" id="dataStats"></div><div class="kkops-card" style="margin-top:14px"><h3>Recherche-Warteschlange</h3><div class="kkops-list" id="dataQueue"></div></div></div></section><style>.kk-form-grid label{flex:1 1 200px;display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}.kk-form-grid input,.kk-form-grid select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}</style>
+<section class="kkops-section" id="p0funktionen"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 16/51</span><h2>Zusagen-Ledger</h2><p>Unveränderliche Zusagen mit Fälligkeit und Erfüllungsnachweis — getrennt von der veränderbaren Follow-up-Liste, damit eine Zusage nachvollziehbar bleibt, auch wenn das zugehörige Follow-up längst erledigt oder gelöscht wurde.</p></div><div class="kkops-actions"><button class="kkops-btn" id="p0CommitmentAddBtn" type="button">Neue Zusage</button><button class="kkops-btn light" data-export="kk_commitments_v1" type="button">Export</button></div></div>
+<div class="kkops-grid kkops-four" id="p0CommitmentStats"></div>
+<form class="kkops-card" id="p0CommitmentForm" style="margin-top:14px;display:none">
+<div style="display:flex;flex-wrap:wrap;gap:12px" class="kk-form-grid"><label>Kontakt<input id="p0cContact" placeholder="Name" required type="text"/></label><label>Zusage<input id="p0cText" placeholder="z.B. Exposé bis Freitag zusenden" required type="text"/></label><label>Fällig am<input id="p0cDue" type="date"/></label></div>
+<div class="kkops-item-actions" style="margin-top:10px"><button class="kkops-btn" type="submit">Zusage speichern</button><button class="kkops-btn light" id="p0CommitmentCancelBtn" type="button">Abbrechen</button></div>
+</form>
+<div class="kkops-card" style="margin-top:14px"><h3>Offene und erfüllte Zusagen</h3><div class="kkops-list" id="p0CommitmentList"></div></div>
+</div></section>
+<section class="kkops-section" id="p0transaktionen"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 17</span><h2>Transaktionswahrheits-Ledger</h2><p>Getrennt von Angebotspreisen (Marktbeobachtungen): unveränderliche Einträge für tatsächlich abgeschlossene eigene Verkäufe, automatisch angelegt sobald eine Verkaufschance auf „Verkauft“ wechselt.</p></div><div class="kkops-actions"><button class="kkops-btn light" data-export="kk_transactions_v1" type="button">Export</button></div></div>
+<div class="kkops-grid kkops-four" id="p0TransactionStats"></div>
+<div class="kkops-card" style="margin-top:14px"><h3>Bestätigte Abschlüsse</h3><div class="kkops-list" id="p0TransactionList"></div></div>
+</div></section>
+<section class="kkops-section" id="p0besichtigung"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 36</span><h2>Besichtigungs-Debrief</h2><p>Strukturierte Nachbereitung statt Freitext: Interesselevel, Einwände und nächster Schritt in festen Feldern, direkt nach der Besichtigung erfassbar.</p></div><div class="kkops-actions"><button class="kkops-btn" id="p0ViewingAddBtn" type="button">Neues Debrief</button><button class="kkops-btn light" data-export="kk_viewing_debriefs_v1" type="button">Export</button></div></div>
+<form class="kkops-card" id="p0ViewingForm" style="margin-top:14px;display:none">
+<div style="display:flex;flex-wrap:wrap;gap:12px" class="kk-form-grid"><label>Kontakt<input id="p0vContact" placeholder="Name" required type="text"/></label><label>Objekt/Adresse<input id="p0vObject" placeholder="Objektbezeichnung" type="text"/></label><label>Interesselevel<select id="p0vInterest"><option value="hoch">Hoch</option><option value="mittel">Mittel</option><option value="niedrig">Niedrig</option></select></label><label>Einwand<input id="p0vObjection" placeholder="z.B. Preis, Zuschnitt, Lage" type="text"/></label><label>Nächster Schritt<input id="p0vNext" placeholder="z.B. Finanzierungsbestätigung anfordern" type="text"/></label></div>
+<div class="kkops-item-actions" style="margin-top:10px"><button class="kkops-btn" type="submit">Debrief speichern</button><button class="kkops-btn light" id="p0ViewingCancelBtn" type="button">Abbrechen</button></div>
+</form>
+<div class="kkops-card" style="margin-top:14px"><div class="kkops-list" id="p0ViewingList"></div></div>
+</div></section>
+<section class="kkops-section" id="p0finanzierung"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 39</span><h2>Finanzierungs-Reibungsradar</h2><p>Nur Status und Blocker, keine sensiblen Finanzdetails: sichtbar machen, welche Käuferchance an der Finanzierung hängt, ohne Bank-/Kreditdaten zu erfassen.</p></div><div class="kkops-actions"><button class="kkops-btn" id="p0FinancingAddBtn" type="button">Status erfassen</button><button class="kkops-btn light" data-export="kk_financing_status_v1" type="button">Export</button></div></div>
+<form class="kkops-card" id="p0FinancingForm" style="margin-top:14px;display:none">
+<div style="display:flex;flex-wrap:wrap;gap:12px" class="kk-form-grid"><label>Kontakt<input id="p0fContact" placeholder="Name" required type="text"/></label><label>Status<select id="p0fStatus"><option value="nicht_gestartet">Nicht gestartet</option><option value="in_pruefung">In Prüfung</option><option value="zusage">Zusage erhalten</option><option value="ablehnung">Ablehnung</option></select></label><label>Blocker<input id="p0fBlocker" placeholder="z.B. Eigenkapitalnachweis fehlt" type="text"/></label></div>
+<div class="kkops-item-actions" style="margin-top:10px"><button class="kkops-btn" type="submit">Speichern</button><button class="kkops-btn light" id="p0FinancingCancelBtn" type="button">Abbrechen</button></div>
+</form>
+<div class="kkops-card" style="margin-top:14px"><div class="kkops-list" id="p0FinancingList"></div></div>
+</div></section>
+<section class="kkops-section" id="p0schnellerfassung"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 56</span><h2>Feldsignal-Sofortfänger</h2><p>Notiz sofort ablegen, ohne im Moment einen Kontakt zuordnen zu müssen — spätere Zuordnung aus der Eingangsliste heraus.</p></div><div class="kkops-actions"><button class="kkops-btn light" data-export="kk_quick_capture_inbox_v1" type="button">Export</button></div></div>
+<form class="kkops-card" id="p0QuickCaptureForm"><div style="display:flex;flex-wrap:wrap;gap:12px" class="kk-form-grid"><label>Schnellnotiz<input id="p0qcText" placeholder="z.B. Nachbar von Musterstraße 5 verkaufsinteressiert" required type="text"/></label></div><div class="kkops-item-actions" style="margin-top:10px"><button class="kkops-btn" type="submit">Ablegen</button></div></form>
+<div class="kkops-card" style="margin-top:14px"><h3>Eingang (noch nicht zugeordnet)</h3><div class="kkops-list" id="p0QuickCaptureList"></div></div>
+</div></section>
+<section class="kkops-section" id="p0einwaende"><div class="kkops-shell">
+<div class="kkops-head"><div><span class="kkops-kicker">Master-Prompt P0 · Funktion 59/60</span><h2>Einwand-Bibliothek &amp; Wirksamkeit</h2><p>Kuratierte Einwände mit vorgeschlagener Antwort. Jede Nutzung wird mit Ergebnis gekoppelt — so wird sichtbar, welche Antwort tatsächlich wirkt (Funktion 60: Interventionsgedächtnis).</p></div></div>
+<div class="kkops-card" style="margin-top:14px"><div class="kkops-list" id="p0ObjectionLibrary"></div></div>
+<div class="kkops-card" style="margin-top:14px"><h3>Bisherige Anwendungen &amp; Wirksamkeit</h3><div class="kkops-grid kkops-four" id="p0ObjectionStats"></div><div class="kkops-list" id="p0ObjectionOutcomes"></div></div>
+</div></section>
+<script>
+(function(){
+  'use strict';
+  if(window.KK_P0_FUNKTIONEN&&window.KK_P0_FUNKTIONEN.version)return;
+  var U=window.KK_UTIL||{};
+  function esc(v){return U.esc?U.esc(v):String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]})}
+  function rd(k,fb){return U.readJSON?U.readJSON(k,fb):fb}
+  function wr(k,v){return U.writeJSON?U.writeJSON(k,v):false}
+  function uid(p){return U.uid?U.uid(p):(p+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10))}
+  function today(){return U.todayISO?U.todayISO():new Date().toISOString().slice(0,10)}
+  function q(id){return document.getElementById(id)}
+  function qa(sel){return Array.prototype.slice.call(document.querySelectorAll(sel))}
+  function notify(msg){try{if(U.toast)U.toast(msg)}catch(e){}}
+  function stat(n,l){return '<div><b>'+esc(n)+'</b><span>'+esc(l)+'</span></div>'}
+  function emptyMsg(t){return '<p class="kkops-empty">'+esc(t)+'</p>'}
+
+  /* ---- Funktion 16/51: Zusagen-Ledger + Kontaktversprechen-Waechter ----
+     "Unveraendliche Zusage + Erfuellungsereignis" (empfohlene Loesung laut
+     Master-Prompt): der urspruengliche Inhalt (Kontakt/Text/Faelligkeit) wird
+     nach dem Anlegen nie mehr editiert, nur der Status bewegt sich einmalig
+     vorwaerts (offen -> erfuellt/gebrochen) - das IST das Erfuellungsereignis. */
+  var COMMIT_KEY='kk_commitments_v1';
+  function renderCommitments(){
+    var items=rd(COMMIT_KEY,[]);
+    var open=items.filter(function(x){return x.status==='offen'});
+    var overdue=open.filter(function(x){return x.due&&x.due<today()});
+    var fulfilled=items.filter(function(x){return x.status==='erfuellt'});
+    var stats=q('p0CommitmentStats'); if(stats)stats.innerHTML=[stat(items.length,'Zusagen gesamt'),stat(open.length,'offen'),stat(overdue.length,'überfällig'),stat(fulfilled.length,'erfüllt')].join('');
+    var list=q('p0CommitmentList'); if(!list)return;
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Zusagen erfasst.');return}
+    list.innerHTML=items.slice().sort(function(a,b){return (a.status==='offen'?0:1)-(b.status==='offen'?0:1)||String(a.due||'9999').localeCompare(String(b.due||'9999'))}).map(function(x){
+      var late=x.status==='offen'&&x.due&&x.due<today();
+      return '<div class="kkops-item"><strong>'+esc(x.contact)+' <span class="kkops-pill '+(x.status==='erfuellt'?'':(x.status==='gebrochen'?'red':(late?'red':'')))+'">'+esc(x.status==='offen'?(late?'überfällig':'offen'):x.status)+'</span></strong><small>Fällig: '+esc(x.due||'ohne Datum')+' · angelegt '+esc((x.createdAt||'').slice(0,10))+'</small><p>'+esc(x.text)+'</p>'+(x.fulfillmentNote?'<small>Ergebnis: '+esc(x.fulfillmentNote)+'</small>':'')+(x.status==='offen'?'<div class="kkops-item-actions"><button class="kkops-btn light" data-commit-done="'+esc(x.id)+'">Erfüllt</button><button class="kkops-btn danger" data-commit-broken="'+esc(x.id)+'">Gebrochen</button></div>':'')+'</div>'
+    }).join('');
+    qa('[data-commit-done]').forEach(function(b){b.onclick=function(){fulfillCommitment(b.dataset.commitDone,'erfuellt')}});
+    qa('[data-commit-broken]').forEach(function(b){b.onclick=function(){fulfillCommitment(b.dataset.commitBroken,'gebrochen')}});
+  }
+  function fulfillCommitment(id,status){
+    var note=prompt(status==='erfuellt'?'Kurzes Ergebnis (optional):':'Grund, warum die Zusage nicht eingehalten wurde:')||'';
+    var items=rd(COMMIT_KEY,[]);
+    var found=false;
+    items=items.map(function(x){if(x.id===id){found=true;return Object.assign({},x,{status:status,fulfillmentNote:note,fulfilledAt:new Date().toISOString()})}return x});
+    if(!found)return;
+    wr(COMMIT_KEY,items); notify('Zusage aktualisiert'); renderCommitments();
+  }
+  function bindCommitmentForm(){
+    var addBtn=q('p0CommitmentAddBtn'), form=q('p0CommitmentForm'), cancel=q('p0CommitmentCancelBtn');
+    if(addBtn)addBtn.onclick=function(){if(form)form.style.display='block'};
+    if(cancel)cancel.onclick=function(){if(form){form.style.display='none';form.reset()}};
+    if(form)form.onsubmit=function(e){e.preventDefault();
+      var contact=q('p0cContact').value.trim(), text=q('p0cText').value.trim(), due=q('p0cDue').value;
+      if(!contact||!text)return;
+      var items=rd(COMMIT_KEY,[]);
+      items.unshift({id:uid('commit'),contact:contact,text:text,due:due,status:'offen',createdAt:new Date().toISOString()});
+      wr(COMMIT_KEY,items); form.reset(); form.style.display='none'; notify('Zusage gespeichert'); renderCommitments();
+    };
+  }
+
+  /* ---- Funktion 17: Transaktionswahrheits-Ledger ----
+     Getrennt von Angebotspreisen: automatisch abgeleitet aus der
+     Verkaufschancen-Pipeline, sobald eine Chance auf "Verkauft" steht - der
+     Client legt selbst keine Preise fest, sondern spiegelt nur, was im
+     bestehenden Sales-Modul bereits als Abschluss erfasst wurde. */
+  var TX_KEY='kk_transactions_v1';
+  function syncTransactionsFromSales(){
+    var sales=rd('kk_sales_pipeline',[]);
+    var sold=sales.filter(function(x){return x.stage==='Verkauft'});
+    var tx=rd(TX_KEY,[]);
+    var known=Object.create(null); tx.forEach(function(t){known[t.dealId]=true});
+    var added=false;
+    sold.forEach(function(x){
+      if(known[x.id])return;
+      tx.push({id:uid('tx'),dealId:x.id,contact:x.name||'Ohne Name',area:x.area||'',objectLabel:x.objectLabel||x.objectType||'',price:Number(x.objectValue)||null,commission:Number(x.commission||x.expectedCommission)||null,source:'eigener Abschluss (Sales-Pipeline)',closedAt:new Date().toISOString()});
+      known[x.id]=true; added=true;
+    });
+    if(added)wr(TX_KEY,tx);
+    return tx;
+  }
+  function renderTransactions(){
+    var tx=syncTransactionsFromSales();
+    var stats=q('p0TransactionStats'); if(stats)stats.innerHTML=[stat(tx.length,'bestätigte Abschlüsse'),stat(tx.filter(function(x){return x.price}).length,'mit Preis hinterlegt'),stat(tx.filter(function(x){return x.commission}).length,'mit Provision hinterlegt'),stat(new Set(tx.map(function(x){return x.area})).size,'Gebiete')].join('');
+    var list=q('p0TransactionList'); if(!list)return;
+    if(!tx.length){list.innerHTML=emptyMsg('Noch keine als „Verkauft“ markierte Chance in der Pipeline - Eintraege erscheinen hier automatisch.');return}
+    list.innerHTML=tx.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+'</strong><small>'+esc(x.area)+' · '+esc(x.objectLabel||'kein Objekt hinterlegt')+' · '+esc((x.closedAt||'').slice(0,10))+'</small><p>Quelle: '+esc(x.source)+(x.price?' · Preis (Angabe aus Pipeline): '+esc(String(x.price))+' €':'')+'</p></div>'}).join('');
+  }
+
+  /* ---- Funktion 36: Besichtigungs-Intelligence-Capture ---- */
+  var VIEW_KEY='kk_viewing_debriefs_v1';
+  function renderViewings(){
+    var items=rd(VIEW_KEY,[]);
+    var list=q('p0ViewingList'); if(!list)return;
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Besichtigungs-Debriefs erfasst.');return}
+    list.innerHTML=items.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+' <span class="kkops-pill '+(x.interest==='hoch'?'':(x.interest==='niedrig'?'red':'orange'))+'">Interesse: '+esc(x.interest)+'</span></strong><small>'+esc(x.object||'')+' · '+esc((x.createdAt||'').slice(0,10))+'</small>'+(x.objection?'<p>Einwand: '+esc(x.objection)+'</p>':'')+(x.next?'<p>Nächster Schritt: '+esc(x.next)+'</p>':'')+'</div>'}).join('');
+  }
+  function bindViewingForm(){
+    var addBtn=q('p0ViewingAddBtn'), form=q('p0ViewingForm'), cancel=q('p0ViewingCancelBtn');
+    if(addBtn)addBtn.onclick=function(){if(form)form.style.display='block'};
+    if(cancel)cancel.onclick=function(){if(form){form.style.display='none';form.reset()}};
+    if(form)form.onsubmit=function(e){e.preventDefault();
+      var contact=q('p0vContact').value.trim(); if(!contact)return;
+      var items=rd(VIEW_KEY,[]);
+      items.push({id:uid('viewing'),contact:contact,object:q('p0vObject').value.trim(),interest:q('p0vInterest').value,objection:q('p0vObjection').value.trim(),next:q('p0vNext').value.trim(),createdAt:new Date().toISOString()});
+      wr(VIEW_KEY,items); form.reset(); form.style.display='none'; notify('Debrief gespeichert'); renderViewings();
+    };
+  }
+
+  /* ---- Funktion 39: Finanzierungs-Reibungsradar (nur Status/Blocker, keine Finanzdetails) ---- */
+  var FIN_KEY='kk_financing_status_v1';
+  function renderFinancing(){
+    var items=rd(FIN_KEY,[]);
+    var list=q('p0FinancingList'); if(!list)return;
+    if(!items.length){list.innerHTML=emptyMsg('Noch kein Finanzierungsstatus erfasst.');return}
+    var labels={nicht_gestartet:'Nicht gestartet',in_pruefung:'In Prüfung',zusage:'Zusage erhalten',ablehnung:'Ablehnung'};
+    list.innerHTML=items.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+' <span class="kkops-pill '+(x.status==='zusage'?'':(x.status==='ablehnung'?'red':'orange'))+'">'+esc(labels[x.status]||x.status)+'</span></strong>'+(x.blocker?'<p>Blocker: '+esc(x.blocker)+'</p>':'')+'<small>Stand: '+esc((x.updatedAt||'').slice(0,10))+'</small></div>'}).join('');
+  }
+  function bindFinancingForm(){
+    var addBtn=q('p0FinancingAddBtn'), form=q('p0FinancingForm'), cancel=q('p0FinancingCancelBtn');
+    if(addBtn)addBtn.onclick=function(){if(form)form.style.display='block'};
+    if(cancel)cancel.onclick=function(){if(form){form.style.display='none';form.reset()}};
+    if(form)form.onsubmit=function(e){e.preventDefault();
+      var contact=q('p0fContact').value.trim(); if(!contact)return;
+      var items=rd(FIN_KEY,[]).filter(function(x){return x.contact.toLowerCase()!==contact.toLowerCase()});
+      items.push({id:uid('fin'),contact:contact,status:q('p0fStatus').value,blocker:q('p0fBlocker').value.trim(),updatedAt:new Date().toISOString()});
+      wr(FIN_KEY,items); form.reset(); form.style.display='none'; notify('Finanzierungsstatus gespeichert'); renderFinancing();
+    };
+  }
+
+  /* ---- Funktion 56: Feldsignal-Sofortfaenger (Text-Schnellerfassung, kein Foto/Sprache noetig) ---- */
+  var QC_KEY='kk_quick_capture_inbox_v1';
+  function renderQuickCapture(){
+    var items=rd(QC_KEY,[]);
+    var list=q('p0QuickCaptureList'); if(!list)return;
+    if(!items.length){list.innerHTML=emptyMsg('Eingang leer.');return}
+    list.innerHTML=items.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.text)+'</strong><small>'+esc((x.createdAt||'').slice(0,16).replace('T',' '))+'</small><div class="kkops-item-actions"><button class="kkops-btn danger" data-qc-done="'+esc(x.id)+'">Erledigt / entfernen</button></div></div>'}).join('');
+    qa('[data-qc-done]').forEach(function(b){b.onclick=function(){var items=rd(QC_KEY,[]).filter(function(x){return x.id!==b.dataset.qcDone});wr(QC_KEY,items);renderQuickCapture()}});
+  }
+  function bindQuickCaptureForm(){
+    var form=q('p0QuickCaptureForm');
+    if(form)form.onsubmit=function(e){e.preventDefault();
+      var text=q('p0qcText').value.trim(); if(!text)return;
+      var items=rd(QC_KEY,[]); items.push({id:uid('qc'),text:text,createdAt:new Date().toISOString()});
+      wr(QC_KEY,items); form.reset(); notify('Notiz abgelegt'); renderQuickCapture();
+    };
+  }
+
+  /* ---- Funktion 59/60: Einwand-Bibliothek + Interventionsgedaechtnis ----
+     Kuratierte, realistische Einwaende (Fallback laut Master-Prompt statt
+     KI-Generierung) - jede Anwendung koppelt sich mit einem Ergebnis
+     (Funktion 60: "jede Empfehlung mit Ergebnis koppeln"). */
+  var OBJECTIONS=[
+    {id:'preis',text:'„Das ist mir zu teuer.“',response:'Vergleichswerte aus eigenen Marktbeobachtungen zeigen, nicht behaupten - konkrete Objekte in der Nähe nennen.'},
+    {id:'zeit',text:'„Wir wollen erstmal abwarten.“',response:'Konkretes, unverbindliches Zeitfenster erfragen statt Druck aufzubauen - Follow-up exakt darauf terminieren.'},
+    {id:'makler',text:'„Wir verkaufen lieber privat / über einen anderen Makler.“',response:'Konkreten Mehrwert an einem echten, bereits erledigten Fall zeigen (z.B. erzielte Zusatzreichweite, Verhandlungsergebnis).'},
+    {id:'provision',text:'„Die Provision ist zu hoch.“',response:'Leistungsumfang aufschlüsseln statt Rabatt zu geben - was konkret dafür geleistet wird.'},
+    {id:'bewertung',text:'„Unser Haus ist mehr wert.“',response:'Bewertung anhand der eigenen Marktbeobachtungsdatenbank nachvollziehbar herleiten (Median/Ausreißer zeigen), nicht nur behaupten.'},
+    {id:'zustand',text:'„Renovierung lohnt sich vor dem Verkauf nicht.“',response:'Konkrete, kleine Maßnahmen mit belegtem Preiseffekt vorschlagen statt pauschaler Empfehlung.'},
+    {id:'unterlagen',text:'„Wir haben die Unterlagen noch nicht zusammen.“',response:'Checkliste mit konkreten nächsten Schritten statt genereller Erinnerung - kleinste mögliche erste Aktion benennen.'},
+    {id:'vertrauen',text:'„Wir kennen Sie noch nicht gut genug.“',response:'Konkrete, verifizierbare Referenz aus der Region nennen statt allgemeiner Kompetenzaussagen.'}
+  ];
+  var OBJ_OUTCOME_KEY='kk_objection_outcomes_v1';
+  function renderObjectionLibrary(){
+    var lib=q('p0ObjectionLibrary'); if(!lib)return;
+    lib.innerHTML=OBJECTIONS.map(function(o){return '<div class="kkops-item"><strong>'+esc(o.text)+'</strong><p>'+esc(o.response)+'</p><div class="kkops-item-actions"><button class="kkops-btn light" data-obj-use="'+esc(o.id)+'">Eingesetzt, Ergebnis erfassen</button></div></div>'}).join('');
+    qa('[data-obj-use]').forEach(function(b){b.onclick=function(){useObjection(b.dataset.objUse)}});
+  }
+  function useObjection(objectionId){
+    var o=OBJECTIONS.filter(function(x){return x.id===objectionId})[0]; if(!o)return;
+    var contact=prompt('Bei welchem Kontakt wurde dieser Einwand behandelt?')||'';
+    if(!contact.trim())return;
+    var worked=confirm('Hat die Antwort gewirkt (Einwand ausgeräumt)?\nOK = ja, wirkte · Abbrechen = nein, wirkte nicht');
+    var items=rd(OBJ_OUTCOME_KEY,[]);
+    items.push({id:uid('objout'),objectionId:objectionId,objectionText:o.text,contact:contact.trim(),outcome:worked?'wirkte':'wirkte_nicht',usedAt:new Date().toISOString()});
+    wr(OBJ_OUTCOME_KEY,items); notify('Ergebnis erfasst'); renderObjectionOutcomes();
+  }
+  function renderObjectionOutcomes(){
+    var items=rd(OBJ_OUTCOME_KEY,[]);
+    var stats=q('p0ObjectionStats'); if(stats)stats.innerHTML=[stat(items.length,'Anwendungen gesamt'),stat(items.filter(function(x){return x.outcome==='wirkte'}).length,'wirkte'),stat(items.filter(function(x){return x.outcome==='wirkte_nicht'}).length,'wirkte nicht'),stat(items.length?Math.round(items.filter(function(x){return x.outcome==='wirkte'}).length/items.length*100)+'%':'–','Wirksamkeits-Quote')].join('');
+    var list=q('p0ObjectionOutcomes'); if(!list)return;
+    if(!items.length){list.innerHTML=emptyMsg('Noch keine Anwendung erfasst.');return}
+    list.innerHTML=items.slice().reverse().map(function(x){return '<div class="kkops-item"><strong>'+esc(x.contact)+' <span class="kkops-pill '+(x.outcome==='wirkte'?'':'red')+'">'+esc(x.outcome==='wirkte'?'wirkte':'wirkte nicht')+'</span></strong><small>'+esc(x.objectionText)+' · '+esc((x.usedAt||'').slice(0,10))+'</small></div>'}).join('');
+  }
+
+  function renderAllP0(){renderCommitments();renderTransactions();renderViewings();renderFinancing();renderQuickCapture();renderObjectionLibrary();renderObjectionOutcomes()}
+
+  function init(){
+    bindCommitmentForm(); bindViewingForm(); bindFinancingForm(); bindQuickCaptureForm();
+    renderAllP0();
+    document.addEventListener('kk-app-tab-changed',function(ev){try{if(ev&&ev.detail&&ev.detail.tab==='backup')renderAllP0()}catch(e){}});
+  }
+  window.KK_P0_FUNKTIONEN=Object.freeze({version:'1.0',renderAll:renderAllP0});
+  if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('p0-masterprompt-funktionen',init,{priority:85});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<dialog class="kkimp-preview-dialog" id="kkImportPreviewDialog" aria-labelledby="kkImportPreviewTitle">
 <div class="kkimp-preview-head">
 <div><h3 id="kkImportPreviewTitle">Import prüfen</h3><p class="kkimp-preview-sub" id="kkImportPreviewSubtitle"></p></div>
 <button aria-label="Schließen" class="kkh-btn light" id="kkImportPreviewCloseBtn" type="button">✕</button>
@@ -11891,7 +12125,24 @@ function syncPipelineExternal(data){try{window.KKPipelineIntelligenceRefresh=ren
 function upsertExternalHost(panelSel,id,html){var panel=$(panelSel); if(!panel)return; var box=$('#'+id); if(!box){box=document.createElement('div'); box.id=id; box.className='kk-pipeline-mini-host'; var anchor=panel.querySelector('.kk-heute-shell,.kkrev-shell,.kkops-shell,.kk11-shell,.kk12-shell')||panel.firstElementChild||panel; anchor.insertBefore(box,anchor.firstChild)} box.innerHTML=html}
 function externalMini(issue,deal,title){if(!issue&&!deal)return '<strong>'+esc(title)+'</strong><span>Keine kritischen Pipeline-Engpässe erkannt.</span>'; return '<strong>'+esc(title)+': '+esc(issue?issue.headline:(deal.name||'Deal bewegen'))+'</strong><span>'+(deal?esc(deal.name||'ohne Name')+' · '+esc(deal.area||'')+' · '+euro(expected(deal))+' gewichtet · '+esc(deal.nextStep||'nächster Schritt fehlt'):'Heute priorisieren')+'</span><div class="kk-heute-actions"><button class="kk-heute-btn light" data-kk-open-tab="pipeline" type="button">Pipeline öffnen</button></div>'}
 function externalKpi(data,issues){var open=data.filter(function(x){return !isSoldSale(x)}), weighted=open.reduce(function(t,x){return t+expected(x)},0), noNext=open.filter(function(x){return !String(x.nextStep||'').trim()}).length, overdueCount=open.filter(function(x){return overdue(x.deadline||x.followUpDate)}).length; return '<strong>Pipeline-Abschlusssteuerung</strong><span>'+open.length+' offene Deals · '+euro(weighted)+' gewichtet · '+issues.length+' Engpässe</span><span>Qualitäts-KPI: '+noNext+' ohne nächsten Schritt · '+overdueCount+' überfällige Deadlines</span><div class="kk-nba-actions"><button class="kk-heute-btn light" data-kk-open-tab="pipeline" type="button">Pipeline prüfen</button></div>'}
-function handleSalesForm(){var f=$('#salesForm');if(!f)return;f.onsubmit=function(e){e.preventDefault();var id=$('#salesId').value||uid(),deadline=$('#salesFollow').value,old=sales().find(function(x){return x.id===id})||{};var item=Object.assign({},old,{id:id,name:$('#salesName').value,phone:$('#salesPhone').value,email:$('#salesEmail').value,area:$('#salesArea').value,objectLabel:($('#salesObjectLabel')?$('#salesObjectLabel').value:''),objectType:$('#salesObjectType').value,objectValue:num($('#salesObjectValue').value),commission:num($('#salesCommission').value),expectedCommission:num($('#salesCommission').value),probability:num($('#salesProbability').value),stage:normalizeSalesStage($('#salesStage').value),timeframe:$('#salesTimeframe').value,source:$('#salesSource').value,lastContact:$('#salesLast').value,lastActivity:($('#salesLastActivity')?$('#salesLastActivity').value:''),nextStep:$('#salesNext').value,followUpDate:deadline,deadline:deadline,risk:($('#salesRisk')?$('#salesRisk').value:''),blocker:($('#salesBlocker')?$('#salesBlocker').value:''),notes:$('#salesNotes').value,lossReason:$('#salesLoss').value,updatedAt:new Date().toISOString()});delete item.priority;item.manualRisk=!!item.risk;item.expectedRevenue=expected(item);if(old.stage&&old.stage!==item.stage){item.stageHistory=(old.stageHistory||[]).concat([{from:old.stage,to:item.stage,date:new Date().toISOString()}]).slice(-20);}else{item.stageHistory=old.stageHistory||[];}var data=sales().filter(function(x){return x.id!==id});data.push(item);write('kk_sales_pipeline',data);f.reset();$('#salesId').value='';$('#salesCommission').value=6000;$('#salesProbability').value=25;if($('#salesRisk'))$('#salesRisk').value='';renderAll()}}
+function handleSalesForm(){var f=$('#salesForm');if(!f)return;f.onsubmit=function(e){e.preventDefault();var id=$('#salesId').value||uid(),deadline=$('#salesFollow').value,old=sales().find(function(x){return x.id===id})||{};var item=Object.assign({},old,{id:id,name:$('#salesName').value,phone:$('#salesPhone').value,email:$('#salesEmail').value,area:$('#salesArea').value,objectLabel:($('#salesObjectLabel')?$('#salesObjectLabel').value:''),objectType:$('#salesObjectType').value,objectValue:num($('#salesObjectValue').value),commission:num($('#salesCommission').value),expectedCommission:num($('#salesCommission').value),probability:num($('#salesProbability').value),stage:normalizeSalesStage($('#salesStage').value),timeframe:$('#salesTimeframe').value,source:$('#salesSource').value,lastContact:$('#salesLast').value,lastActivity:($('#salesLastActivity')?$('#salesLastActivity').value:''),nextStep:$('#salesNext').value,followUpDate:deadline,deadline:deadline,risk:($('#salesRisk')?$('#salesRisk').value:''),blocker:($('#salesBlocker')?$('#salesBlocker').value:''),notes:$('#salesNotes').value,lossReason:$('#salesLoss').value,updatedAt:new Date().toISOString()});delete item.priority;item.manualRisk=!!item.risk;item.expectedRevenue=expected(item);
+      /* Master-Prompt Funktion #55 "Qualitaets-Gatekeeper" (P0, Fallback:
+         "Checkliste + protokollierte Entscheidung"): beim Wechsel in eine
+         kritische Stufe ohne die dafuer noetigen Pflichtangaben wird die
+         Konsequenz VOR dem Speichern gezeigt statt stillschweigend zu
+         speichern. Kein hartes Blockieren ohne Ausweg - bewusstes Bestaetigen
+         speichert trotzdem, aber die Entscheidung wird protokolliert
+         (kk_crm_activities), nicht nur die Blockade umgangen. */
+      if(old.stage!==item.stage){
+        var gateIssue='';
+        if(item.stage==='Verkaufsauftrag angeboten'&&!String(item.nextStep||'').trim())gateIssue='Verkaufsauftrag wird als "angeboten" gespeichert, aber es ist kein naechster Schritt hinterlegt - die Chance verliert damit sofort ihre Sichtbarkeit im Heute-Tab.';
+        else if(item.stage==='Verkauft'&&!num(item.commission||item.expectedCommission))gateIssue='Chance wird als "Verkauft" markiert, aber keine Provision hinterlegt - taucht dann nirgends im Umsatz-Forecast auf.';
+        if(gateIssue){
+          if(!confirm('Qualitaets-Hinweis:\n\n'+gateIssue+'\n\nTrotzdem speichern?')){return}
+          try{var gateActs=arr('kk_crm_activities');gateActs.unshift({id:uid('act'),date:new Date().toISOString().slice(0,10),contactId:'',contact:item.name||'',type:'Qualitaets-Gate uebersteuert',channel:'',result:gateIssue,nextStep:'',followUpDate:'',note:'Bewusst ohne Pflichtangabe gespeichert (Stufe: '+item.stage+').',createdAt:new Date().toISOString()});write('kk_crm_activities',gateActs)}catch(e){}
+        }
+      }
+      if(old.stage&&old.stage!==item.stage){item.stageHistory=(old.stageHistory||[]).concat([{from:old.stage,to:item.stage,date:new Date().toISOString()}]).slice(-20);}else{item.stageHistory=old.stageHistory||[];}var data=sales().filter(function(x){return x.id!==id});data.push(item);write('kk_sales_pipeline',data);f.reset();$('#salesId').value='';$('#salesCommission').value=6000;$('#salesProbability').value=25;if($('#salesRisk'))$('#salesRisk').value='';renderAll()}}
 function bindSalesActions(){$all('[data-del-sales]').forEach(function(b){b.onclick=function(){if(confirm('Diese Verkaufschance wirklich löschen? Dieser Schritt kann nicht rückgängig gemacht werden.')){write('kk_sales_pipeline',sales().filter(function(x){return x.id!==b.dataset.delSales}));renderAll()}}});$all('[data-edit-sales]').forEach(function(b){b.onclick=function(){var x=sales().find(function(y){return y.id===b.dataset.editSales});if(!x)return;var map={salesId:'id',salesName:'name',salesPhone:'phone',salesEmail:'email',salesArea:'area',salesObjectLabel:'objectLabel',salesObjectType:'objectType',salesObjectValue:'objectValue',salesCommission:'commission',salesProbability:'probability',salesStage:'stage',salesTimeframe:'timeframe',salesSource:'source',salesLast:'lastContact',salesLastActivity:'lastActivity',salesNext:'nextStep',salesFollow:'deadline',salesBlocker:'blocker',salesNotes:'notes',salesLoss:'lossReason'};Object.keys(map).forEach(function(id){var el=$('#'+id);if(el)el.value=x[map[id]]||''});if($('#salesRisk'))$('#salesRisk').value=x.manualRisk?(x.risk||''):'';location.hash='#verkaufsauftrags-pipeline'}})}
 function renderValuations(){var data=valuations().sort(function(a,b){return (overdue(a.followUpDate)?0:1)-(overdue(b.followUpDate)?0:1)}); var risk=data.filter(function(x){return x.status==='durchgeführt'&&!x.followUpDate}); $('#valuationStats')&&($('#valuationStats').innerHTML=[statCard(data.length,'Termine gesamt'),statCard(data.filter(function(x){return x.status==='vereinbart'}).length,'vereinbart'),statCard(risk.length,'durchgeführt ohne Nachfassung'),statCard(euro(data.reduce(function(t,x){return t+expected(x)},0)),'gewichteter Forecast')].join('')); var el=$('#valuationList'); if(el)el.innerHTML=data.length?data.map(function(x){var risk=x.status==='durchgeführt'&&!x.followUpDate; return '<div class="kkops-item"><strong>'+esc(x.name||'Ohne Name')+' <span class="kkops-pill '+(risk?'red':'')+'">'+esc(x.status||'')+'</span></strong><small>'+esc(x.area||'')+' · '+esc(x.date||'kein Datum')+' · '+euro(expected(x))+'</small><p>Nächster Schritt: '+esc(x.nextStep||'FEHLT')+' · Follow-up: '+esc(x.followUpDate||'FEHLT')+'</p>'+(risk?'<div class="kkops-alert">Bewertung durchgeführt, aber kein nächstes Follow-up eingetragen. Vorschlag: +1 Tag Danke, +3 Tage Vorgehen, +7 Tage Entscheidung, +14 Tage Einwand, +30 Tage Reaktivierung.</div>':'')+'<div class="kkops-item-actions"><button class="kkops-btn light" data-edit-val="'+esc(x.id)+'">Bearbeiten</button><button class="kkops-btn danger" data-del-val="'+esc(x.id)+'">Löschen</button></div></div>'}).join(''):empty('Noch keine Bewertungstermine erfasst.'); bindValActions()}
 function handleValuationForm(){var f=$('#valuationForm'); if(!f)return; f.onsubmit=function(e){e.preventDefault(); var id=$('#valuationId').value||uid(); var item={id:id,name:$('#valuationName').value,address:$('#valuationAddress').value,area:$('#valuationArea').value,objectType:$('#valuationObject').value,status:$('#valuationStatus').value,date:$('#valuationDate').value,value:num($('#valuationValue').value),motivation:$('#valuationMotivation').value,timeframe:$('#valuationTimeframe').value,competitor:$('#valuationCompetitor').value,docs:$('#valuationDocs').value,followUpDate:$('#valuationFollow').value,nextStep:$('#valuationNext').value,commission:num($('#valuationCommission').value),probability:num($('#valuationProbability').value),lossReason:$('#valuationLoss').value,notes:$('#valuationNotes').value,updatedAt:new Date().toISOString()}; var data=valuations().filter(function(x){return x.id!==id}); data.push(item); write('kk_valuation_pipeline',data); f.reset(); $('#valuationId').value=''; $('#valuationCommission').value=6000; $('#valuationProbability').value=25; renderAll()}}
@@ -12801,7 +13052,7 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
        secondary steuert ausschliesslich, wo er im Desktop-Menü erscheint. */
     {id:'ki-prompts',label:'KI-Prompts',panelId:'kk-app-panel-ki-prompts',primary:true,secondary:true,mobile:false,anchors:['ki-prompt-assistent','kkaiForm']},
     {id:'kpis',label:'KPIs',panelId:'kk-app-panel-kpis',primary:true,secondary:true,mobile:false,anchors:['conversion-cockpit','wochenreview','monatsreview','monatsmodus','zeitbudget','kpi','business','conversionForm','weekForm','monthForm','timeForm']},
-    {id:'backup',label:'Backup',panelId:'kk-app-panel-backup',primary:true,secondary:true,mobile:false,anchors:['kk-technical-backup','master-os','datenqualitaet','kkTechExportFull','kkTechExportModule','kkTechSmokeTest','kkTechImportFile','kkTechImportMode','kkTechImportRun','kkTechStatus','kkTechToast']},
+    {id:'backup',label:'Backup',panelId:'kk-app-panel-backup',primary:true,secondary:true,mobile:false,anchors:['kk-technical-backup','master-os','datenqualitaet','p0funktionen','p0transaktionen','p0besichtigung','p0finanzierung','p0schnellerfassung','p0einwaende','kkTechExportFull','kkTechExportModule','kkTechSmokeTest','kkTechImportFile','kkTechImportMode','kkTechImportRun','kkTechStatus','kkTechToast']},
     {id:'skripte',label:'Archiv: Skripte',panelId:'kk-app-panel-skripte',primary:false,mobile:false,anchors:['skripte','einwaende','kk_scripts_module']},
     /* KK-PHASE1-SICHTBARKEIT: primary:true, damit "Archiv: Wissen" im regulären Hauptmenü erscheint statt nur
        versteckt unter dem Backup-Tab erreichbar zu sein. Label, Panel, Anchors und Archiv-Charakter unverändert. */
@@ -16733,7 +16984,7 @@ var configs={
   tippgeber:{title:'Tippgeber',desc:'Netzwerkpartner, Empfehlungen und laufende Tippgeberkontakte verwalten.',color:'#182C46',soft:'#EAEDF2',icon:'network',sections:[['tippgeber-pipeline','Pipeline'],['kk-referral-machine-v20','Tippgeber-Maschine'],['netzwerk','Netzwerk'],['tippgeber-system','System']]},
   'ki-prompts':{title:'KI-Prompts',desc:'Nachrichten, Gesprächsvorbereitung und Formulierungen aus echten Situationen erzeugen.',color:'#182C46',soft:'#EAEDF2',icon:'spark',sections:[['ki-prompt-assistent','Promptgenerator']]},
   kpis:{title:'KPIs & Zielkontrolle',desc:'Aktivität, Conversion, Wochen- und Monatsleistung in einer kompakten Übersicht.',color:'#182C46',soft:'#EAEDF2',icon:'chart',sections:[['kk-command-center-overview','Übersicht'],['conversion-cockpit','Conversion'],['wochenreview','Woche'],['monatsreview','Monat'],['zeitbudget','Zeitbudget'],['kpi','Ziele'],['business','Business'],['monatsmodus','Monatsmodus']]},
-  backup:{title:'Backup & System',desc:'Daten sichern, importieren, prüfen und technische Werkzeuge kontrolliert nutzen.',color:'#182C46',soft:'#EAEDF2',icon:'shield',sections:[['kk-technical-backup','Sicherung'],['datenqualitaet','Datenqualität'],['master-os','Master-OS'],['kk-akademie-archiv-handoff','Archiv']]}
+  backup:{title:'Backup & System',desc:'Daten sichern, importieren, prüfen und technische Werkzeuge kontrolliert nutzen.',color:'#182C46',soft:'#EAEDF2',icon:'shield',sections:[['kk-technical-backup','Sicherung'],['datenqualitaet','Datenqualität'],['p0funktionen','Zusagen & Vertriebswerkzeuge'],['master-os','Master-OS'],['kk-akademie-archiv-handoff','Archiv']]}
 };
 function icon(name){var p={
  target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M22 12h-3M12 22v-3M2 12h3"/>',

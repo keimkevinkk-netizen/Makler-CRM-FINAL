@@ -64,3 +64,6 @@ jobs:
 
       - name: E2E - test-data-quality-sentinel.js
         run: node tests/e2e/test-data-quality-sentinel.js
+
+      - name: E2E - test-masterprompt-p0.js
+        run: node tests/e2e/test-masterprompt-p0.js
