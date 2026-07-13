@@ -69,8 +69,19 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Full browser regression suite
-        run: npm run test:e2e:full
+      - name: E2E - final Sales Execution Core review
+        run: node tests/e2e/test-sales-execution-core.js
+
+      - name: E2E - existing regression suite
+        run: |
+          node tests/e2e/verify.js
+          for file in tests/e2e/test-*.js; do
+            if [ "$file" = "tests/e2e/test-sales-execution-core.js" ]; then
+              continue
+            fi
+            echo "--- $file ---"
+            node "$file"
+          done
 
       - name: Restore permanent CI and remove staging chunks
         run: |
