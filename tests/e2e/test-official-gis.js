@@ -216,6 +216,10 @@ function startStaticServer(filePath) {
       check(vp.label + ': BORIS status becomes "live" after successful discovery', borisState.status === 'live', results);
       check(vp.label + ': BORIS is NOT flagged ambiguous despite 12 similarly-named layers (zonen-role-hint + year-tie-breaker resolve it confidently)', borisState.ambiguous === false, results);
       check(vp.label + ': BORIS overlay layer ("-Zonen") is non-queryable, so a SEPARATE queryLayerName ("BORIS2026-Info") is picked for GetFeatureInfo (real live-test bug fix)', borisState.queryLayerName === 'BORIS2026-Info' && borisState.queryLayerName !== borisState.layerName, results);
+      // Kevin's mobile-live-test bug: the €/m² VALUES were never shown, only the
+      // colored zones - because no code ever picked/displayed a separate Label
+      // layer. Proves the zone/label/query role separation now finds it.
+      check(vp.label + ': BORIS also resolves a separate labelLayerName ("BORIS2026-Label") for the €/m²-Kartenbeschriftung, out of the same 12 candidates', borisState.labelLayerName === 'BORIS2026-Label', results);
 
       if (leafletAvailable) {
         const borisOverlayAdded = await page.evaluate(() => window.KK_REALMAP.getAdapter().hasOfficialOverlay('boris'));
@@ -225,6 +229,7 @@ function startStaticServer(filePath) {
       const statusHtml = await page.evaluate(() => document.getElementById('kkofficial-status').innerHTML);
       check(vp.label + ': status line shows license hint text', /Datenlizenz Deutschland/.test(statusHtml), results);
       check(vp.label + ': status line shows "Live verbunden" badge', /Live verbunden/.test(statusHtml), results);
+      check(vp.label + ': status line transparently confirms the Bodenrichtwert-Zahlen are shown as a map label (Kevin: "keine dauerhaft unsichtbare Funktion ohne Erklärung")', /Bodenrichtwert-Zahlen: als Kartenbeschriftung eingeblendet/.test(statusHtml), results);
 
       // --- ALKIS: THREE plausible layers -> must pick CP.CadastralParcel (the real
       // Flurstueck layer), not CadastralBoundary/CadastralZoning, and must NOT be

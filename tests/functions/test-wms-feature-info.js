@@ -112,6 +112,80 @@ function textResponse(body, opts) {
     check('Case 4: VERSION=1.3.0 swaps to Lat/Lon BBOX order for EPSG:4326', seenBbox['1.3.0'] === '50.1,8.9,50.2,9', results);
   }
 
+  // --- Case 5: text/plain "key=value" lines - Kevin's live-test bug: this used
+  // to always come back as parseMethod:'raw_text' + features:[], which the
+  // frontend's old data.features.length>0 check silently discarded, even
+  // though the actual Bodenrichtwert was right there in the text body. ---
+  {
+    delete require.cache[fnPath];
+    const fn = require(fnPath);
+    global.fetch = async (url) => {
+      if (/INFO_FORMAT=application%2Fjson/.test(url)) return textResponse('', { ok: false });
+      if (/INFO_FORMAT=application%2Fvnd\.ogc\.gml/.test(url)) return textResponse('', { ok: false });
+      return textResponse('bodenrichtwert=285\nstichtag=01.01.2026\nnutzung=Wohnbauflaeche', { contentType: 'text/plain' });
+    };
+    const res = await fn.handler(makeEvent({ service: 'boris', layer: 'BORIS2026-Info' }));
+    const body = JSON.parse(res.body);
+    console.log('Case 5 body:', JSON.stringify(body));
+    check('Case 5: text/plain "key=value" is parsed into a real feature (parseMethod:text_key_value)', body.parseMethod === 'text_key_value' && body.features.length === 1, results);
+    check('Case 5: parsed feature has the actual bodenrichtwert value, not an empty features array (the exact bug)', body.features[0] && body.features[0].bodenrichtwert === '285', results);
+    check('Case 5: rawText is still included alongside the parsed features (nothing is thrown away)', typeof body.rawText === 'string' && /bodenrichtwert=285/.test(body.rawText), results);
+  }
+
+  // --- Case 6: text/plain "key: value" lines (the other common WMS text format). ---
+  {
+    delete require.cache[fnPath];
+    const fn = require(fnPath);
+    global.fetch = async (url) => {
+      if (/INFO_FORMAT=application%2Fjson/.test(url)) return textResponse('', { ok: false });
+      if (/INFO_FORMAT=application%2Fvnd\.ogc\.gml/.test(url)) return textResponse('', { ok: false });
+      return textResponse('Bodenrichtwert: 310\nStichtag: 01.01.2026', { contentType: 'text/plain' });
+    };
+    const res = await fn.handler(makeEvent({ service: 'boris', layer: 'BORIS2026-Info' }));
+    const body = JSON.parse(res.body);
+    check('Case 6: text/plain "key: value" is parsed into a real feature', body.parseMethod === 'text_key_value' && body.features[0] && body.features[0].Bodenrichtwert === '310', results);
+  }
+
+  // --- Case 7: text/plain that cannot be reliably parsed into fields - rawText
+  // must still be returned (Kevin Abschnitt 5B: "ungeparste Antwort nicht
+  // stillschweigend verlieren"), with an honest parseMethod:'raw_text' and an
+  // empty features array (no invented fields). ---
+  {
+    delete require.cache[fnPath];
+    const fn = require(fnPath);
+    global.fetch = async (url) => {
+      if (/INFO_FORMAT=application%2Fjson/.test(url)) return textResponse('', { ok: false });
+      if (/INFO_FORMAT=application%2Fvnd\.ogc\.gml/.test(url)) return textResponse('', { ok: false });
+      return textResponse('Dieser Dienst liefert hier nur einen Freitext ohne erkennbare Struktur.', { contentType: 'text/plain' });
+    };
+    const res = await fn.handler(makeEvent({ service: 'boris', layer: 'BORIS2026-Info' }));
+    const body = JSON.parse(res.body);
+    check('Case 7: unparseable text/plain falls back to parseMethod:raw_text with empty features (no invented fields)', body.parseMethod === 'raw_text' && Array.isArray(body.features) && body.features.length === 0, results);
+    check('Case 7: rawText is still returned as diagnosis/raw information instead of being silently dropped', /ohne erkennbare Struktur/.test(body.rawText || ''), results);
+  }
+
+  // --- Case 8: format order json -> gml -> text/plain (Kevin Abschnitt 5C):
+  // a structured GML response must win over a weaker text/plain response that
+  // would otherwise have been tried first under the old order. ---
+  {
+    delete require.cache[fnPath];
+    const fn = require(fnPath);
+    const attempted = [];
+    global.fetch = async (url) => {
+      const m = /INFO_FORMAT=([^&]+)/.exec(url);
+      const fmt = decodeURIComponent(m[1]);
+      attempted.push(fmt);
+      if (fmt === 'application/json') return textResponse('', { ok: false });
+      if (fmt === 'application/vnd.ogc.gml') return textResponse('<FeatureInfoResponse><bodenrichtwert>295</bodenrichtwert></FeatureInfoResponse>', { contentType: 'application/vnd.ogc.gml' });
+      return textResponse('bodenrichtwert=999', { contentType: 'text/plain' }); // should never be reached
+    };
+    const res = await fn.handler(makeEvent({ service: 'boris', layer: 'BORIS2026-Info' }));
+    const body = JSON.parse(res.body);
+    console.log('Case 8 attempted formats:', JSON.stringify(attempted));
+    check('Case 8: GML is attempted before text/plain (order json -> gml -> text)', attempted.indexOf('application/vnd.ogc.gml') < attempted.indexOf('text/plain') || attempted.indexOf('text/plain') === -1, results);
+    check('Case 8: the GML response wins - text/plain is never even reached once GML succeeds', body.parseMethod === 'gml_best_effort' && body.features[0].bodenrichtwert === '295', results);
+  }
+
   delete global.fetch;
   const failed = results.filter(r => !r.pass);
   console.log('\n=== SUMMARY: ' + (results.length - failed.length) + '/' + results.length + ' checks passed ===');

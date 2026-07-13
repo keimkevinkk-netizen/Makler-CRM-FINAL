@@ -32,7 +32,17 @@ var SERVICES = {
   alkis: { baseUrl: 'https://www.geoportal.hessen.de/mapbender/php/wms.php?inspire=1&layer_id=55195&withChilds=1' }
 };
 
-var INFO_FORMATS_TO_TRY = ['application/json', 'text/plain', 'application/vnd.ogc.gml'];
+/* FIX (nach Live-Test der mobilen Produktivnutzung): text/plain wurde bisher
+ * immer mit "features: []" zurueckgegeben, selbst wenn der Dienst den
+ * Bodenrichtwert als einfache Text-/Key-Value-Antwort geliefert hat - das
+ * Frontend akzeptierte nur data.features.length>0 und verwarf die Antwort
+ * dadurch stillschweigend. Jetzt: (1) text/plain wird auf uebliche
+ * Key-Value-Muster geparst, bevor auf reinen Rohtext zurueckgefallen wird;
+ * (2) Reihenfolge json -> gml -> text/plain, damit eine schwach strukturierte
+ * Textantwort eine ggf. verfuegbare staerker strukturierte GML-Antwort nicht
+ * vorzeitig verhindert (json bleibt zuerst, da bereits fuer mehrere Dienste
+ * live bestaetigt strukturiert und am einfachsten sicher auszuwerten). */
+var INFO_FORMATS_TO_TRY = ['application/json', 'application/vnd.ogc.gml', 'text/plain'];
 
 // Reihenfolge: 1.1.1 zuerst, weil bereits fuer BORIS live bestaetigt (siehe ADR-0002-Folgebericht).
 var VERSION_PROFILES = [
@@ -87,6 +97,43 @@ function extractGmlFields(xml) {
 }
 
 function num(v) { var n = Number(v); return isFinite(n) ? n : null; }
+
+/* Sicherer, abhaengigkeitsfreier Parser fuer uebliche WMS-text/plain-
+ * GetFeatureInfo-Antworten. Erfindet keine Werte - liefert nur Felder, die
+ * tatsaechlich im Text als eindeutiges Key-Value-Paar erkennbar sind. Deckt
+ * ab: "key=value" (je Zeile), "key: value" (je Zeile), einfache HTML-
+ * Tabellen (<tr><td>key</td><td>value</td></tr>), sowie WMS-uebliche
+ * eingerueckte "key = value"-Bloecke. Gibt {} zurueck, wenn nichts sicher
+ * erkennbar ist (Aufrufer faellt dann auf rawText zurueck, siehe unten).
+ */
+function parseTextKeyValue(text) {
+  var out = {};
+  var t = String(text || '');
+
+  // Einfache HTML-Tabelle: <tr><td>Key</td><td>Value</td></tr> (whitespace-tolerant)
+  var rowRe = /<tr[^>]*>\s*<t[dh][^>]*>([\s\S]*?)<\/t[dh]>\s*<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi;
+  var rowMatch;
+  while ((rowMatch = rowRe.exec(t)) !== null) {
+    var k1 = rowMatch[1].replace(/<[^>]+>/g, '').trim();
+    var v1 = rowMatch[2].replace(/<[^>]+>/g, '').trim();
+    if (k1 && v1) out[k1] = v1;
+  }
+  if (Object.keys(out).length) return out;
+
+  // Zeilenweise "key=value" oder "key: value" (haeufigstes WMS-text/plain-Format)
+  var lines = t.split(/\r?\n/);
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line) continue;
+    var m = line.match(/^([A-Za-z_][A-Za-z0-9_. -]{0,60}?)\s*[:=]\s*(.+)$/);
+    if (m) {
+      var key = m[1].trim();
+      var val = m[2].trim();
+      if (key && val && !/^-+$/.test(val)) out[key] = val;
+    }
+  }
+  return out;
+}
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'GET') return jsonResponse(405, { error: 'method_not_allowed' });
@@ -164,9 +211,19 @@ exports.handler = async function (event) {
         }
         if (infoFormat === 'text/plain') {
           if (timeoutId) clearTimeout(timeoutId);
+          var kv = parseTextKeyValue(text);
+          var kvCount = Object.keys(kv).length;
           return jsonResponse(200, {
-            service: service, layer: layer, infoFormat: infoFormat, parseMethod: 'raw_text', wmsVersion: profile.version,
-            rawText: text.slice(0, 4000), features: [], fetchedAt: new Date().toISOString()
+            service: service, layer: layer, infoFormat: infoFormat,
+            parseMethod: kvCount ? 'text_key_value' : 'raw_text',
+            wmsVersion: profile.version,
+            features: kvCount ? [kv] : [],
+            // rawText bleibt IMMER erhalten (auch bei erfolgreichem Parsing) - das
+            // Frontend kann bei Bedarf die Rohantwort als Diagnose zeigen, nichts
+            // geht verloren, nur weil der Parser nichts strukturiert extrahieren
+            // konnte (Kevin Abschnitt 5B: "ungeparste Antwort nicht stillschweigend verlieren").
+            rawText: text.slice(0, 4000),
+            fetchedAt: new Date().toISOString()
           });
         }
       } catch (err) {

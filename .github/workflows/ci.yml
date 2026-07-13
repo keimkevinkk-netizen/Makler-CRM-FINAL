@@ -76,3 +76,9 @@ jobs:
 
       - name: E2E - test-masterprompt-p3.js
         run: node tests/e2e/test-masterprompt-p3.js
+
+      - name: E2E - test-map-fixes.js
+        run: node tests/e2e/test-map-fixes.js
+
+      - name: E2E - test-market-geocode-order.js
+        run: node tests/e2e/test-market-geocode-order.js
