@@ -19,6 +19,6 @@ export function exportState(state: AppState) {
   return JSON.stringify(appRepository.exportSnapshot(state), null, 2);
 }
 
-export function importState(payload: string) {
-  return appRepository.importSnapshot(payload);
+export function importState(payload: string, expectedWorkspaceId?: string) {
+  return appRepository.importSnapshot(payload, expectedWorkspaceId);
 }
