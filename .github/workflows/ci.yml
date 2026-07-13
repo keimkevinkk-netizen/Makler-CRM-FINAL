@@ -70,7 +70,24 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: E2E - final Sales Execution Core review
-        run: node tests/e2e/test-sales-execution-core.js
+        shell: bash
+        run: |
+          set +e
+          node tests/e2e/test-sales-execution-core.js > /tmp/sales-core-e2e.log 2>&1
+          status=$?
+          printf '%s\n' "$status" > /tmp/sales-core-e2e.status
+          tail -n 30 /tmp/sales-core-e2e.log
+          exit "$status"
+
+      - name: Upload Sales Core E2E diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sales-core-e2e-diagnostic-${{ github.sha }}
+          path: |
+            /tmp/sales-core-e2e.log
+            /tmp/sales-core-e2e.status
+          retention-days: 1
 
       - name: E2E - existing regression suite
         run: |
