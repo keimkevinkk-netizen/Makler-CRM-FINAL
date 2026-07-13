@@ -13825,7 +13825,14 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
      Orts-Anker zurueck, wenn keine Strasse geocodiert werden konnte) - "object"
      bleibt bewusst ein reines Freitextfeld und wird NIE als Adresse interpretiert
      (Kevin: "Das Feld object darf nicht pauschal als Adresse interpretiert werden"). */
-  function addMarketEntry(entry){var arr=marketEntries();entry.id=entry.id||('market_'+Date.now()+'_'+Math.random().toString(16).slice(2));entry.createdAt=entry.createdAt||new Date().toISOString();entry.updatedAt=new Date().toISOString();entry.done=!!entry.done;if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(entry,{city:'town'});if(entry.addr&&entry.addr.street&&window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded(MARKET_KEY,entry.id);arr.unshift(entry);saveMarketEntries(arr.slice(0,400));renderMarket();renderTodayExtension();return entry}
+  function addMarketEntry(entry){var arr=marketEntries();entry.id=entry.id||('market_'+Date.now()+'_'+Math.random().toString(16).slice(2));entry.createdAt=entry.createdAt||new Date().toISOString();entry.updatedAt=new Date().toISOString();entry.done=!!entry.done;if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(entry,{city:'town'});if(entry.addr&&entry.addr.street&&window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded(MARKET_KEY,entry.id);arr.unshift(entry);saveMarketEntries(arr.slice(0,400));renderMarket();renderTodayExtension();
+    /* Kevin Live-Test: neue Marktbeobachtung war "opt-in"-Ebene, unsichtbar bis
+       manuell aktiviert - Nutzer sah stattdessen einen unabhaengigen, staendig
+       sichtbaren Marker und hielt ihn faelschlich fuer seinen neuen Eintrag.
+       Fix: Ebene automatisch aktivieren und direkt zur neuen Position + Popup
+       springen, damit sofort ohne Suchen sichtbar ist, wo der Eintrag liegt. */
+    if(window.KK_REALMAP){try{window.KK_REALMAP.activateLayer('market_observations');window.KK_REALMAP.focusRecordSoon(MARKET_KEY,entry.id)}catch(e){}}
+    return entry}
   function updateMarketEntry(id,patch){var arr=marketEntries().map(function(x){if(x.id===id){Object.keys(patch).forEach(function(k){x[k]=patch[k]});x.updatedAt=new Date().toISOString();}return x});saveMarketEntries(arr);renderMarket();renderTodayExtension();}
   function searchUrl(platform,town){
     var q=encodeURIComponent(town+' Haus Wohnung kaufen');
@@ -15156,7 +15163,14 @@ function LeafletMapAdapterFactory(){
               radius:p.radius||11,color:'#fff',weight:2,fillColor:p.color||'#182C46',fillOpacity:.92
             });
           }
-          if(p.popupHtml)marker.bindPopup(p.popupHtml,{maxWidth:300});
+          /* FIX (Kevin Live-Test): Popups ohne maxHeight koennen auf kleinen
+             Mobil-Bildschirmen hoeher werden als die sichtbare Karte - Leaflet
+             kann sie dann nicht mehr vollstaendig ins Bild schieben, die
+             unteren Aktions-Buttons (z.B. "Datensatz oeffnen", "Als CRM-Objekt
+             uebernehmen") liegen dann ausserhalb des Viewports und sind nicht
+             klickbar. maxHeight aktiviert Leaflets eingebautes internes
+             Scrollen im Popup-Inhalt, ohne den Popup selbst zu verschieben. */
+          if(p.popupHtml)marker.bindPopup(p.popupHtml,{maxWidth:300,maxHeight:320,autoPanPadding:[20,60]});
           marker.on('click',function(){emit('markerClick',p)});
           marker.addTo(group);
           if(p.id)markerRegistry[p.id]=marker;
@@ -15442,8 +15456,15 @@ var LAYER_DEFS=[
       fieldRow('Status',x.status)+
       fieldRow('Link',x.link)+
       fieldRow('Quelle / Modul','Marktmonitor')+
+      /* FIX (Kevin Live-Test, "kann nicht draufklicken"): fruehere Version wickelte
+         den Uebernehmen-Button in eine EIGENE .kkgeo-popup-actions-Div, die
+         buildRecordMarkers() danach in eine ZWEITE, identisch benannte Div fuer
+         die generischen Aktionen (Datensatz oeffnen etc.) einbettete - zwei
+         verschachtelte gleich-klassige Flex-Container konnten je nach CSS-
+         Spezifitaet Buttons ausserhalb des sichtbaren/klickbaren Bereichs
+         schieben. Jetzt ein einzelner, nicht verschachtelter Button. */
       (x.crmObjectId?'<div class="kkgeo-popup-precision">Bereits als CRM-Objekt übernommen.</div>':
-        '<div class="kkgeo-popup-actions"><button type="button" data-kkgeo-adopt="'+esc(x.id)+'">Als CRM-Objekt übernehmen</button></div>')}}
+        '<button type="button" class="kkgeo-layer-only" data-kkgeo-adopt="'+esc(x.id)+'">Als CRM-Objekt übernehmen</button>')}}
 ];
 /* Bekannter "Phantommarker"-Fehler (Master-Prompt Punkt 11.2): buildTownMarkers()
    (Orts-Gesamtpotenzial-Kreise) wurde bisher IMMER gerendert, unabhaengig von
@@ -16081,7 +16102,39 @@ function boot(){
   if(active==='marktmonitor')init();
 }
 
-window.KK_REALMAP={version:'31.0',init:init,render:render,getMarkers:buildTownMarkers,getDensityMarkers:buildDensityMarkers,townCoords:TOWN_COORDS,setMetric:function(k){selectedMetric=k;renderMetricFilters();renderNow()},toggleHeat:function(v){heatOn=v==null?!heatOn:!!v;renderNow()},toggleDensity:function(v){densityOn=v==null?!densityOn:!!v;renderNow()},getActiveLayers:function(){return activeLayers.slice()},setActiveLayers:function(list){activeLayers=Array.isArray(list)?list:[];writeActiveLayers(activeLayers);renderNow()},getLayerDefs:function(){return LAYER_DEFS.map(function(d){return {key:d.key,label:d.label,color:d.color}})},getUnmapped:function(){return unmappedRecords.slice()},buildRecordMarkers:buildRecordMarkers,adoptMarketObservation:adoptMarketObservation,
+/* Kevin Live-Test: "wird zwar angezeigt, aber nicht annaehernd an der
+   Adresse" - der wahrscheinlichste Grund ist, dass eine neu angelegte
+   Marktbeobachtung auf einer standardmaessig AUSGEBLENDETEN Ebene liegt
+   (market_observations ist bewusst opt-in, siehe defaultActiveLayers()) und
+   der Nutzer stattdessen einen andauernd sichtbaren, unabhaengigen Marker
+   (z.B. den Orts-Gesamtpotenzial-Kreis eines Nachbarorts) fuer seinen neuen
+   Eintrag haelt - ohne Moeglichkeit, das per Klick zu pruefen (zweiter
+   gemeldeter Bug, siehe maxHeight-Fix oben). Fix: nach dem Anlegen die
+   passende Ebene automatisch aktivieren und direkt zur neuen Position
+   springen + deren Popup oeffnen, damit sofort ohne Suchen sichtbar ist, wo
+   der neue Datensatz tatsaechlich liegt. */
+function activateLayer(key){
+  if(activeLayers.indexOf(key)===-1){activeLayers=activeLayers.concat([key]);writeActiveLayers(activeLayers)}
+  renderNow();
+}
+function focusRecordSoon(storageKey,recordId,triesLeft){
+  triesLeft=triesLeft==null?12:triesLeft;
+  if(!adapter||!adapter.isReady||!adapter.isReady()){
+    if(triesLeft>0)setTimeout(function(){focusRecordSoon(storageKey,recordId,triesLeft-1)},300);
+    return;
+  }
+  var data=buildRecordMarkers();
+  var rec=data.records.find(function(r){return r.storageKey===storageKey&&r.recordId===recordId});
+  if(!rec){
+    // Geocoding (falls Strasse angegeben) kann noch laufen - kurz erneut versuchen,
+    // bevor aufgegeben wird (kein falscher "nicht gefunden"-Zustand vortaeuschen).
+    if(triesLeft>0)setTimeout(function(){focusRecordSoon(storageKey,recordId,triesLeft-1)},300);
+    return;
+  }
+  renderNow();
+  setTimeout(function(){if(adapter&&adapter.focusMarker)adapter.focusMarker(rec.id)},150);
+}
+window.KK_REALMAP={version:'31.0',init:init,render:render,activateLayer:activateLayer,focusRecordSoon:focusRecordSoon,getMarkers:buildTownMarkers,getDensityMarkers:buildDensityMarkers,townCoords:TOWN_COORDS,setMetric:function(k){selectedMetric=k;renderMetricFilters();renderNow()},toggleHeat:function(v){heatOn=v==null?!heatOn:!!v;renderNow()},toggleDensity:function(v){densityOn=v==null?!densityOn:!!v;renderNow()},getActiveLayers:function(){return activeLayers.slice()},setActiveLayers:function(list){activeLayers=Array.isArray(list)?list:[];writeActiveLayers(activeLayers);renderNow()},getLayerDefs:function(){return LAYER_DEFS.map(function(d){return {key:d.key,label:d.label,color:d.color}})},getUnmapped:function(){return unmappedRecords.slice()},buildRecordMarkers:buildRecordMarkers,adoptMarketObservation:adoptMarketObservation,
   /* Master-PRD Band 3: Zugriffspunkt fuer kk-official-gis-v1-js, damit amtliche
      WMS-Overlays (BORIS/ALKIS) denselben Leaflet-Adapter/dieselbe Karteninstanz
      nutzen statt eine zweite Karte aufzubauen (Regelverstoss "keine zweite

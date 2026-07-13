@@ -49,6 +49,30 @@ function check(name, cond, results) {
     const entryAddr = await page.evaluate(() => JSON.parse(localStorage.getItem('kk_market_monitor_entries_v1'))[0]);
     check('Marktbeobachtung bekommt automatisch addr.city aus dem Ort-Feld (ensureRecordGeo)', entryAddr.addr && entryAddr.addr.city === 'Bruchköbel', results);
 
+    // Kevin Live-Test ("nicht annähernd an der Adresse"): wahrscheinlichste Ursache
+    // war, dass die neue Ebene nicht automatisch aktiviert wurde, der Nutzer also
+    // einen ANDEREN, staendig sichtbaren Marker faelschlich fuer seinen neuen
+    // Eintrag hielt. addMarketEntry() muss die Ebene jetzt selbst aktivieren.
+    const layerAutoActivated = await page.evaluate(() => window.KK_REALMAP.getActiveLayers().indexOf('market_observations') > -1);
+    check('addMarketEntry() aktiviert die "market_observations"-Ebene automatisch, kein manuelles Zuschalten nötig um den neuen Eintrag zu sehen', layerAutoActivated, results);
+
+    // Kevin Live-Test ("kann nicht drauf klicken"): die fruehere Popup-Markup hatte
+    // eine verschachtelte .kkgeo-popup-actions-Div (Uebernehmen-Button innerhalb
+    // des popup()-Outputs) INNERHALB der generischen .kkgeo-popup-actions-Div von
+    // buildRecordMarkers() - genau das wurde entfernt (Einzel-Button ohne eigene
+    // Actions-Div). Verifiziert direkt am generierten Popup-HTML-String (kein
+    // Leaflet-Rendering noetig, buildRecordMarkers() ist reine String-Logik).
+    const popupNestingCheck = await page.evaluate(() => {
+      var data = window.KK_REALMAP.buildRecordMarkers();
+      var rec = data.records.find((r) => r.storageKey === 'kk_market_monitor_entries_v1');
+      if (!rec) return { found: false };
+      var html = rec.singlePopupHtml;
+      var actionsDivCount = (html.match(/class="kkgeo-popup-actions"/g) || []).length;
+      return { found: true, actionsDivCount: actionsDivCount, hasAdoptButton: /data-kkgeo-adopt=/.test(html) };
+    });
+    console.log('popupNestingCheck:', JSON.stringify(popupNestingCheck));
+    check('Marktbeobachtungs-Popup hat den "Übernehmen"-Button, aber KEINE verschachtelte zweite .kkgeo-popup-actions-Div (der Klick-Bug)', popupNestingCheck.found && popupNestingCheck.hasAdoptButton && popupNestingCheck.actionsDivCount === 1, results);
+
     await page.evaluate(() => { window.KK_REALMAP.setActiveLayers(window.KK_REALMAP.getActiveLayers().concat(['market_observations'])); });
     const marketMapped = await page.evaluate(() => {
       var data = window.KK_REALMAP.buildRecordMarkers();
