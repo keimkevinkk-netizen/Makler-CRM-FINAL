@@ -42,13 +42,20 @@ jobs:
           expected = '180f60cd6d27685da13229faa1537597cb5d26098c59e6ad1bfbd3400666e326'
           assert digest == expected, f'checksum mismatch: {digest}'
           Path('/tmp/pr11-final.patch').write_bytes(patch)
-          print(f'reconstructed {len(patch)} bytes from {len(encoded)} base64 characters; sha256={digest}')
+          followup = base64.b64decode((root / 'followup.patch.b64').read_text(encoding='utf-8').strip(), validate=True)
+          followup_digest = hashlib.sha256(followup).hexdigest()
+          followup_expected = 'c43f5285849ba1ecbd0421d53b9a259019a457c9dc6914def057a0db0c9abd68'
+          assert followup_digest == followup_expected, f'followup checksum mismatch: {followup_digest}'
+          Path('/tmp/pr11-followup.patch').write_bytes(followup)
+          print(f'reconstructed main patch sha256={digest}; followup sha256={followup_digest}')
           PY
 
       - name: Apply reviewed patch cleanly
         run: |
           git apply --check /tmp/pr11-final.patch
           git apply /tmp/pr11-final.patch
+          git apply --check /tmp/pr11-followup.patch
+          git apply /tmp/pr11-followup.patch
           git diff --check
 
       - uses: actions/setup-node@v4
