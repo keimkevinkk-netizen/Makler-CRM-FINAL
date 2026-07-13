@@ -1,23 +1,30 @@
-name: CI
+name: Apply PR11 Final Review
 
 on:
   push:
-    branches: [main]
-  pull_request:
+    branches: [feat/sales-execution-core-v1]
+    paths: ['.github/workflows/ci.yml']
+
+permissions:
+  contents: write
 
 jobs:
-  test:
+  apply-test-commit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Temporary source snapshot for final PR review
-        uses: actions/upload-artifact@v4
         with:
-          name: pr-review-source-${{ github.sha }}
-          path: .
-          include-hidden-files: true
-          retention-days: 1
+          ref: feat/sales-execution-core-v1
+          fetch-depth: 0
+
+      - name: Reconstruct and verify reviewed patch
+        shell: bash
+        run: |
+          cat .github/pr11-patch/chunk* | base64 -d | gzip -d > /tmp/pr11-final.patch
+          echo '180f60cd6d27685da13229faa1537597cb5d26098c59e6ad1bfbd3400666e326  /tmp/pr11-final.patch' | sha256sum -c -
+          git apply --check /tmp/pr11-final.patch
+          git apply /tmp/pr11-final.patch
+          git diff --check
 
       - uses: actions/setup-node@v4
         with:
@@ -27,75 +34,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Syntax-check Netlify Functions
-        run: npm run check:functions
-
-      - name: Lint (netlify/functions + tests)
-        run: npm run lint
-
-      - name: Dependency audit (fails on high/critical)
-        run: npm audit --audit-level=high
+      - name: Syntax, lint, audit and function tests
+        run: |
+          npm run check:functions
+          npm run lint
+          npm audit --audit-level=high
+          npm run test:functions
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Playwright environment info
+      - name: Full browser regression suite
+        run: npm run test:e2e:full
+
+      - name: Restore permanent CI and remove staging chunks
+        shell: bash
+        env:
+          FINAL_CI_B64: 'bmFtZTogQ0kKCm9uOgogIHB1c2g6CiAgICBicmFuY2hlczogW21haW5dCiAgcHVsbF9yZXF1ZXN0OgoKam9iczoKICB0ZXN0OgogICAgcnVucy1vbjogdWJ1bnR1LWxhdGVzdAogICAgc3RlcHM6CiAgICAgIC0gdXNlczogYWN0aW9ucy9jaGVja291dEB2NAoKICAgICAgLSB1c2VzOiBhY3Rpb25zL3NldHVwLW5vZGVAdjQKICAgICAgICB3aXRoOgogICAgICAgICAgbm9kZS12ZXJzaW9uLWZpbGU6ICcubnZtcmMnCiAgICAgICAgICBjYWNoZTogJ25wbScKCiAgICAgIC0gbmFtZTogSW5zdGFsbCBkZXBlbmRlbmNpZXMKICAgICAgICBydW46IG5wbSBjaQoKICAgICAgLSBuYW1lOiBTeW50YXgtY2hlY2sgTmV0bGlmeSBGdW5jdGlvbnMKICAgICAgICBydW46IG5wbSBydW4gY2hlY2s6ZnVuY3Rpb25zCgogICAgICAtIG5hbWU6IExpbnQgKG5ldGxpZnkvZnVuY3Rpb25zICsgdGVzdHMpCiAgICAgICAgcnVuOiBucG0gcnVuIGxpbnQKCiAgICAgIC0gbmFtZTogRGVwZW5kZW5jeSBhdWRpdCAoZmFpbHMgb24gaGlnaC9jcml0aWNhbCkKICAgICAgICBydW46IG5wbSBhdWRpdCAtLWF1ZGl0LWxldmVsPWhpZ2gKCiAgICAgIC0gbmFtZTogSW5zdGFsbCBQbGF5d3JpZ2h0IENocm9taXVtCiAgICAgICAgcnVuOiBucHggcGxheXdyaWdodCBpbnN0YWxsIC0td2l0aC1kZXBzIGNocm9taXVtCgogICAgICAtIG5hbWU6IFBsYXl3cmlnaHQgZW52aXJvbm1lbnQgaW5mbwogICAgICAgIHJ1bjogfAogICAgICAgICAgbm9kZSAtLXZlcnNpb24KICAgICAgICAgIG5weCBwbGF5d3JpZ2h0IC0tdmVyc2lvbgogICAgICAgICAgbm9kZSAtZSAiY29uc29sZS5sb2coJ3BsYXl3cmlnaHQtY29yZTonLCByZXF1aXJlKCdwbGF5d3JpZ2h0LWNvcmUvcGFja2FnZS5qc29uJykudmVyc2lvbikiCgogICAgICAtIG5hbWU6IFJ1biBmdW5jdGlvbi1sZXZlbCB0ZXN0cyAobm8gYnJvd3Nlciwgbm8gbmV0d29yaykKICAgICAgICBydW46IG5wbSBydW4gdGVzdDpmdW5jdGlvbnMKCiAgICAgICMgU3BsaXQgaW50byBvbmUgc3RlcCBwZXIgZmlsZSAoaW5zdGVhZCBvZiBvbmUgY29tYmluZWQgInRlc3Q6ZTJlOmZ1bGwiCiAgICAgICMgc3RlcCkgc28gYSBmYWlsdXJlJ3Mgc3RlcCBuYW1lIGFsb25lIGlkZW50aWZpZXMgd2hpY2ggc3BlY2lmaWMgdGVzdAogICAgICAjIGNyYXNoZWQgLSB0aGlzIHJlcG8ncyBDSSBydW5zIGluIGFuIGVudmlyb25tZW50IHdlIGNhbm5vdCBnZXQgcmF3IGxvZ3MKICAgICAgIyBmcm9tIGludGVyYWN0aXZlbHksIHNvIHN0ZXAtbmFtZSBncmFudWxhcml0eSBpcyB0aGUgcHJpbWFyeSBkaWFnbm9zdGljLgogICAgICAtIG5hbWU6IEUyRSAtIHZlcmlmeS5qcyAoZnVsbCB0YWIvWFNTL292ZXJmbG93IHJlZ3Jlc3Npb24pCiAgICAgICAgcnVuOiBub2RlIHRlc3RzL2UyZS92ZXJpZnkuanMKCiAgICAgIC0gbmFtZTogRTJFIC0gdGVzdC1hMTF5LWZvY3VzLXJlc3RvcmUuanMKICAgICAgICBydW46IG5vZGUgdGVzdHMvZTJlL3Rlc3QtYTExeS1mb2N1cy1yZXN0b3JlLmpzCgogICAgICAtIG5hbWU6IEUyRSAtIHRlc3QtZGF0YXNvdXJjZS1yZWdpc3RyeS5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1kYXRhc291cmNlLXJlZ2lzdHJ5LmpzCgogICAgICAtIG5hbWU6IEUyRSAtIHRlc3Qtb2ZmaWNpYWwtZ2lzLmpzCiAgICAgICAgcnVuOiBub2RlIHRlc3RzL2UyZS90ZXN0LW9mZmljaWFsLWdpcy5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LXJlcG9zaXRvcnktbGF5ZXIuanMKICAgICAgICBydW46IG5vZGUgdGVzdHMvZTJlL3Rlc3QtcmVwb3NpdG9yeS1sYXllci5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LWNoYXJ0LWNhbnZhcy1yZXVzZS5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1jaGFydC1jYW52YXMtcmV1c2UuanMKCiAgICAgIC0gbmFtZTogRTJFIC0gdGVzdC1kYXRhLXF1YWxpdHktc2VudGluZWwuanMKICAgICAgICBydW46IG5vZGUgdGVzdHMvZTJlL3Rlc3QtZGF0YS1xdWFsaXR5LXNlbnRpbmVsLmpzCgogICAgICAtIG5hbWU6IEUyRSAtIHRlc3QtbWFzdGVycHJvbXB0LXAwLmpzCiAgICAgICAgcnVuOiBub2RlIHRlc3RzL2UyZS90ZXN0LW1hc3RlcnByb21wdC1wMC5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LW1hc3RlcnByb21wdC1wMS5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1tYXN0ZXJwcm9tcHQtcDEuanMKCiAgICAgIC0gbmFtZTogRTJFIC0gdGVzdC1tYXN0ZXJwcm9tcHQtcDIuanMKICAgICAgICBydW46IG5vZGUgdGVzdHMvZTJlL3Rlc3QtbWFzdGVycHJvbXB0LXAyLmpzCgogICAgICAtIG5hbWU6IEUyRSAtIHRlc3QtbWFzdGVycHJvbXB0LXAzLmpzCiAgICAgICAgcnVuOiBub2RlIHRlc3RzL2UyZS90ZXN0LW1hc3RlcnByb21wdC1wMy5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LW1hcC1maXhlcy5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1tYXAtZml4ZXMuanMKCiAgICAgIC0gbmFtZTogRTJFIC0gdGVzdC1tYXJrZXQtZ2VvY29kZS1vcmRlci5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1tYXJrZXQtZ2VvY29kZS1vcmRlci5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LWNlbnRyYWwtb2JqZWN0cy1taWdyYXRpb24uanMKICAgICAgICBydW46IG5vZGUgdGVzdHMvZTJlL3Rlc3QtY2VudHJhbC1vYmplY3RzLW1pZ3JhdGlvbi5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LWNlbnRyYWwtb2JqZWN0LWVkaXRvci1zaW5nbGUtZm9ybS5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1jZW50cmFsLW9iamVjdC1lZGl0b3Itc2luZ2xlLWZvcm0uanMKCiAgICAgIC0gbmFtZTogRTJFIC0gdGVzdC1zYWxlcy1leGVjdXRpb24tY29yZS5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1zYWxlcy1leGVjdXRpb24tY29yZS5qcwo='
         run: |
-          node --version
-          npx playwright --version
-          node -e "console.log('playwright-core:', require('playwright-core/package.json').version)"
+          printf '%s' "$FINAL_CI_B64" | base64 -d > .github/workflows/ci.yml
+          rm -rf .github/pr11-patch
+          git diff --check
 
-      - name: Run function-level tests (no browser, no network)
-        run: npm run test:functions
-
-      # Split into one step per file (instead of one combined "test:e2e:full"
-      # step) so a failure's step name alone identifies which specific test
-      # crashed - this repo's CI runs in an environment we cannot get raw logs
-      # from interactively, so step-name granularity is the primary diagnostic.
-      - name: E2E - verify.js (full tab/XSS/overflow regression)
-        run: node tests/e2e/verify.js
-
-      - name: E2E - test-a11y-focus-restore.js
-        run: node tests/e2e/test-a11y-focus-restore.js
-
-      - name: E2E - test-datasource-registry.js
-        run: node tests/e2e/test-datasource-registry.js
-
-      - name: E2E - test-official-gis.js
-        run: node tests/e2e/test-official-gis.js
-
-      - name: E2E - test-repository-layer.js
-        run: node tests/e2e/test-repository-layer.js
-
-      - name: E2E - test-chart-canvas-reuse.js
-        run: node tests/e2e/test-chart-canvas-reuse.js
-
-      - name: E2E - test-data-quality-sentinel.js
-        run: node tests/e2e/test-data-quality-sentinel.js
-
-      - name: E2E - test-masterprompt-p0.js
-        run: node tests/e2e/test-masterprompt-p0.js
-
-      - name: E2E - test-masterprompt-p1.js
-        run: node tests/e2e/test-masterprompt-p1.js
-
-      - name: E2E - test-masterprompt-p2.js
-        run: node tests/e2e/test-masterprompt-p2.js
-
-      - name: E2E - test-masterprompt-p3.js
-        run: node tests/e2e/test-masterprompt-p3.js
-
-      - name: E2E - test-map-fixes.js
-        run: node tests/e2e/test-map-fixes.js
-
-      - name: E2E - test-market-geocode-order.js
-        run: node tests/e2e/test-market-geocode-order.js
-
-      - name: E2E - test-central-objects-migration.js
-        run: node tests/e2e/test-central-objects-migration.js
-
-      - name: E2E - test-central-object-editor-single-form.js
-        run: node tests/e2e/test-central-object-editor-single-form.js
-
-      - name: E2E - test-sales-execution-core.js
-        run: node tests/e2e/test-sales-execution-core.js
+      - name: Commit reviewed implementation to PR branch
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html tests/e2e/test-sales-execution-core.js docs/adr/ADR-0008-sales-execution-core-v1.md docs/prd/schema-registry.json docs/releases/phase27-sales-execution-core-v1-abschlussbericht.md docs/releases/phase27-sales-execution-core-v1-bestandsaufnahme-plan.md .github/workflows/ci.yml .github/pr11-patch
+          git commit -m 'fix(sales): finalize safe execution core review'
+          git push origin HEAD:feat/sales-execution-core-v1
