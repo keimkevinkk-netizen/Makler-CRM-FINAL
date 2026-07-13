@@ -16,15 +16,21 @@ jobs:
           ref: feat/sales-execution-core-v1
           fetch-depth: 0
 
-      - name: Reconstruct reviewed patch archive
+      - name: Reconstruct and verify reviewed patch
         run: |
-          cat .github/pr11-patch/chunk* > /tmp/pr11-final.patch.b64
-          test "$(wc -c < /tmp/pr11-final.patch.b64)" -eq 64120
-          base64 --decode /tmp/pr11-final.patch.b64 > /tmp/pr11-final.patch.gz
-          gzip --decompress --stdout /tmp/pr11-final.patch.gz > /tmp/pr11-final.patch
-
-      - name: Verify reviewed patch checksum
-        run: echo '180f60cd6d27685da13229faa1537597cb5d26098c59e6ad1bfbd3400666e326  /tmp/pr11-final.patch' | sha256sum --check --strict
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, gzip, hashlib
+          chunks = sorted(Path('.github/pr11-patch').glob('chunk[0-9][0-9]'))
+          assert len(chunks) == 9, f'expected 9 chunks, found {len(chunks)}'
+          encoded = ''.join(path.read_text(encoding='utf-8').strip() for path in chunks)
+          patch = gzip.decompress(base64.b64decode(encoded, validate=True))
+          digest = hashlib.sha256(patch).hexdigest()
+          expected = '180f60cd6d27685da13229faa1537597cb5d26098c59e6ad1bfbd3400666e326'
+          assert digest == expected, f'checksum mismatch: {digest}'
+          Path('/tmp/pr11-final.patch').write_bytes(patch)
+          print(f'reconstructed {len(patch)} bytes from {len(encoded)} base64 characters; sha256={digest}')
+          PY
 
       - name: Apply reviewed patch cleanly
         run: |
