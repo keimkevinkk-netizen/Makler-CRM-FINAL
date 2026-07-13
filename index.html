@@ -4627,6 +4627,21 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
       </div>
     </div>
 
+    <div class="kkv8-card" style="margin-top:12px" id="kkv8-research-section">
+      <h3>Datensammlung (Vergleichsobjekte / Recherche)</h3>
+      <p>Reine Vergleichs- und Recherchedaten (Kaufpreise, historische Angebote, Vergleichsobjekte) - <strong>nicht</strong> Teil des Bestands. Erscheint nie auf der Karte, nie in der Objekt-Pipeline, erzeugt keine automatischen Aufgaben. Wird zentral gespeichert (recordType: research) und kann später kontrolliert zu Markt oder Bestand umgewandelt werden.</p>
+      <form class="kkv8-form" id="kkv8ResearchEntryForm" autocomplete="off">
+        <div class="kkv8-grid kkv8-three">
+          <div class="kkv8-field"><label for="kkv8ResearchTown">Ort</label><select id="kkv8ResearchTown" name="town" required=""><option value="">Bitte wählen</option><option>Hanau</option><option>Bruchköbel</option><option>Schöneck</option><option>Nidderau</option><option>Erlensee</option><option>Langenselbold</option><option>Maintal</option><option>Neuberg</option><option>Hammersbach</option><option>Rodenbach</option><option>Freigericht</option><option>Gelnhausen</option></select></div>
+          <div class="kkv8-field"><label for="kkv8ResearchTitle">Bezeichnung</label><input id="kkv8ResearchTitle" name="title" placeholder="z. B. Vergleichs-EFH, Verkaufspreis 2023"/></div>
+          <div class="kkv8-field"><label for="kkv8ResearchPrice">Preis €</label><input id="kkv8ResearchPrice" name="price" type="number" min="0" step="1000"/></div>
+        </div>
+        <div class="kkv8-field"><label for="kkv8ResearchNote">Notiz / Quelle</label><textarea id="kkv8ResearchNote" name="note" placeholder="Quelle, Kontext, Vergleichsgrund"></textarea></div>
+        <button class="kkv8-btn light" type="submit">Als Datensammlung speichern</button>
+      </form>
+      <div class="kkv8-list" id="kkv8ResearchList" style="margin-top:10px"></div>
+    </div>
+
     <div class="kkv8-card" style="margin-top:12px">
       <h3>Vorbereitete spätere Datenanbindung</h3>
       <p><strong>Stufe 4:</strong> Dieses System ist vorbereitet für API, Backend oder externe Datenquelle. In der Single-File-Version werden keine fremden Portale automatisch ausgelesen, weil das technisch und rechtlich nicht belastbar wäre.</p>
@@ -7094,7 +7109,19 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
       }
     }
     return o; }
-  function saveObject(e){e.preventDefault(); var o=readObjectForm(); if(!o.address){toast('Objektadresse fehlt'); return} saveOrUpdate(KEYS.objects,o); if(o.ownerName)createActivity({contact:o.ownerName,type:'Unterlagen angefordert',channel:'CRM',result:'Objektakte aktualisiert',nextStep:o.nextStep,note:o.address}); $('#kkcrmproObjectForm').reset(); $('#kkcrmproObjectId').value=''; $$('#kkcrmproDocChecks input').forEach(function(x){x.checked=false}); renderAll(); renderLiveValuation();
+  function saveObject(e){e.preventDefault(); var o=readObjectForm(); if(!o.address){toast('Objektadresse fehlt'); return}
+    /* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 12: diese Maske ist
+       der "In meinem Bestand"-Pfad (recordType inventory) und schreibt seit
+       Phase 5 ueber die zentrale API statt direkt per saveOrUpdate() - gleicher
+       zugrundeliegende Storage-Key (kk_crm_objects), aber eine einzige
+       Schreibstelle mit Normalisierung/typeHistory/Events. Abschnitt 20: vor
+       dem Speichern eine sichtbare, nicht blockierende Dubletten-Warnung statt
+       automatischem Ueberschreiben. */
+    o.recordType=o.recordType||'inventory';
+    var dupes=window.KK_OBJECTS?window.KK_OBJECTS.findDuplicates(o):[];
+    if(window.KK_OBJECTS)window.KK_OBJECTS.saveCentralObject(o); else saveOrUpdate(KEYS.objects,o);
+    if(dupes.length)toast('Hinweis: möglicherweise bereits vorhanden ('+(dupes[0].address||'ähnliches Objekt')+') – bitte prüfen, kein automatisches Zusammenführen.');
+    if(o.ownerName)createActivity({contact:o.ownerName,type:'Unterlagen angefordert',channel:'CRM',result:'Objektakte aktualisiert',nextStep:o.nextStep,note:o.address}); $('#kkcrmproObjectForm').reset(); $('#kkcrmproObjectId').value=''; $$('#kkcrmproDocChecks input').forEach(function(x){x.checked=false}); renderAll(); renderLiveValuation();
     /* Kevin Abschnitt 10: sichtbarer Geocoding-Status statt eines einzigen
        "gespeichert"-Toasts unabhaengig vom tatsaechlichen Ergebnis - Objekt ist
        so oder so bereits sicher gespeichert (kein 0,0-Marker, kein Datenverlust
@@ -13483,8 +13510,23 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
   function saveTasks(t){setArr('kk12_tasks',t);}
   function getEvents(){return arr('kk12_calendar_events');}
   function saveEvents(v){setArr('kk12_calendar_events',v);}
-  function getObjects(){return arr('kk12_objects');}
-  function saveObjects(v){setArr('kk12_objects',v);}
+  /* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 11 (alte Formulare
+     umleiten): dieses Legacy-Dashboard-Formular speichert nicht mehr
+     eigenstaendig in kk12_objects, sondern ueber die zentrale API
+     (recordType:'inventory', sourceForm:'kk12_legacy'). Die Liste zeigt genau
+     die Datensaetze, die aus diesem Formular stammen (neu erfasst ueber
+     sourceForm ODER per Phase-6-Migration aus dem alten kk12_objects-Bestand
+     uebernommen ueber migration.legacySourceKey) - keine zweite Objektliste,
+     nur ein gefilterter Blick auf dieselbe zentrale Datenbank. */
+  function getObjects(){
+    if(window.KK_OBJECTS){
+      return window.KK_OBJECTS.listObjects({recordType:'inventory'}).filter(function(x){
+        return x.sourceForm==='kk12_legacy'||(x.migration&&x.migration.legacySourceKey==='kk12_objects');
+      });
+    }
+    return arr('kk12_objects');
+  }
+  function saveObjects(v){setArr('kk12_objects',v);} // Fallback nur falls KK_OBJECTS ausnahmsweise nicht geladen ist
   function getValuations(){return arr('kk12_valuation_protocols');}
   function saveValuations(v){setArr('kk12_valuation_protocols',v);}
   function getNotary(){return arr('kk12_notary_tracker');}
@@ -13601,7 +13643,16 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
   }
   function installObjects(){
     var f=$('#kk12ObjectForm'); if(!f||f.dataset.done)return; f.dataset.done='1';
-    f.onsubmit=function(e){e.preventDefault(); var list=getObjects(); var idv=$('#kk12ObjectId').value||id(); var old=list.find(function(o){return o.id===idv;})||{}; var obj=Object.assign(old,{id:idv,owner:$('#kk12ObjOwner').value,address:$('#kk12ObjAddress').value,area:$('#kk12ObjArea').value,type:$('#kk12ObjType').value,value:num($('#kk12ObjValue').value),status:$('#kk12ObjStatus').value,next:$('#kk12ObjNext').value,updatedAt:new Date().toISOString()}); if(!old.id)list.push(obj); saveObjects(list); f.reset(); renderObjects(); renderStats(); toast('Objektakte gespeichert');};
+    f.onsubmit=function(e){e.preventDefault();
+      var idv=$('#kk12ObjectId').value||(window.KK_UTIL&&window.KK_UTIL.uid?window.KK_UTIL.uid('obj'):id());
+      var owner=$('#kk12ObjOwner').value,type=$('#kk12ObjType').value,value=num($('#kk12ObjValue').value),next=$('#kk12ObjNext').value;
+      var record={id:idv,recordType:'inventory',sourceForm:'kk12_legacy',
+        owner:owner,ownerName:owner,address:$('#kk12ObjAddress').value,area:$('#kk12ObjArea').value,
+        type:type,objectType:type,value:value,marketValue:value,status:$('#kk12ObjStatus').value,
+        next:next,nextStep:next};
+      if(window.KK_OBJECTS)window.KK_OBJECTS.saveCentralObject(record);
+      else{var list=getObjects();var old=list.find(function(o){return o.id===idv;})||{};var obj=Object.assign(old,record,{updatedAt:new Date().toISOString()});if(!old.id)list.push(obj);saveObjects(list);}
+      f.reset(); renderObjects(); renderStats(); toast('Objektakte gespeichert');};
   }
   function renderValuationChecklist(){
     var el=$('#kk12ValChecklist'); if(el&&!el.dataset.done){el.dataset.done='1'; el.innerHTML=valChecks.map(function(c,i){return '<label><input type="checkbox" data-valcheck="'+i+'"> '+esc(c)+'</label>';}).join('');}
@@ -14162,6 +14213,32 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
       ['ImmoScout24','Immowelt','Kleinanzeigen','Immonet'].map(function(p){return '<a target="_blank" rel="noopener noreferrer" href="'+esc(searchUrl(p,t))+'">'+esc(p)+'</a>';}).join('')+
       '</div>';}).join('');
   }
+  /* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 16 (Datensammlung):
+     eigene, aber schlanke Ansicht - liest/schreibt ausschliesslich die
+     zentrale Objektdatenbank (recordType:'research'), kein eigener
+     Speicher. Erscheint nie auf der Karte, nie in der Pipeline (Policy). */
+  function researchEntries(){return window.KK_OBJECTS?window.KK_OBJECTS.listObjects({recordType:'research'}):[]}
+  function addResearchEntry(entry){
+    entry.recordType='research';
+    entry.title=entry.title||entry.town||'Datensammlung';
+    if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(entry,{city:'town'});
+    var saved=window.KK_OBJECTS?window.KK_OBJECTS.saveCentralObject(entry):null;
+    renderResearch();
+    return saved;
+  }
+  function researchCard(e){
+    return '<div class="kkv8-item" data-kkv8-research-entry="'+esc(e.id)+'">'+
+      '<strong>'+esc(e.town||'Ort offen')+' · '+esc(e.title||'Datensammlung')+'</strong>'+
+      '<span class="kkv8-pill">Datensammlung</span>'+
+      '<small>Preis: '+esc(money(e.price))+' · erfasst: '+esc(fmtDate(e.createdAt))+'</small>'+
+      (e.note?'<small><b>Notiz:</b> '+esc(e.note)+'</small>':'')+
+      '</div>';
+  }
+  function renderResearch(){
+    var host=$('#kkv8ResearchList'); if(!host)return;
+    var items=researchEntries().slice(0,60);
+    host.innerHTML=items.length?items.map(researchCard).join(''):'<div class="kkv8-empty">Noch keine Datensammlung-Einträge.</div>';
+  }
   function entryCard(e){
     var hot=(e.status==='Akquise ableiten'||e.type==='Akquise-Anlass')?' is-hot':'';
     return '<div class="kkv8-item'+hot+(e.done?' is-done':'')+'" data-kkv8-market-entry="'+esc(e.id)+'">'+
@@ -14187,6 +14264,7 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
       var items=arr.filter(function(e){return (e.type||'Neues Angebot')===type && e.status!=='Archiviert'}).slice(0,30);
       el.innerHTML=items.length?items.map(entryCard).join(''):'<div class="kkv8-empty">Noch keine Einträge.</div>';
     });
+    renderResearch();
   }
   function createTodayManualAction(title,category,note){
     var key='kk_today_manual_actions_'+todayISO();
@@ -14201,6 +14279,8 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
     if(f&&!f.__kkv8Bound){f.__kkv8Bound=true;f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f);var street=String(fd.get('street')||'').trim(),houseNo=String(fd.get('houseNo')||'').trim(),postal=String(fd.get('postal')||'').trim();var entry={town:fd.get('town'),platform:fd.get('platform'),type:fd.get('type'),object:fd.get('object'),price:fd.get('price'),sqm:fd.get('sqm'),link:fd.get('link'),status:fd.get('status'),note:fd.get('note')};if(street||postal)entry.addr={street:street,houseNumber:houseNo,postalCode:postal};addMarketEntry(entry);f.reset();toast('Marktbeobachtung gespeichert.');});}
     var imp=$('#kkv8MarketImportForm');
     if(imp&&!imp.__kkv8Bound){imp.__kkv8Bound=true;imp.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(imp);var txt=String(fd.get('text')||'').trim();if(!txt)return;var first=txt.split(/\n/).filter(Boolean)[0]||'Kopiertes Inserat';addMarketEntry({town:fd.get('town'),platform:'Import / Notiz',type:fd.get('type'),object:first.slice(0,120),status:'Neu prüfen',note:txt});imp.reset();toast('Import als Marktbeobachtung gespeichert.');});}
+    var res=$('#kkv8ResearchEntryForm');
+    if(res&&!res.__kkv8Bound){res.__kkv8Bound=true;res.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(res);addResearchEntry({town:fd.get('town'),title:fd.get('title'),price:fd.get('price'),note:fd.get('note')});res.reset();toast('Als Datensammlung gespeichert.');});}
   }
 
   function flatten(obj,out){out=out||[]; if(Array.isArray(obj)){obj.forEach(function(x){flatten(x,out)})}else if(obj&&typeof obj==='object'){if(obj.name||obj.title||obj.vorname||obj.nachname||obj.nextStep||obj.nextAction||obj.followupDate||obj.status)out.push(obj); Object.keys(obj).forEach(function(k){var v=obj[k]; if(v&&typeof v==='object')flatten(v,out);});} return out;}
