@@ -1,1 +1,1 @@
-trigger reload-safe full regression verification
+trigger lint-safe full regression verification
