@@ -122,7 +122,12 @@ export class LocalStorageWorkspaceRepository implements WorkspaceRepository {
     if (expectedWorkspaceId && imported.workspace.id !== expectedWorkspaceId) {
       throw new Error('Die Sicherung gehört zu einem anderen VINCERE-Workspace und wurde nicht importiert.');
     }
-    this.save(imported);
-    return imported;
+
+    const existing = expectedWorkspaceId ? this.load() : null;
+    const secured = existing
+      ? { ...imported, workspace: existing.workspace, currentUser: existing.currentUser }
+      : imported;
+    this.save(secured);
+    return secured;
   }
 }
