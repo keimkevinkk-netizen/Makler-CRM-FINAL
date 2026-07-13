@@ -111,7 +111,8 @@ Aktuelle Haupttabs: `heute, marktmonitor, crm, followups, pipeline, tippgeber, k
 | Zusagen | `kk_commitments_v1` | — | keine (bestehendes Schema ausreichend für V1; ID-Migration siehe ADR §Grenzen) | Aus Nachbereitung neu erzeugbar über bestehende Commitment-Schreiblogik |
 | Kontakt-ID-Zuordnung | **neu:** `kk_entity_link_queue_v1` | — | `{id, sourceKey, sourceRecordId, freeTextName, candidateContactIds[], status:'ambiguous'|'resolved', resolvedContactId}` | Nur additiv, nie destruktiv; mehrdeutige Treffer landen hier statt geraten zu werden |
 | Action Feedback | **neu:** `kk_action_feedback_v1` | — | `{recommendationId, decision, dismissReason, snoozedUntil, executedAt, resultInteractionId}` | append/upsert by `recommendationId` |
-| Vertriebsereignisse | **neu:** `kk_sales_events_v1` | — | append-only Event-Log (siehe ADR) | nur `push`, nie `splice`/Löschung |
+| Vertriebsereignisse | **neu:** `kk_sales_events_v1` | — | aktives append-only Fenster mit idempotentem `eventKey` | maximal 2.000, automatische Verdichtung auf 1.500 |
+| Ereignisarchiv | **neu:** `kk_sales_event_archive_v1` | — | Monatsaggregate je Ereignistyp | maximal 24 Monate |
 | CallSession (Zustand während geführtem Anruf) | **neu:** `kk_call_session_v1` (Singleton-Objekt, kein Array) | — | siehe ADR | wird bei Abschluss/Abbruch geleert, dient nur als Wiederherstellungspunkt bei Reload |
 
 `ActionRecommendation` selbst wird **nicht persistiert** — sie wird deterministisch aus den obigen kanonischen Quellen berechnet, mit stabiler ID (`ruleId + ':' + contactId`), damit identische Daten reproduzierbar dieselbe Empfehlung erzeugen (Akzeptanzkriterium 6/11 der PDF).
@@ -157,7 +158,7 @@ Kurzfassung:
 | Risiko | Gegenmaßnahme |
 |---|---|
 | Freitext-Namens-Matching erzeugt falsche Kontakt-Zuordnung (zwei Kontakte mit gleichem Namen) | Bei Mehrdeutigkeit **nicht raten** — Datensatz landet in `kk_entity_link_queue_v1`, Engine schließt ihn von automatischen Empfehlungen aus statt falsch zuzuordnen |
-| Neue `contactPolicy`-Pflichtfelder blockieren bestehende, seit Jahren genutzte Anruf-Workflows für hunderte Bestandskontakte ohne dokumentierte Einwilligung | **Bewusst nicht automatisch rückwirkend blockierend** — siehe ADR §Rechtliche Grenze; als offene Entscheidung für Kevin dokumentiert (Phase 5 der PDF verlangt ausdrücklich Einzelfallentscheidungen für Rechtsfragen) |
+| Unbekannte Kontaktgrundlage führt zu automatischer Akquiseempfehlung | Im Abschlussreview als Sicherheitsrisiko entschieden: unbekannte Grundlage wird automatisch ausgeschlossen; manueller Versuch nur nach Warnbestätigung und Dokumentation |
 | Single-File-Größe wächst weiter, Regressionsrisiko bei jeder Änderung steigt | Neues Modul strikt additiv am Dateiende-nahen Bereich, kein Umschreiben bestehender Module, volle Regressionssuite vor Commit |
 | Performance bei vielen Datensätzen (PDF verlangt 1000+ Kontakte flüssig) | Engine arbeitet mit einmaligem Index-Aufbau pro Lauf (O(n) statt verschachtelter O(n²)-Suchen), kein Recompute bei jedem Tastendruck |
 | Doppelte Aktivität/Follow-up bei Doppelklick im Nachbereitungs-Dialog | Speichern-Button wird nach erstem Klick deaktiviert, `CallSession`-Singleton verhindert Doppelabschluss |
@@ -176,3 +177,8 @@ Siehe `tests/e2e/test-sales-execution-core.js` (neu): Engine-Determinismus (iden
 Deckt sich mit den 20 Akzeptanzkriterien aus der PDF (§8) — einzeln abgehakt im Abschlussbericht `docs/releases/phase27-sales-execution-core-v1-abschlussbericht.md` nach Umsetzung. Kernpunkte: Daily Command Center erzeugt priorisierte Liste aus echten Daten, jede Empfehlung mit sichtbarem Grund, keine erfundenen Scores, gesperrte Kontakte ausgeschlossen, Anruf startbar aus dem Command Center, genau eine Interaktion + höchstens ein Follow-up/Commitment pro Anruf, kein neuer Haupt-Tab, alle bestehenden Tests grün, Branch gepusht, Draft-PR mit „NICHT MERGEN"-Kennzeichnung erstellt.
 
 **Ausdrücklich nicht Teil von Phase 1** (PDF-Roadmap Phase 2–6): Einwand-Genom-Lernschleife, Eigentümer-Intent-Radar, Verkäufertermin-War-Room, Lost-Deal-Blackbox, Regional-Dominance-Engine, Authentifizierung/Mehrbenutzerbetrieb. Diese werden im Abschlussbericht als bewusst verschoben dokumentiert, nicht stillschweigend weggelassen.
+
+
+## 11. Abschlussreview vom 13.07.2026
+
+Die ursprüngliche Planungsannahme, unbekannte Kontaktgrundlagen aus Kompatibilitätsgründen automatisch zuzulassen, wurde verworfen. Verbindlich sind ADR-0008 und der finale Abschlussbericht: harte Sperren, automatische Priorisierung nur mit dokumentierter/aus realem Vorgang ableitbarer Grundlage, manuelle Warnbestätigung bei unbekannter Grundlage, Stable-ID-Migration mit Vorsicherung, idempotenter Call-Workflow und begrenztes Ereignisarchiv.

@@ -1,245 +1,269 @@
-// Acceptance test for the "Sales Execution Core V1" order (PDF "Keim CRM Pro -
-// Sales Operating System und Implementierungsauftrag", Teil II). Proves the
-// concrete acceptance criteria from PDF §8/§9: a deterministic, explainable
-// Next-Best-Action engine over EXISTING canonical data (kk_crm_contacts,
-// kk_followups, kk_commitments_v1, kk_sales_pipeline), contact-policy
-// exclusion, and a guided call workflow (prep -> outcome -> exactly one new
-// activity + at most one follow-up/commitment). See docs/adr/ADR-0008 and
-// docs/releases/phase27-* for the full design rationale.
 const { chromium } = require('playwright');
 const path = require('path');
 
 const LAUNCH_OPTS = Object.assign({ args: ['--no-sandbox'] }, process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : {});
+const FILE_URL = process.env.TEST_BASE_URL || ('file://' + path.resolve(__dirname, '..', '..', 'index.html'));
+const results = [];
 
-function check(name, cond, results) {
-  results.push({ name, pass: !!cond });
-  console.log((cond ? 'PASS' : 'FAIL') + ' - ' + name);
-  if (!cond) console.log('::error::FAILED CHECK: ' + name);
+function check(name, condition, detail) {
+  const pass = !!condition;
+  results.push({ name, pass, detail: detail || '' });
+  console.log(`${pass ? 'PASS' : 'FAIL'} - ${name}${detail ? ` (${detail})` : ''}`);
+  if (!pass) console.log(`::error::FAILED CHECK: ${name}`);
 }
-
-function isoDaysAgo(n) {
+function day(offset) {
   const d = new Date();
-  d.setDate(d.getDate() - n);
+  d.setDate(d.getDate() + offset);
   return d.toISOString().slice(0, 10);
 }
-function isoDaysFromNow(n) {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+async function openSeeded(browser, seed, viewport = { width: 1440, height: 1000 }) {
+  const context = await browser.newContext({ viewport });
+  const page = await context.newPage();
+  const pageErrors = [];
+  page.on('pageerror', e => pageErrors.push(e.message));
+  page.on('dialog', async dialog => { await dialog.accept(); });
+  await page.addInitScript(data => {
+    if (window.sessionStorage.getItem('__kk_sales_core_seeded') === '1') return;
+    Object.entries(data).forEach(([key, value]) => {
+      localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+    });
+    window.sessionStorage.setItem('__kk_sales_core_seeded', '1');
+  }, seed || {});
+  await page.goto(FILE_URL, { waitUntil: 'load' });
+  await page.waitForFunction(() => !!(window.KK_SALES_CORE && window.KK_STORE && window.KK_APP_SHELL), null, { timeout: 20000 });
+  return { context, page, pageErrors };
+}
+function baseEmpty(overrides = {}) {
+  return Object.assign({
+    kk_crm_contacts: [], kk_crm_activities: [], kk_crm_objects: [], kk_followups: [],
+    kk_commitments_v1: [], kk_sales_pipeline: [], kk12_calendar_events: [],
+    kk_entity_link_queue_v1: [], kk_action_feedback_v1: [], kk_sales_events_v1: [],
+    kk_sales_event_archive_v1: []
+  }, overrides);
 }
 
 (async () => {
+  const browser = await chromium.launch(LAUNCH_OPTS);
   try {
-    const browser = await chromium.launch(LAUNCH_OPTS);
-    const fileUrl = 'file://' + path.resolve(__dirname, '..', '..', 'index.html');
-    const results = [];
-
-    // ---------- Fixture data (seeded BEFORE navigation, so KK_BOOT sees it at boot) ----------
-    const seed = async (page) => {
-      await page.addInitScript(({ overdueDue, futureDue, callbackDue }) => {
-        localStorage.setItem('kk_crm_contacts', JSON.stringify([
-          { id: 'ctA', name: 'Herr Overdue', phone: '069111', category: 'Eigentümer', status: 'Neu', area: 'Bruchköbel', lastContact: '', createdAt: new Date().toISOString() },
-          { id: 'ctB', name: 'Frau Callback', phone: '069222', category: 'Eigentümer', status: 'Neu', area: 'Bruchköbel', lastContact: '', createdAt: new Date().toISOString() },
-          { id: 'ctBlocked', name: 'Herr Gesperrt', phone: '069333', category: 'Eigentümer', status: 'Neu', area: 'Bruchköbel', contactPolicy: { doNotContact: true }, createdAt: new Date().toISOString() }
-        ]));
-        localStorage.setItem('kk_commitments_v1', JSON.stringify([
-          { id: 'commit1', contact: 'Herr Overdue', text: 'Marktbericht senden', due: overdueDue, status: 'offen', createdAt: new Date().toISOString() },
-          { id: 'commit2', contact: 'Herr Gesperrt', text: 'Sollte nie erscheinen', due: overdueDue, status: 'offen', createdAt: new Date().toISOString() }
-        ]));
-        localStorage.setItem('kk_followups', JSON.stringify([
-          { id: 'fu1', name: 'Frau Callback', channel: 'Telefon', dueDate: callbackDue, date: callbackDue, status: 'offen', goal: 'Rückruf wie vereinbart', type: 'Nachfassgespräch', createdAt: new Date().toISOString() }
-        ]));
-        localStorage.setItem('kk_sales_pipeline', JSON.stringify([]));
-        localStorage.setItem('kk_entity_link_queue_v1', JSON.stringify([]));
-        localStorage.setItem('kk_action_feedback_v1', JSON.stringify([]));
-        localStorage.setItem('kk_sales_events_v1', JSON.stringify([]));
-      }, { overdueDue: isoDaysAgo(2), futureDue: isoDaysFromNow(5), callbackDue: isoDaysAgo(1) });
-    };
-
-    // ==================== Run 1: Engine correctness ====================
-    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-    const pageErrors = [];
-    page.on('pageerror', (e) => { pageErrors.push(e.message); console.log('::error::PAGEERROR: ' + e.message); });
-    page.on('dialog', async (dialog) => { await dialog.accept(); });
-    await seed(page);
-    await page.goto(fileUrl, { waitUntil: 'load' });
-    await page.waitForFunction(() => !!(window.KK_SALES_CORE && window.KK_APP_SHELL), null, { timeout: 15000 });
-
-    // --- A: module loaded, deterministic recommendations from real data ---
-    const recs1 = await page.evaluate(() => window.KK_SALES_CORE.computeRecommendations());
-    const recs2 = await page.evaluate(() => window.KK_SALES_CORE.computeRecommendations());
-    check('A: computeRecommendations() liefert ein Array aus echten Daten', Array.isArray(recs1) && recs1.length > 0, results);
-    check('A: identische Daten erzeugen identische Reihenfolge (Determinismus, Akzeptanzkriterium 6/11)', JSON.stringify(recs1.map(r => r.id)) === JSON.stringify(recs2.map(r => r.id)), results);
-
-    // --- B: überfällige Zusage hat höchste Priorität (Regel 1) ---
-    const commitmentRec = recs1.find(r => r.ruleId === 'commitment_overdue');
-    check('B: überfällige Zusage wird als Empfehlung erkannt (ruleId commitment_overdue)', !!commitmentRec, results);
-    check('B: überfällige Zusage hat priorityBand 1 (höchste Prioritätsstufe)', !!commitmentRec && commitmentRec.priorityBand === 1, results);
-    check('B: überfällige Zusage steht in der Reihenfolge vor dem reinen Rückruf (Regel 1 vor Regel 2)', recs1.findIndex(r => r.ruleId === 'commitment_overdue') < recs1.findIndex(r => r.ruleId === 'callback_due'), results);
-    check('B: jede Empfehlung hat eine sichtbare Begründung (whyNow, kein reiner Score)', !!commitmentRec && typeof commitmentRec.whyNow === 'string' && commitmentRec.whyNow.length > 10, results);
-    check('B: keine Empfehlung enthält ein numerisches Score-/Wahrscheinlichkeitsfeld', !recs1.some(r => 'score' in r || 'probability' in r), results);
-
-    // --- C: vereinbarter Rückruf wird erkannt (Regel 2) ---
-    const callbackRec = recs1.find(r => r.ruleId === 'callback_due');
-    check('C: vereinbarter Rückruf (Follow-up, Kanal Telefon, fällig) wird erkannt', !!callbackRec, results);
-
-    // --- D: gesperrter Kontakt (doNotContact) wird NIEMALS empfohlen ---
-    const blockedAppears = recs1.some(r => r.entityReferences && r.entityReferences.contactName === 'Herr Gesperrt');
-    check('D: Kontakt mit contactPolicy.doNotContact=true erscheint in KEINER Empfehlung (Akzeptanzkriterium 4)', !blockedAppears, results);
-
-    // --- E: jede Empfehlung referenziert per ID auf existierende Kontakte (wo auflösbar) ---
-    check('E: aufgelöste Empfehlungen referenzieren einen echten contactId (nicht nur Freitext)', commitmentRec.entityReferences.contactId === 'ctA', results);
-
-    // --- F: ehrlicher Leerzustand ---
-    await page.evaluate(() => {
-      localStorage.setItem('kk_crm_contacts', '[]');
-      localStorage.setItem('kk_commitments_v1', '[]');
-      localStorage.setItem('kk_followups', '[]');
-      localStorage.setItem('kk_sales_pipeline', '[]');
-      localStorage.setItem('kk_action_feedback_v1', '[]');
-    });
-    const emptyRecs = await page.evaluate(() => window.KK_SALES_CORE.computeRecommendations());
-    check('F: ohne Daten liefert die Engine ein leeres Array (ehrlicher Leerzustand, kein Fake-Eintrag)', Array.isArray(emptyRecs) && emptyRecs.length === 0, results);
-    await page.evaluate(() => { if (window.KK_SALES_CORE.renderCommandCenter) window.KK_SALES_CORE.renderCommandCenter(); });
-    const emptyUi = await page.evaluate(() => {
-      const el = document.getElementById('kksecEmpty');
-      return el ? !el.hidden : false;
-    });
-    check('F: Daily Command Center zeigt bei leerer Queue den Leerzustand-Hinweis (kein neuer Haupt-Tab, direkt in Heute)', emptyUi, results);
-    await browser.close();
-
-    // ==================== Run 2: Daily Command Center UI + guided call workflow ====================
-    const browser2 = await chromium.launch(LAUNCH_OPTS);
-    const pageErrors2 = [];
-    const p2 = await browser2.newPage({ viewport: { width: 1440, height: 1000 } });
-    p2.on('pageerror', (e) => { pageErrors2.push(e.message); console.log('::error::PAGEERROR: ' + e.message); });
-    p2.on('dialog', async (dialog) => { await dialog.accept(); });
-    await seed(p2);
-    await p2.goto(fileUrl, { waitUntil: 'load' });
-    await p2.waitForFunction(() => !!(window.KK_SALES_CORE && window.KK_APP_SHELL), null, { timeout: 15000 });
-    await p2.evaluate(() => { window.KK_APP_SHELL.setActiveTab('heute'); });
-
-    // --- G: Daily Command Center ist Teil des Heute-Panels (kein neuer Haupt-Tab) ---
-    const ccInHeute = await p2.evaluate(() => {
-      const cc = document.getElementById('kkSalesCoreCC');
-      const heutePanel = document.getElementById('kk-app-panel-heute');
-      return !!(cc && heutePanel && heutePanel.contains(cc));
-    });
-    check('G: Command Center liegt im bestehenden Heute-Panel, kein neuer Haupt-Tab (Akzeptanzkriterium 19)', ccInHeute, results);
-    const tabCount = await p2.evaluate(() => window.KK_APP_SHELL.tabs.length);
-    check('G: Anzahl Haupttabs unverändert bei 11 (kein neuer Tab durch Sales Execution Core hinzugefügt)', tabCount === 11, results);
-
-    // --- H: Anruf starten -> Vorbereitung zeigt echte Fakten ---
-    const recsForCall = await p2.evaluate(() => window.KK_SALES_CORE.computeRecommendations());
-    const overdueRecId = recsForCall.find(r => r.ruleId === 'commitment_overdue').id;
-    await p2.evaluate((id) => { window.KK_SALES_CORE.startCallFor(id); }, overdueRecId);
-    await p2.waitForSelector('#kkSalesCoreCallDialog[open]', { timeout: 8000 });
-    const prep = await p2.evaluate(() => ({
-      why: document.getElementById('kksecPrepWhy').textContent,
-      minCommit: document.getElementById('kksecPrepMinCommit').textContent,
-      hasObjections: document.getElementById('kksecPrepObjections').children.length > 0
+    // 1) Contact policy, stable links, explainability and action filtering.
+    const contacts = [
+      { id: 'ct-unknown', name: 'Unbekannte Grundlage', phone: '060001', category: 'Eigentümer', status: 'Neu' },
+      { id: 'ct-consent', name: 'Einwilligung', phone: '060002', category: 'Eigentümer', status: 'Neu', contactPolicy: { basisType: 'explicit_consent', basis: 'Telefonische Einwilligung am 10.07.2026 dokumentiert' } },
+      { id: 'ct-callback', name: 'Rückruf Wunsch', phone: '060003', category: 'Eigentümer', status: 'Neu' },
+      { id: 'ct-relation', name: 'Bestehende Beziehung', phone: '060004', category: 'Eigentümer', status: 'Gespräch', lastContact: day(-20) },
+      { id: 'ct-optout', name: 'Opt Out', phone: '060005', category: 'Eigentümer', status: 'Neu', contactPolicy: { optOut: true } },
+      { id: 'ct-block', name: 'Sperrvermerk', phone: '060006', category: 'Eigentümer', status: 'Neu', contactPolicy: { doNotContact: true } },
+      { id: 'ct-revoked', name: 'Widerrufen', phone: '060007', category: 'Eigentümer', status: 'Neu', contactPolicy: { basisType: 'explicit_consent', basis: 'Frühere Einwilligung', consentRevokedAt: day(-1) } },
+      { id: 'ct-conflict', name: 'Widersprüchlich', phone: '060008', category: 'Eigentümer', status: 'Neu', contactPolicy: { basisType: 'explicit_consent', basis: 'Einwilligung', optOut: true } },
+      { id: 'ct-dupe-a', name: 'Doppel Name', phone: '060009', contactPolicy: { basisType: 'explicit_consent', basis: 'Einwilligung A' } },
+      { id: 'ct-dupe-b', name: 'Doppel Name', phone: '060010', contactPolicy: { basisType: 'explicit_consent', basis: 'Einwilligung B' } }
+    ];
+    const policyRun = await openSeeded(browser, baseEmpty({
+      kk_crm_contacts: contacts,
+      kk_sales_pipeline: [
+        { id: 'opp-unknown', contactId: 'ct-unknown', name: 'Unbekannte Grundlage', stage: 'Rohkontakt', nextStep: '' },
+        { id: 'opp-consent', contactId: 'ct-consent', name: 'Einwilligung', stage: 'Rohkontakt', nextStep: '' },
+        { id: 'opp-revoked', contactId: 'ct-revoked', name: 'Widerrufen', stage: 'Qualifiziert', nextStep: '' }
+      ],
+      kk_followups: [
+        { id: 'fu-callback', contactId: 'ct-callback', name: 'Rückruf Wunsch', channel: 'Telefon', dueDate: day(-1), status: 'offen', goal: 'Rückruf wie gewünscht' },
+        { id: 'fu-optout', contactId: 'ct-optout', name: 'Opt Out', channel: 'Telefon', dueDate: day(-1), status: 'offen' },
+        { id: 'fu-block', contactId: 'ct-block', name: 'Sperrvermerk', channel: 'Telefon', dueDate: day(-1), status: 'offen' },
+        { id: 'fu-conflict', contactId: 'ct-conflict', name: 'Widersprüchlich', channel: 'Telefon', dueDate: day(-1), status: 'offen' },
+        { id: 'fu-future', contactId: 'ct-consent', name: 'Einwilligung', channel: 'Telefon', dueDate: day(10), status: 'offen' }
+      ],
+      kk_commitments_v1: [
+        { id: 'commit-dupe', contact: 'Doppel Name', text: 'Mehrdeutig', due: day(-2), status: 'offen' },
+        { id: 'commit-relation', contactId: 'ct-relation', contact: 'Bestehende Beziehung', text: 'Unterlagen melden', due: day(-2), status: 'offen' },
+        { id: 'commit-done', contactId: 'ct-consent', contact: 'Einwilligung', text: 'Erledigt', due: day(-2), status: 'erfuellt' }
+      ]
     }));
-    check('H: Vorbereitungsansicht zeigt "Warum jetzt" aus echten Daten', prep.why.indexOf('Marktbericht senden') > -1, results);
-    check('H: Vorbereitungsansicht zeigt minimalen nächsten Schritt', prep.minCommit.length > 5, results);
-    check('H: Vorbereitungsansicht zeigt mögliche Einwände (Einwandhilfe)', prep.hasObjections, results);
+    const p = policyRun.page;
+    const snapshot = await p.evaluate(() => ({
+      recs: window.KK_SALES_CORE.computeRecommendations(),
+      audit: window.KK_SALES_CORE.getDecisionAudit(),
+      queue: window.KK_SALES_CORE.getLinkQueue(),
+      evals: {
+        consent: window.KK_SALES_CORE.evaluateContactPolicy('ct-consent'),
+        optout: window.KK_SALES_CORE.evaluateContactPolicy('ct-optout'),
+        block: window.KK_SALES_CORE.evaluateContactPolicy('ct-block'),
+        revoked: window.KK_SALES_CORE.evaluateContactPolicy('ct-revoked'),
+        conflict: window.KK_SALES_CORE.evaluateContactPolicy('ct-conflict')
+      }
+    }));
+    const hasContact = id => snapshot.recs.some(r => r.contactReference && r.contactReference.contactId === id);
+    check('Unbekannte Kontaktgrundlage wird aus automatischer Tagespriorisierung ausgeschlossen', !hasContact('ct-unknown'));
+    check('Dokumentierte ausdrückliche Einwilligung wird berücksichtigt', hasContact('ct-consent') && snapshot.evals.consent.allowed);
+    check('Dokumentierter Rückrufwunsch wird berücksichtigt und sichtbar begründet', hasContact('ct-callback') && snapshot.recs.some(r => r.contactReference.contactId === 'ct-callback' && r.contactBasis.type === 'callback_request'));
+    check('Nachvollziehbare bestehende Beziehung wird berücksichtigt', hasContact('ct-relation') && snapshot.recs.some(r => r.contactReference.contactId === 'ct-relation' && r.contactBasis.type === 'existing_relationship'));
+    check('Opt-out wird hart ausgeschlossen', !hasContact('ct-optout') && snapshot.evals.optout.blocked);
+    check('Sperrvermerk wird hart ausgeschlossen', !hasContact('ct-block') && snapshot.evals.block.blocked);
+    check('Nachträglich widerrufene Einwilligung wird hart ausgeschlossen', !hasContact('ct-revoked') && snapshot.evals.revoked.reasons.includes('einwilligung_widerrufen'));
+    check('Widersprüchliche Kontaktinformationen werden hart ausgeschlossen und gewarnt', !hasContact('ct-conflict') && snapshot.evals.conflict.warnings.includes('widerspruechliche_kontaktinformationen'));
+    check('Zukünftige Follow-ups und erledigte Zusagen werden nicht priorisiert', !snapshot.recs.some(r => r.id === 'callback_due:fu-future' || r.id === 'commitment_overdue:commit-done'));
+    check('Mehrdeutiger Namensbezug erzeugt Queue-Eintrag statt stiller Verknüpfung', snapshot.queue.some(x => x.sourceRecordId === 'commit-dupe' && x.status === 'ambiguous') && !snapshot.recs.some(r => r.id === 'commitment_overdue:commit-dupe'));
+    const required = ['action', 'reason', 'priority', 'dataBasis', 'goal', 'contactReference', 'dueAt', 'warnings', 'exclusionNotes'];
+    check('Jede Empfehlung enthält alle geforderten Nachvollziehbarkeitsfelder', snapshot.recs.length > 0 && snapshot.recs.every(r => required.every(k => Object.prototype.hasOwnProperty.call(r, k)) && r.contactReference.contactId && r.contactBasis && r.sourceFacts.sourceKey));
+    check('Empfehlungen bleiben deterministisch und ohne Score', JSON.stringify(snapshot.recs.map(r => r.id)) === JSON.stringify((await p.evaluate(() => window.KK_SALES_CORE.computeRecommendations())).map(r => r.id)) && !snapshot.recs.some(r => 'score' in r || 'probability' in r));
+    check('Engine dokumentiert sicher ausgeschlossene Entscheidungen', snapshot.audit.some(x => x.contactId === 'ct-unknown' && x.reasons.includes('kontaktgrundlage_unbekannt')));
+    check('Keine Browserfehler bei Kontaktpolitik und Ambiguitätsfällen', policyRun.pageErrors.length === 0, policyRun.pageErrors.join('; '));
+    await policyRun.context.close();
 
-    // --- I: Gespräch durchführen -> Nachbereitung -> genau eine Aktivität + höchstens ein Follow-up/Commitment ---
-    // Buttons inside the native <dialog> are clicked via evaluate(el.click()) rather than
-    // Playwright's pointer-based page.click() - the same pattern already used for
-    // #kkCentralEditorClose in test-central-object-editor-single-form.js. Real pointer
-    // clicks intermittently miss here because the dialog's sticky footer (.kksc-actions)
-    // shifts position when setPhase() toggles a much taller/shorter sibling phase's
-    // display, so the hit-test coordinates Playwright computed just before the click
-    // can be stale by the time the OS-level click actually lands.
-    await p2.evaluate(() => document.getElementById('kksecPrepTelLink').click());
-    await p2.waitForSelector('.kksc-phase[data-phase="incall"].is-active', { timeout: 8000 });
-    await p2.evaluate(() => document.getElementById('kksecCallEndBtn').click());
-    await p2.waitForSelector('.kksc-phase[data-phase="postcall"].is-active');
-    await p2.evaluate(() => document.querySelector('#kksecOutcomeReached button[data-val="ja"]').click());
-    await p2.fill('#kksecOutcomeNextStep', 'Marktbericht nachträglich versendet, in 2 Wochen erneut anrufen');
-    const followDate = isoDaysFromNow(14);
-    await p2.fill('#kksecOutcomeDate', followDate);
-    await p2.evaluate(() => document.getElementById('kksecPostcallSaveBtn').click());
-    await p2.waitForSelector('.kksc-phase[data-phase="done"].is-active');
+    // 2) Manual warning confirmation and hard block.
+    const manualRun = await openSeeded(browser, baseEmpty({ kk_crm_contacts: [
+      { id: 'manual-unknown', name: 'Manuell Unbekannt', phone: '061111' },
+      { id: 'manual-blocked', name: 'Manuell Gesperrt', phone: '061112', contactPolicy: { doNotContact: true } }
+    ] }));
+    const mp = manualRun.page;
+    const requestUnknown = await mp.evaluate(() => window.KK_SALES_CORE.requestManualContact('manual-unknown'));
+    check('Manueller Versuch ohne Grundlage verlangt Warnbestätigung', requestUnknown.status === 'confirmation_required' && await mp.locator('#kkSalesCoreManualConfirmDialog').evaluate(el => el.open));
+    const invalidConfirm = await mp.evaluate(() => window.KK_SALES_CORE.confirmManualContact());
+    check('Warnbestätigung erzwingt Kontaktgrundlage, Begründung und bewusste Bestätigung', invalidConfirm.status === 'validation' && !(await mp.locator('#kksecManualError').getAttribute('hidden')));
+    await mp.selectOption('#kksecManualBasisType', 'manual_reason');
+    await mp.fill('#kksecManualReason', 'Einmaliger manueller Kontakt nach eigener Prüfung');
+    await mp.check('#kksecManualConfirmCheck');
+    const validConfirm = await mp.evaluate(() => window.KK_SALES_CORE.confirmManualContact());
+    check('Vollständig dokumentierte manuelle Warnbestätigung öffnet den geführten Workflow', validConfirm.ok && await mp.locator('#kkSalesCoreCallDialog').evaluate(el => el.open));
+    await mp.evaluate(() => document.getElementById('kksecCallCloseBtn').click());
+    const requestBlocked = await mp.evaluate(() => window.KK_SALES_CORE.requestManualContact('manual-blocked'));
+    check('Manueller Kontaktversuch umgeht Sperrvermerk nicht', requestBlocked.status === 'blocked');
+    const manualEvents = await mp.evaluate(() => window.KK_SALES_CORE.getEventLog());
+    check('Manuelle Bestätigung wird mit Grundlage und Begründung protokolliert', manualEvents.some(e => e.type === 'manual_contact_confirmed' && e.basisType === 'manual_reason' && e.reason));
+    await manualRun.context.close();
 
-    const afterSave = await p2.evaluate(() => ({
-      activities: JSON.parse(localStorage.getItem('kk_crm_activities') || '[]'),
-      followups: JSON.parse(localStorage.getItem('kk_followups') || '[]'),
+    // 3) Call workflow idempotency, stable contact/opportunity/property references.
+    const callRun = await openSeeded(browser, baseEmpty({
+      kk_crm_contacts: [{ id: 'ct-call', name: 'Anruf Test', phone: '062222', contactPolicy: { basisType: 'explicit_consent', basis: 'Einwilligung dokumentiert' } }],
+      kk_crm_objects: [{ id: 'obj-1', address: 'Teststraße 1', title: 'Testobjekt' }],
+      kk_sales_pipeline: [{ id: 'opp-1', contactId: 'ct-call', name: 'Anruf Test', stage: 'Qualifiziert', objectLabel: 'Teststraße 1', propertyId: 'obj-1', nextStep: '' }]
+    }));
+    const cp = callRun.page;
+    const rec = (await cp.evaluate(() => window.KK_SALES_CORE.computeRecommendations())).find(r => r.ruleId === 'opportunity_no_next_step');
+    check('Opportunity-Empfehlung referenziert stabile Kontakt-, Opportunity- und Objekt-ID', rec && rec.entityReferences.contactId === 'ct-call' && rec.entityReferences.opportunityId === 'opp-1' && rec.entityReferences.propertyId === 'obj-1');
+    await cp.evaluate(id => { window.KK_SALES_CORE.startCallFor(id); window.KK_SALES_CORE.startCallFor(id); }, rec.id);
+    const firstSession = await cp.evaluate(() => JSON.parse(localStorage.getItem('kk_call_session_v1')));
+    check('Wiederholtes Öffnen nutzt dieselbe laufende Session statt einer zweiten', firstSession && firstSession.id && await cp.locator('#kkSalesCoreCallDialog').evaluate(el => el.open));
+    await cp.evaluate(() => document.getElementById('kksecPrepTelLink').click());
+    await cp.evaluate(() => document.getElementById('kksecCallEndBtn').click());
+    await cp.evaluate(() => document.querySelector('#kksecOutcomeReached button[data-val="ja"]').click());
+    await cp.fill('#kksecOutcomeNextStep', 'Unterlagen senden');
+    await cp.fill('#kksecOutcomeDate', day(7));
+    await cp.fill('#kksecOutcomeCommitment', 'Exposé bis Freitag senden');
+    await cp.check('#kksecPipelineConfirmCheck');
+    await cp.evaluate(() => { const b = document.getElementById('kksecPostcallSaveBtn'); b.click(); b.click(); });
+    await cp.waitForSelector('.kksc-phase[data-phase="done"].is-active');
+    let saved = await cp.evaluate(() => ({
+      activities: JSON.parse(localStorage.getItem('kk_crm_activities') || '[]').filter(x => x.source === 'sales-execution-core'),
+      followups: JSON.parse(localStorage.getItem('kk_followups') || '[]').filter(x => x.source === 'sales-execution-core'),
+      commitments: JSON.parse(localStorage.getItem('kk_commitments_v1') || '[]').filter(x => x.source === 'sales-execution-core'),
       feedback: JSON.parse(localStorage.getItem('kk_action_feedback_v1') || '[]'),
-      commitments: JSON.parse(localStorage.getItem('kk_commitments_v1') || '[]')
+      deals: JSON.parse(localStorage.getItem('kk_sales_pipeline') || '[]')
     }));
-    check('I: nach dem Speichern existiert genau eine neue Aktivität (Akzeptanzkriterium 9)', afterSave.activities.length === 1, results);
-    check('I: die neue Aktivität referenziert den echten contactId', afterSave.activities[0].contactId === 'ctA', results);
-    check('I: bei vereinbartem nächsten Schritt entsteht genau ein neues Follow-up (Akzeptanzkriterium 10)', afterSave.followups.filter(f => f.source === 'sales-execution-core').length === 1, results);
-    check('I: die ursprüngliche Zusage wird als erfüllt markiert (kein Duplikat, dieselbe Zusage aktualisiert)', afterSave.commitments.find(c => c.id === 'commit1').status === 'erfuellt', results);
-    check('I: die Empfehlung wird als ausgeführt vermerkt (Empfehlungskontrolle)', afterSave.feedback.some(f => f.recommendationId === overdueRecId && f.decision === 'executed'), results);
+    check('Doppelklick erzeugt genau eine Aktivität, ein Follow-up und eine Zusage', saved.activities.length === 1 && saved.followups.length === 1 && saved.commitments.length === 1);
+    check('Alle neuen Datensätze tragen stabile Kontakt-, Opportunity-, Objekt- und Session-IDs', [saved.activities[0], saved.followups[0], saved.commitments[0]].every(x => x.id && x.contactId === 'ct-call' && x.opportunityId === 'opp-1' && x.propertyId === 'obj-1' && x.sessionId === firstSession.id));
+    check('Pipeline wird nur nach ausdrücklicher Bestätigung idempotent aktualisiert', saved.deals[0].nextStep === 'Unterlagen senden' && saved.deals[0].followUpDate === day(7));
+    await cp.reload({ waitUntil: 'load' });
+    await cp.waitForFunction(() => !!window.KK_SALES_CORE);
+    await cp.evaluate(id => window.KK_SALES_CORE.startCallFor(id), rec.id);
+    saved = await cp.evaluate(id => ({ a: JSON.parse(localStorage.getItem('kk_crm_activities') || '[]').filter(x => x.recommendationId === id).length, f: JSON.parse(localStorage.getItem('kk_followups') || '[]').filter(x => x.recommendationId === id).length, c: JSON.parse(localStorage.getItem('kk_commitments_v1') || '[]').filter(x => x.recommendationId === id).length, sessionRaw: localStorage.getItem('kk_call_session_v1'), feedback: JSON.parse(localStorage.getItem('kk_action_feedback_v1') || '[]').filter(x => x.recommendationId === id), deals: JSON.parse(localStorage.getItem('kk_sales_pipeline') || '[]') }), rec.id);
+    check('Neuladen und erneuter Start einer erledigten Empfehlung erzeugen keine Duplikate', saved.a === 1 && saved.f === 1 && saved.c === 1, JSON.stringify(saved));
+    check('Call-Session ist nach erfolgreichem Abschluss geleert', JSON.parse(saved.sessionRaw || 'null') === null, saved.sessionRaw || '<entfernt>');
+    check('Keine Browserfehler im wiederholten Anrufworkflow', callRun.pageErrors.length === 0, callRun.pageErrors.join('; '));
+    await callRun.context.close();
 
-    // --- J: erneutes Speichern derselben Empfehlung erzeugt KEIN Duplikat (Empfehlung ist danach nicht mehr in der Queue) ---
-    const recsAfter = await p2.evaluate(() => window.KK_SALES_CORE.computeRecommendations());
-    check('J: erledigte Empfehlung verschwindet aus der aktiven Queue (Akzeptanzkriterium 14)', !recsAfter.some(r => r.id === overdueRecId), results);
+    // 4) Interrupted-save recovery: existing activity finalizes feedback without another write.
+    const recoveryRun = await openSeeded(browser, baseEmpty({
+      kk_crm_contacts: [{ id: 'ct-recover', name: 'Recovery', phone: '063333', contactPolicy: { basisType: 'explicit_consent', basis: 'Einwilligung' } }],
+      kk_sales_pipeline: [{ id: 'opp-recover', contactId: 'ct-recover', name: 'Recovery', stage: 'Qualifiziert', nextStep: '' }],
+      kk_crm_activities: [{ id: 'act-fixed', contactId: 'ct-recover', contact: 'Recovery', recommendationId: 'opportunity_no_next_step:opp-recover', sessionId: 'session-fixed', source: 'sales-execution-core', createdAt: new Date().toISOString() }],
+      kk_call_session_v1: { id: 'session-fixed', recommendationId: 'opportunity_no_next_step:opp-recover', contactId: 'ct-recover', activityId: 'act-fixed', status: 'saving' }
+    }));
+    const recovered = await recoveryRun.page.evaluate(() => ({
+      activities: JSON.parse(localStorage.getItem('kk_crm_activities') || '[]').filter(x => x.recommendationId === 'opportunity_no_next_step:opp-recover'),
+      feedback: JSON.parse(localStorage.getItem('kk_action_feedback_v1') || '[]'), session: localStorage.getItem('kk_call_session_v1')
+    }));
+    check('Unterbrochener Speichervorgang wird anhand recommendationId/sessionId ohne Doppelaktivität abgeschlossen', recovered.activities.length === 1 && recovered.feedback.some(x => x.recommendationId === 'opportunity_no_next_step:opp-recover' && x.decision === 'executed') && recovered.session === 'null');
+    await recoveryRun.context.close();
 
-    // --- K: Zurückstellen mit Begründung/neuem Datum ---
-    const beforeSnooze = await p2.evaluate(() => window.KK_SALES_CORE.computeRecommendations());
-    const toSnooze = beforeSnooze[0];
-    if (toSnooze) {
-      await p2.evaluate((id) => { window.KK_SALES_CORE.startCallFor(id); }, toSnooze.id);
-      await p2.waitForSelector('#kkSalesCoreCallDialog[open]', { timeout: 8000 });
-      await p2.evaluate(() => document.getElementById('kksecSnoozeBtn').click());
-      const afterSnoozeFeedback = await p2.evaluate(() => JSON.parse(localStorage.getItem('kk_action_feedback_v1') || '[]'));
-      const snoozeEntry = afterSnoozeFeedback.find(f => f.recommendationId === toSnooze.id);
-      check('K: Zurückstellen speichert ein neues Datum (snoozedUntil), Akzeptanzkriterium 13', !!(snoozeEntry && snoozeEntry.snoozedUntil), results);
-    } else {
-      check('K: Zurückstellen speichert ein neues Datum (snoozedUntil), Akzeptanzkriterium 13', false, results);
-    }
-
-    // --- L: Vertriebsereignis-Log ist append-only und enthält die durchgeführten Ereignisse ---
-    const eventLog = await p2.evaluate(() => window.KK_SALES_CORE.getEventLog());
-    check('L: Vertriebsereignis-Log enthält call_started/call_reached/followup_created', ['call_started', 'call_reached', 'followup_created'].every(t => eventLog.some(e => e.type === t)), results);
-
-    // --- M: Mobile 390px, kein horizontaler Overflow, Touch-Ziele erreichbar ---
-    await p2.setViewportSize({ width: 390, height: 844 });
-    await p2.evaluate(() => { window.KK_APP_SHELL.setActiveTab('heute'); });
-    await p2.waitForTimeout(150);
-    const overflow = await p2.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 3);
-    check('M: kein horizontaler Overflow bei 390px (Heute-Tab mit Command Center)', overflow, results);
-    const startBtnBox = await p2.evaluate(() => {
-      const el = document.getElementById('kksecStartSeriesBtn');
-      const r = el.getBoundingClientRect();
-      return { w: r.width, h: r.height };
+    // 5) Empty/corrupt/large/mobile robustness.
+    const corruptRun = await openSeeded(browser, baseEmpty({
+      kk_crm_contacts: '{bad-json', kk_followups: [null, 'legacy', 42, { id: 'future', name: 'Niemand', dueDate: day(5), status: 'offen' }], kk_sales_pipeline: { broken: true }
+    }), { width: 390, height: 844 });
+    const corruptState = await corruptRun.page.evaluate(() => {
+      window.KK_APP_SHELL.setActiveTab('heute'); window.KK_SALES_CORE.renderCommandCenter();
+      return { recs: window.KK_SALES_CORE.computeRecommendations(), empty: !document.getElementById('kksecEmpty').hidden, overflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 3 };
     });
-    check('M: "Anrufserie starten"-Button ist auf Mobile ein erreichbares Touch-Ziel (>=44px Höhe)', startBtnBox.h >= 44, results);
+    check('Leere und beschädigte Legacy-Daten führen zu ehrlichem, stabilem Leerzustand', Array.isArray(corruptState.recs) && corruptState.recs.length === 0 && corruptState.empty);
+    check('Daily Command Center bleibt auf 390px ohne horizontalen Overflow', corruptState.overflow);
+    check('Beschädigte Legacy-Daten erzeugen keinen Browserfehler', corruptRun.pageErrors.length === 0, corruptRun.pageErrors.join('; '));
+    await corruptRun.context.close();
 
-    // --- N: Kontaktfreigabe-Dialog ist im CRM-Tab erreichbar und additiv (kein zweites Dialogsystem) ---
-    await p2.setViewportSize({ width: 1440, height: 1000 });
-    await p2.evaluate(() => { window.KK_APP_SHELL.setActiveTab('crm'); });
-    await p2.waitForTimeout(150);
-    await p2.evaluate(() => { window.KK_SALES_CORE.openContactPolicy('ctB'); });
-    await p2.waitForSelector('#kkSalesCorePolicyDialog[open]', { timeout: 8000 });
-    const policyDialogTag = await p2.evaluate(() => document.getElementById('kkSalesCorePolicyDialog').tagName);
-    check('N: Kontaktfreigabe nutzt das bestehende <dialog>-Pattern (kein neues Dialogsystem)', policyDialogTag === 'DIALOG', results);
-    await p2.evaluate(() => { document.getElementById('kksecPolicyDoNotContact').checked = true; });
-    await p2.evaluate(() => document.getElementById('kksecPolicySaveBtn').click());
-    const policySaved = await p2.evaluate(() => {
-      const contacts = JSON.parse(localStorage.getItem('kk_crm_contacts') || '[]');
-      const c = contacts.find(x => x.id === 'ctB');
-      return c && c.contactPolicy && c.contactPolicy.doNotContact === true;
+    const largeContacts = Array.from({ length: 450 }, (_, i) => ({ id: `bulk-${i}`, name: `Bulk ${i}`, phone: `064${String(i).padStart(4, '0')}` }));
+    const largeFollowups = largeContacts.map((c, i) => ({ id: `bulk-fu-${i}`, contactId: c.id, name: c.name, channel: 'Telefon', dueDate: day(-1), status: 'offen', goal: 'Rückruf' }));
+    const largeRun = await openSeeded(browser, baseEmpty({ kk_crm_contacts: largeContacts, kk_followups: largeFollowups }));
+    const t0 = Date.now();
+    const largeResult = await largeRun.page.evaluate(() => { const recs = window.KK_SALES_CORE.computeRecommendations(); window.KK_SALES_CORE.renderCommandCenter(); return { count: recs.length, rendered: document.querySelectorAll('#kksecQueue .kksec-card').length }; });
+    check('Mehrere hundert Kontakte werden stabil verarbeitet und UI begrenzt gerendert', largeResult.count === 450 && largeResult.rendered === 8, `${Date.now() - t0}ms`);
+    check('Großer Datenbestand erzeugt keinen Browserfehler', largeRun.pageErrors.length === 0, largeRun.pageErrors.join('; '));
+    await largeRun.context.close();
+
+    // 6) Migration backup/idempotence, backup/restore and bounded event archive.
+    const migrationRun = await openSeeded(browser, baseEmpty({
+      kk_crm_contacts: [{ name: 'Ohne ID', phone: '065555' }],
+      kk_commitments_v1: [{ contact: 'Ohne ID', text: 'Legacy Zusage', due: day(-1), status: 'offen' }]
+    }));
+    const mig = await migrationRun.page.evaluate(() => {
+      const firstContacts = JSON.parse(localStorage.getItem('kk_crm_contacts') || '[]');
+      const firstCommitments = JSON.parse(localStorage.getItem('kk_commitments_v1') || '[]');
+      const before = { contact: firstContacts[0].id || firstContacts[0]._id, commitment: firstCommitments[0].id || firstCommitments[0]._id };
+      const first = window.KK_SALES_CORE.ensureStableIds();
+      const second = window.KK_SALES_CORE.ensureStableIds();
+      const afterContacts = JSON.parse(localStorage.getItem('kk_crm_contacts') || '[]');
+      const afterCommitments = JSON.parse(localStorage.getItem('kk_commitments_v1') || '[]');
+      return {
+        before, after: { contact: afterContacts[0].id || afterContacts[0]._id, commitment: afterCommitments[0].id || afterCommitments[0]._id }, first, second,
+        salesSnapshot: JSON.parse(localStorage.getItem('kk_pre_import_sales_core_v2') || 'null'),
+        globalSnapshot: JSON.parse(localStorage.getItem('kk_pre_import_storage_migrations_v28') || 'null')
+      };
     });
-    check('N: Kontaktfreigabe wird additiv auf kk_crm_contacts gespeichert (kein neuer Kontakt-Store)', policySaved, results);
-    const recsAfterPolicy = await p2.evaluate(() => window.KK_SALES_CORE.computeRecommendations());
-    check('N: nach dem Setzen von doNotContact verschwindet der Kontakt sofort aus den Empfehlungen', !recsAfterPolicy.some(r => r.entityReferences && r.entityReferences.contactId === 'ctB'), results);
+    check('Bestehende Daten werden vor neuen Migrationen automatisch gesichert', !!mig.salesSnapshot && !!mig.globalSnapshot && mig.salesSnapshot.data.kk_commitments_v1[0].id == null);
+    check('Stable-ID-Migration ist idempotent und verändert IDs beim Wiederholen nicht', mig.before.contact === mig.after.contact && mig.before.commitment === mig.after.commitment && mig.second.changed === false);
 
-    check('no page errors (run 1)', pageErrors.length === 0, results);
-    check('no page errors (run 2)', pageErrors2.length === 0, results);
-    await browser2.close();
+    const backupResult = await migrationRun.page.evaluate(() => {
+      localStorage.setItem('kk_action_feedback_v1', JSON.stringify([{ id: 'fb1' }]));
+      localStorage.setItem('kk_call_session_v1', JSON.stringify({ id: 's1' }));
+      localStorage.setItem('kk_entity_link_queue_v1', JSON.stringify([{ id: 'l1' }]));
+      localStorage.setItem('kk_sales_events_v1', JSON.stringify([{ id: 'e1', type: 'x', at: new Date().toISOString() }]));
+      localStorage.setItem('kk_sales_event_archive_v1', JSON.stringify([{ id: 'a1', month: '2026-07' }]));
+      const payload = window.KK_STORE.makeBackup({ module: 'all', includeLegacy: true });
+      const keys = ['kk_action_feedback_v1', 'kk_call_session_v1', 'kk_entity_link_queue_v1', 'kk_sales_events_v1', 'kk_sales_event_archive_v1'];
+      keys.forEach(k => localStorage.removeItem(k));
+      const restored = window.KK_STORE.importPayload(payload, { mode: 'merge' });
+      return { keys, exported: payload.manifest.exportedKeys, restored, values: keys.map(k => localStorage.getItem(k)) };
+    });
+    check('Komplettbackup enthält alle neuen Sales-Core-Datenbereiche', backupResult.keys.every(k => backupResult.exported.includes(k)));
+    check('Restore stellt alle neuen Sales-Core-Datenbereiche vollständig wieder her', backupResult.restored.ok && backupResult.values.every(Boolean));
 
-    const failed = results.filter((r) => !r.pass);
-    console.log('\n=== SUMMARY: ' + (results.length - failed.length) + '/' + results.length + ' checks passed ===');
-    if (failed.length) console.log('FAILED:', failed.map((f) => f.name));
-    console.log('RESULT:', failed.length === 0 ? 'PASS' : 'FAIL');
-    process.exit(failed.length ? 1 : 0);
-  } catch (err) {
-    console.error('FATAL - test crashed:', err && err.stack || err);
-    console.log('::error::FATAL: ' + String(err && err.message || err));
-    process.exit(1);
+    const archiveResult = await migrationRun.page.evaluate(() => {
+      const events = Array.from({ length: 2105 }, (_, i) => ({ id: `evt-${i}`, eventKey: `k-${i}`, type: i % 2 ? 'call_started' : 'call_reached', at: `2026-${String(1 + (i % 7)).padStart(2, '0')}-01T00:00:00.000Z` }));
+      localStorage.setItem('kk_sales_events_v1', JSON.stringify(events));
+      return window.KK_SALES_CORE.archiveEventLogNow();
+    });
+    check('Aktiver append-only Ereignis-Log ist sicher begrenzt', archiveResult.active.length === 1500);
+    check('Ältere Ereignisse werden als begrenzte Monatsaggregate archiviert', archiveResult.archive.length > 0 && archiveResult.archive.length <= 24 && archiveResult.archive.reduce((n, x) => n + x.eventCount, 0) === 605);
+    check('Neue Storage-Keys sind im aktiven Registry-Snapshot dokumentiert', await migrationRun.page.evaluate(() => ['kk_action_feedback_v1','kk_call_session_v1','kk_entity_link_queue_v1','kk_sales_events_v1','kk_sales_event_archive_v1'].every(k => window.KK_STORE.registry.activeKeys.includes(k))));
+    await migrationRun.context.close();
+
+    const failed = results.filter(r => !r.pass);
+    console.log(`\n=== SALES EXECUTION CORE FINAL REVIEW: ${results.length - failed.length}/${results.length} checks passed ===`);
+    if (failed.length) console.log('FAILED:', failed.map(x => x.name));
+    console.log(`RESULT: ${failed.length ? 'FAIL' : 'PASS'}`);
+    process.exitCode = failed.length ? 1 : 0;
+  } catch (error) {
+    console.error('FATAL - test crashed:', error && error.stack || error);
+    console.log(`::error::FATAL: ${String(error && error.message || error)}`);
+    process.exitCode = 1;
+  } finally {
+    await browser.close();
   }
 })();

@@ -1,51 +1,115 @@
-# ADR-0008: Sales Execution Core V1 — Architektur
+# ADR-0008: Sales Execution Core V1 — additive Orchestrierungs- und Sicherheitsarchitektur
 
 ## Status
-Accepted
+Accepted — durch Abschlussreview vom 13.07.2026 präzisiert.
 
 ## Kontext
-Auftrag "Keim CRM Pro — Sales Operating System" (PDF, Stand 13.07.2026) verlangt eine erklärbare Next-Best-Action-Engine, einen geführten Telefonzyklus (Vorbereitung/Gespräch/Nachbereitung), einen Kontaktversprechen-Wächter im Live-Workflow und eine kanonische Verknüpfung von Kontakt/Objekt/Chance/Interaktion — ohne Framework-Wechsel, ohne Merge, ohne neuen Haupt-Tab, ohne zweites CRM-/Pipeline-/Follow-up-System.
+Der Sales Execution Core soll aus bestehenden CRM-, Follow-up-, Zusagen-, Kalender-, Objekt- und Pipeline-Daten nachvollziehbare nächste Handlungen ableiten und einen geführten Anrufworkflow bereitstellen. Die bestehende Single-File-App darf dabei weder ein zweites CRM noch parallele Pipeline-, Follow-up- oder Navigationslogik erhalten.
 
-Die Bestandsaufnahme (`docs/releases/phase27-sales-execution-core-v1-bestandsaufnahme-plan.md`) zeigt: **keine Entität im Repository ist aktuell ID-verknüpft** — Kontakte, Aktivitäten, Pipeline-Deals, Zusagen und zentrale Objekte referenzieren sich ausschließlich per Namens-String. Das ist die zentrale technische Ausgangslage für diese Entscheidung.
-
-## Entscheidungstreiber
-- Single-File-Architektur (`index.html`, jetzt >18.600 Zeilen) darf nicht unkontrolliert modularisiert werden (CLAUDE.md-Invariante).
-- Bestehende `kk_*`-Keys sind geschützt — kein Rename, keine semantische Umdeutung ohne Adapter.
-- PDF verlangt explizit: falls ES-Module wegen der Initialisierungsreihenfolge nicht sicher integrierbar sind, gekapselte Namespaces über `KK_BOOT` nutzen und die Entscheidung als ADR dokumentieren.
-- Rückwärtskompatibilität: bestehende Anruf-/CRM-/Pipeline-Workflows dürfen durch die neue Schicht nicht blockiert werden.
-- Rechtliche Grenzen (Telefonwerbung, DSGVO) sind Einzelfallentscheidungen und dürfen nicht durch eine stille technische Default-Entscheidung vorweggenommen werden.
-
-## Betrachtete Optionen
-
-**A. ES-Module mit `<script type="module">`, eigene Dateien unter `src/`**
-Entspricht der in der PDF vorgeschlagenen Referenzstruktur wörtlich. Risiko: `index.html` lädt aktuell ausschließlich klassische, synchron/`DOMContentLoaded`-getriebene Inline-Scripts mit `KK_BOOT`-Reihenfolgesteuerung; ES-Module laden asynchron/deferred und würden eine zweite, parallele Initialisierungsreihenfolge neben `KK_BOOT` einführen — genau das Risiko, vor dem die PDF selbst warnt ("falls ES-Module... nicht sicher integrierbar sind").
-
-**B. Vollständige ID-Migration aller Bestandsdaten (Kontakte/Aktivitäten/Pipeline) in einem Schritt**
-Würde Hebel 4 der PDF ("kanonische Kontakt-Objekt-Chance-Struktur") vollständig lösen. Risiko: genau die "unkontrollierte Großmigration", die sowohl CLAUDE.md als auch die PDF selbst ausdrücklich verbieten ("keine unkontrollierte Großmigration", "keine Löschung bestehender Daten"). Zu hohes Risiko für Phase 1.
-
-**C. Namespace-Modul `window.KK_SALES_CORE` über `KK_BOOT`, additive ID-Verknüpfung nur für neue Datensätze + Ambiguitäts-Queue für Bestandsdaten, deterministische Regel-Engine ohne Score**
-Folgt demselben, bereits im Repository etablierten und bewährten Muster wie `KK_OBJECTS` (PR #10): ein Namespace-Objekt, `Object.freeze`, `KK_BOOT.register(name, init, {priority})`, additive Storage-Erweiterung statt Umbenennung.
+Die Bestandsdaten enthalten historisch gemischte Verknüpfungen: teils stabile IDs, teils Namen/Freitext. Ein automatisches Namens-Raten würde zu stillen Fehlverknüpfungen führen. Außerdem ist die dokumentierte Kontaktgrundlage nicht bei allen Bestandskontakten vorhanden.
 
 ## Entscheidung
-**Option C.** Ein neues Namespace-Modul `window.KK_SALES_CORE`, eingebettet als weiterer `<script>`-Block in `index.html`, registriert über `KK_BOOT.register('sales-execution-core', init, {priority:50})`. Keine ES-Module, keine Build-Pipeline-Änderung. Intern klar in Funktionsgruppen gegliedert (`EntityLinks`, `ContactPolicy`, `ActionEngine`, `CallWorkflow`, `EventLog`) — entspricht fachlich der von der PDF vorgeschlagenen `src/`-Ordnerstruktur, aber als benannte interne Objekte statt echter Dateien, um die Single-File-Auslieferung nicht zu brechen.
 
-**ID-Verknüpfung**: Neue Datensätze aus dem Sales Execution Core (CallSession-Ergebnisse, neue Aktivitäten) erhalten `contactId`, wo eindeutig auflösbar. Für Bestandsdaten wird **nicht geraten** — mehrdeutige oder nicht auflösbare Namens-Treffer landen in `kk_entity_link_queue_v1` und werden von automatischen Empfehlungen ausgeschlossen statt falsch verknüpft. Es findet **keine** rückwirkende Massenmigration bestehender `kk_crm_activities`/`kk_sales_pipeline`-Datensätze statt.
+### 1. Additives Namespace-Modul
+`window.KK_SALES_CORE` bleibt ein über `KK_BOOT.register('sales-execution-core', init, {priority:50})` gestartetes, eingefrorenes Namespace-Modul innerhalb von `index.html`.
 
-**Kontaktpolitik-Default**: `contactPolicy` ist additiv und optional. Für Bestandskontakte **ohne** gesetzte `contactPolicy` gilt in V1: automatische Empfehlungen bleiben möglich (Status quo, kein rückwirkendes Blockieren des bestehenden manuellen Anruf-Workflows), aber jede Empfehlungskarte zeigt sichtbar "Kontaktfreigabe nicht dokumentiert" als eigenen `reasonCode`. Ist `doNotContact=true` oder `noContactUntil` in der Zukunft oder `phoneAllowed=false` **explizit** gesetzt, wird der Kontakt **hart ausgeschlossen**. Diese Default-Entscheidung für unbekannte Kontaktlage ist bewusst konservativ-praktisch statt rechtlich abschließend geklärt — sie wird in §Rechtliche Grenze als offene Entscheidung an Kevin zurückgegeben, da es sich um eine "rechtliche Einzelfallentscheidung" handelt, die laut Auftrag ausdrücklich nicht autonom getroffen werden soll.
+Es liest und schreibt ausschließlich bestehende kanonische Fachdaten:
 
-**Kein Score**: Die Action Engine ist eine feste, deterministische Prioritätsreihenfolge (7 Regelstufen laut PDF §Arbeitspaket 3). Jede Empfehlung trägt `ruleId`, `reasonCodes`, `sourceFacts`, `whyNow` — kein numerischer Gesamtscore, keine Wahrscheinlichkeit.
+- Kontakte: `kk_crm_contacts`
+- Aktivitäten: `kk_crm_activities`
+- Follow-ups: `kk_followups`
+- Zusagen: `kk_commitments_v1`
+- Verkaufschancen: `kk_sales_pipeline`
+- Objekte: `kk_crm_objects`
+- Termine: `kk12_calendar_events`
 
-**Keine Persistenz von `ActionRecommendation`**: Empfehlungen werden bei jedem Aufruf deterministisch aus den kanonischen Quellen neu berechnet (`id = ruleId + ':' + contactId`), nicht gespeichert. Das erfüllt Akzeptanzkriterium 6/11 der PDF (reproduzierbare Reihenfolge, keine Duplikate) ohne zusätzlichen Synchronisationszustand. Nur `ActionFeedback` (Nutzerentscheidung: ausgeführt/zurückgestellt/abgelehnt) wird persistiert (`kk_action_feedback_v1`), referenziert per `recommendationId`.
+Die neuen Keys speichern nur Orchestrierungszustand, Entscheidungen, Verknüpfungsprobleme und Ereignisse. Sie ersetzen keine kanonische Quelle.
 
-## Begründung
-Diese Lösung hält sich strikt an alle bindenden Sicherheitsvorgaben des Auftrags (kein neues Parallelsystem, keine Großmigration, additive Storage-Erweiterung, keine Löschung) und folgt einem im Repository bereits bewährten, getesteten Architekturmuster (`KK_OBJECTS`). Sie löst die eigentliche PDF-Diagnose ("fehlende Orchestrierung, nicht fehlende Funktionsmenge") durch eine dünne, deterministische Koordinationsschicht über bestehenden kanonischen Daten, statt eine weitere isolierte Funktion zu bauen.
+### 2. Stable-ID- und Verknüpfungspolitik
+Vor Nutzung werden fehlende IDs additiv ergänzt. Bestehende `id`/`_id`-Werte bleiben unverändert. Vor dem ersten migrationsbedingten Schreibvorgang wird automatisch eine technische Sicherung angelegt.
+
+Neue Aktivitäts-, Follow-up- und Zusage-Datensätze enthalten:
+
+- eigene stabile `id`,
+- `contactId`,
+- `opportunityId`, soweit vorhanden,
+- `propertyId`, nur wenn das Objekt per stabiler ID oder eindeutigem Objektmerkmal auflösbar ist,
+- `sessionId` und `recommendationId` für Idempotenz und Nachvollziehbarkeit.
+
+Uneindeutige oder verwaiste Kontakt-/Objektbezüge werden in `kk_entity_link_queue_v1` dokumentiert. Es gibt keine automatische Rateverknüpfung. Solche Quellen werden aus der automatischen Empfehlung ausgeschlossen oder ohne Objektverknüpfung mit sichtbarem Warnhinweis behandelt.
+
+### 3. Sichere Kontaktpolitik
+Die technische Produktentscheidung lautet:
+
+- Sperrvermerk, Widerspruch, Opt-out, `phoneAllowed=false`, aktiver Sperrzeitraum oder dokumentierter Widerruf sind harte Ausschlüsse.
+- Dokumentierte ausdrückliche Einwilligung, Rückrufwunsch/konkrete Anfrage oder nachvollziehbare bestehende Beziehung erlauben die Berücksichtigung.
+- Die jeweilige Kontaktgrundlage wird in jeder Empfehlung sichtbar ausgewiesen.
+- Eine unbekannte Kontaktgrundlage reicht nicht für die automatische Tagespriorisierung.
+- Ein manueller Kontaktversuch bei unbekannter Grundlage erfordert einen eigenen Warn-Dialog, Auswahl einer Grundlage/Begründung, Freitextdokumentation und bewusste Checkbox-Bestätigung.
+- Harte Ausschlüsse können auch manuell nicht umgangen werden.
+
+Diese Regeln sind technische Sicherheitslogik, keine individuelle Rechtsberatung.
+
+### 4. Deterministische Action Engine
+Empfehlungen werden nicht persistiert, sondern reproduzierbar aus den kanonischen Quellen berechnet. Sie enthalten mindestens:
+
+- Handlung,
+- Begründung,
+- Prioritätsstufe,
+- Datenbasis und Quell-ID,
+- Ziel,
+- stabile Kontaktreferenz,
+- Fälligkeit,
+- Kontaktgrundlage,
+- Warn- und Ausschlusshinweise.
+
+Es gibt keinen Personen-Score und keine erfundete Wahrscheinlichkeit. Ausgeschlossene Quellen werden über ein Decision-Audit nachvollziehbar gemacht.
+
+### 5. Idempotenter Anrufworkflow
+Beim Start wird eine `CallSession` mit vorab vergebenen IDs für potenzielle Aktivität, Follow-up und Zusage gespeichert. Alle Writes erfolgen als Upsert nach diesen IDs. Zusätzlich verhindern `recommendationId`, `sessionId`, ein Save-Lock und idempotente Ereignisschlüssel Doppelverarbeitung bei:
+
+- Doppelklick,
+- wiederholtem Öffnen,
+- Abbrechen/Zurückgehen,
+- Reload,
+- Unterbrechung zwischen einzelnen LocalStorage-Schritten.
+
+Existiert nach einem Reload bereits die Aktivität, aber noch kein Feedback, wird der Abschluss rekonstruiert, ohne eine zweite Aktivität zu erzeugen. Pipeline-Änderungen bleiben an eine ausdrückliche Checkbox gebunden.
+
+### 6. Begrenztes Ereignis-Log
+`kk_sales_events_v1` bleibt innerhalb des aktiven Fensters append-only und nutzt `eventKey` zur Duplikatvermeidung. Ab mehr als 2.000 Ereignissen werden die ältesten Einträge automatisch bis auf 1.500 aktive Einträge verdichtet. Die Verdichtung wird in `kk_sales_event_archive_v1` als monatliches Aggregat je Ereignistyp gespeichert; maximal 24 Monatsaggregate werden gehalten.
+
+Damit wächst LocalStorage nicht unbegrenzt. Die bewusste Einschränkung ist, dass archivierte Einzelereignisse nach der Verdichtung nur noch aggregiert vorliegen.
+
+### 7. Backup, Restore und Migration
+Alle fünf Sales-Core-Keys sind als aktive, backup-pflichtige Keys registriert:
+
+- `kk_action_feedback_v1`
+- `kk_call_session_v1`
+- `kk_entity_link_queue_v1`
+- `kk_sales_events_v1`
+- `kk_sales_event_archive_v1`
+
+Komplettbackup und Restore erfassen sie über die zentrale `KK_STORE`-Schicht. Vor Storage-/ID-Migrationen werden technische Snapshots unter ausgeschlossenen `kk_pre_import_*`-Keys angelegt. Migrationen verändern vorhandene IDs nicht und bleiben bei Wiederholung ohne weitere Änderungen.
 
 ## Konsequenzen
-**Positiv**: Kein Regressionsrisiko für bestehende Initialisierungsreihenfolge; Ambiguitäts-Queue verhindert stille Fehlverknüpfung; Kontaktpolitik ist optional nachrüstbar, ohne bestehende Workflows zu blockieren; Empfehlungen sind jederzeit reproduzierbar und ohne zusätzlichen Speicher-Overhead.
-**Negativ**: Die "kanonische Kontakt-Objekt-Chance-Struktur" (Hebel 4) ist mit V1 noch nicht vollständig gelöst — Bestandsdaten bleiben überwiegend namensverknüpft, bis eine spätere, bewusst geplante Migration erfolgt. Die konservative Kontaktpolitik-Default-Entscheidung ist eine Produktentscheidung, keine Rechtsberatung, und muss von Kevin fachlich/rechtlich bestätigt oder korrigiert werden.
 
-## Verifikation
-`tests/e2e/test-sales-execution-core.js`: Determinismus, Kontaktpolitik-Ausschluss (explizit gesperrt vs. unbekannt), Ambiguitäts-Queue-Idempotenz, vollständiger Telefonworkflow, Mobile 390px, keine Duplikate bei wiederholtem Lauf. Volle bestehende Regressionssuite bleibt grün.
+### Positiv
+- Keine zweite Fachlogik oder Navigation.
+- Keine stillen Kontakt-/Objektfehlverknüpfungen.
+- Konservativer automatischer Kontaktfilter.
+- Nachvollziehbare Empfehlungen und Ausschlüsse.
+- Wiederhol- und Reload-sicherer Schreibworkflow.
+- Begrenztes LocalStorage-Wachstum.
 
-## Rollback / Superseding
-Das gesamte Modul ist additiv und in einem einzigen `<script>`-Block gekapselt — Entfernen des Blocks plus der drei neuen `kk_*`-Keys stellt den Vorzustand vollständig wieder her, ohne bestehende Kontakt-/Aktivitäts-/Pipeline-/Zusagen-Daten zu berühren. Eine spätere echte ID-Migration (Hebel 4 vollständig) würde diese ADR superseden und eigenständig dokumentiert.
+### Einschränkungen
+- Historische, mehrdeutige Legacy-Verknüpfungen benötigen weiterhin manuelle Klärung.
+- Das Ereignisarchiv bewahrt ältere Daten aggregiert, nicht als vollständige Einzelhistorie.
+- Die Kontaktpolitik ersetzt keine rechtliche Einzelfallprüfung.
+- Die App bleibt eine lokale Single-User-/LocalStorage-Anwendung ohne serverseitige Transaktion oder Mehrbenutzersperren.
+
+## Rollback
+1. PR-Commit(s) revertieren oder auf den Commit vor PR #11 zurücksetzen.
+2. Die fünf neuen Sales-Core-Keys optional löschen; bestehende CRM-/Pipeline-/Follow-up-/Objektdaten bleiben dabei erhalten.
+3. Bei Migrationsproblemen die technischen Snapshots `kk_pre_import_sales_core_v2` beziehungsweise `kk_pre_import_storage_migrations_v28` verwenden.
+4. Kein Rollback darf durch Import im Modus „Ersetzen“ ohne vorheriges externes Komplettbackup erfolgen.

@@ -1,72 +1,146 @@
-# Phase 27 — Sales Execution Core V1: Abschlussbericht
+# PR #11 — Finaler Abschlussbericht: Sales Execution Core V1
 
-Auftrag: PDF "Keim CRM Pro — Sales Operating System und Implementierungsauftrag" (Teil II, technischer Implementierungsauftrag). Branch: `feat/sales-execution-core-v1` (Basis: `main` nach Merge von PR #10). Vorab-Dokumente: `docs/releases/phase27-sales-execution-core-v1-bestandsaufnahme-plan.md`, `docs/adr/ADR-0008-sales-execution-core-v1.md`.
+**Branch:** `feat/sales-execution-core-v1`
+**Status:** Draft / **NICHT MERGEN**
+**Merge/Deployment:** nicht durchgeführt
+**Review-Datum:** 13.07.2026
 
-## 1. Was gebaut wurde
+## 1. Gesamturteil
 
-- **`window.KK_SALES_CORE`**: neues Namespace-Modul (`KK_BOOT.register('sales-execution-core', init, {priority:50})`), additiv, kein zweites CRM-/Pipeline-/Follow-up-System.
-- **EntityLinks**: Namensauflösung `kk_crm_contacts` → `contactId` mit Ambiguitäts-Queue (`kk_entity_link_queue_v1`) statt Rateverknüpfung.
-- **ContactPolicy**: additive `contactPolicy{}` auf `kk_crm_contacts`-Datensätzen, Editor-Dialog `#kkSalesCorePolicyDialog`, erreichbar über neuen "Kontaktfreigabe"-Button auf jeder Kontaktkarte im CRM-Tab.
-- **ActionEngine**: deterministische 7-Stufen-Priorisierung über echte Bestandsdaten (`kk_commitments_v1`, `kk_followups`, `kk12_calendar_events`, `kk_sales_pipeline`, `kk_crm_contacts`) — keine Scores, jede Empfehlung mit `whyNow`/`reasonCodes`/`sourceFacts`.
-- **Daily Command Center**: neuer Abschnitt `#kkSalesCoreCC` direkt im bestehenden `heute`-Panel (kein neuer Tab), "Heute zählt"-Kacheln + priorisierte Aktionskarten + "Anrufserie starten".
-- **Geführter Anrufworkflow**: `#kkSalesCoreCallDialog` mit drei Phasen (Vorbereitung → Gespräch → Nachbereitung), schreibt beim Speichern genau eine neue Aktivität in `kk_crm_activities`, höchstens ein Follow-up (`kk_followups`) und/oder eine neue Zusage (`kk_commitments_v1`), aktualisiert Pipeline nur bei ausdrücklicher Bestätigung.
-- **Empfehlungskontrolle**: Ausführen/Zurückstellen/Unpassend, gespeichert getrennt von CRM-Fachdaten in `kk_action_feedback_v1`.
-- **Vertriebsereignis-Log**: append-only `kk_sales_events_v1`.
+Der Sales Execution Core bleibt eine additive Orchestrierungsschicht über den bestehenden kanonischen CRM-, Follow-up-, Zusagen-, Objekt-, Kalender- und Pipeline-Daten. Im Abschlussreview wurden mehrere Freigabeblocker gefunden und korrigiert: unbekannte Kontaktgrundlagen waren zuvor automatisch priorisierbar, der mehrstufige Anrufabschluss war nicht vollständig reload-sicher, neue Storage-Keys waren nicht vollständig als aktive Backup-Bereiche registriert und der Ereignis-Log konnte unbegrenzt wachsen.
 
-## 2. Datenquellen und kanonische Verantwortlichkeiten
+Die endgültige Merge-Empfehlung wird ausschließlich anhand des vollständigen CI-Laufs am finalen PR-Head abgegeben. Unabhängig davon bleibt der PR bis zur ausdrücklichen Freigabe als Draft und mit „NICHT MERGEN“ gekennzeichnet.
 
-Siehe Bestandsaufnahme-Dokument §4 (Datenquellen-/LocalStorage-Matrix). Kurzfassung: Sales Execution Core liest ausschließlich aus bereits kanonischen Quellen (`kk_crm_contacts`, `kk_followups`, `kk_commitments_v1`, `kk_sales_pipeline`, `kk12_calendar_events`) und schreibt neue Datensätze über dieselben, bereits etablierten Schreibpfade (`KK_UTIL.readJSON`/`writeJSON` auf denselben Keys — verifiziert kollisionsfrei mit dem direkten `KK_STORE.getRaw`/`setRaw`-Zugriff anderer Module, da beide letztlich auf `localStorage` ohne Zwischen-Cache operieren).
+## 2. Geprüfte Risiken und Ergebnis
 
-## 3. Regeln und Ausschlüsse
+| Prüfbereich | Ergebnis nach Korrektur |
+|---|---|
+| Additive Architektur | `window.KK_SALES_CORE` nutzt bestehende Fach-Keys und `KK_BOOT`; kein neuer Haupt-Tab, kein zweites CRM, keine zweite Pipeline oder Follow-up-Datenquelle |
+| Stabile Entitätsbezüge | Fehlende IDs werden additiv ergänzt; neue Aktivitäten, Follow-ups und Zusagen tragen stabile Kontakt-/Opportunity-/Objekt-/Session-/Empfehlungsreferenzen, soweit fachlich vorhanden |
+| Ambiguitätsbehandlung | Mehrdeutige oder verwaiste Kontakt-/Objektbezüge werden in `kk_entity_link_queue_v1` dokumentiert; keine stille Rateverknüpfung |
+| Anrufworkflow | Vorab vergebene IDs, Upsert, Save-Lock, Session-Recovery und idempotente Ereignisschlüssel verhindern Doppelwrites bei Doppelklick, Reload und Wiederöffnung |
+| Action Engine | Erledigte Vorgänge, zukünftige Follow-ups, abgeschlossene Zusagen, harte Kontaktsperren, unbekannte Kontaktgrundlagen und nicht eindeutig verknüpfte Quellen werden ausgeschlossen |
+| Nachvollziehbarkeit | Jede Empfehlung enthält Handlung, Begründung, Priorität, Datenbasis/Quell-ID, Ziel, Kontaktbezug, Fälligkeit, Kontaktgrundlage sowie Warn-/Ausschlusshinweise |
+| Daily Command Center | Ehrlicher Leerzustand; begrenztes Rendering der ersten acht Karten; robuste Verarbeitung beschädigter Array-Einträge; mobile Dialoge und Karten |
+| Storage/Backup | Fünf Sales-Core-Keys als aktive Backup-Bereiche registriert; zentrale Komplettbackup-/Restore-Schicht bleibt kanonisch |
+| Migration | Automatische technische Sicherung vor neuen ID-/Storage-Migrationen; bestehende IDs werden nicht ersetzt; Wiederholung bleibt ohne zusätzliche Änderung |
+| Ereigniswachstum | Aktives Log auf 2.000 begrenzt, Verdichtung auf 1.500 aktive Ereignisse; Monatsaggregate in separatem, auf 24 Monate begrenztem Archiv |
 
-Prioritätsreihenfolge V1 (`ActionEngine.compute()`): 1. überfällige Zusage, 2. vereinbarter Rückruf, 3. Termin <24h ohne Vorbereitung, 4. aktive Chance ohne nächsten Schritt, 5. drohende Abkühlung, 6. überfälliger nächster Schritt in der Pipeline, 7. Beziehungspflege. Harter Ausschluss: `contactPolicy.doNotContact=true`, `noContactUntil` in der Zukunft, `phoneAllowed=false` — diese Kontakte erscheinen in **keiner** Empfehlung (verifiziert in Test D).
+## 3. Vorgenommene Korrekturen
 
-## 4. Migration
+### Kontaktpolitik
 
-Es findet **keine** rückwirkende Massenmigration bestehender Aktivitäten/Pipeline-Datensätze auf ID-Referenzen statt (bewusste Entscheidung, siehe ADR-0008). Die Ambiguitäts-Queue (`EntityLinks.scan()`) läuft idempotent bei jedem Boot und dedupliziert über `sourceKey+sourceRecordId+freeTextName` — mehrfacher Lauf erzeugt keine Duplikate.
+- Harte Ausschlüsse für Sperrvermerk/Widerspruch, Opt-out, `phoneAllowed=false`, aktiven Sperrzeitraum und dokumentierten Widerruf.
+- Zulässige Grundlagen: ausdrückliche Einwilligung, dokumentierter Rückrufwunsch/konkrete Anfrage, nachvollziehbare bestehende Beziehung.
+- Kontakte ohne dokumentierte oder aus einem realen Vorgang ableitbare Grundlage werden nicht automatisch priorisiert.
+- Die Kontaktgrundlage wird auf Empfehlungskarte und in der Anrufvorbereitung sichtbar.
+- Manueller Kontaktversuch bei unbekannter Grundlage nur über Warn-Dialog mit Auswahl, konkreter Begründung und Checkbox.
+- Harte Ausschlüsse können manuell nicht umgangen werden.
+- Widersprüchliche Angaben werden hart ausgeschlossen und als Warnung ausgewiesen.
+- Klarstellung in der UI: technische Sicherheitslogik, keine individuelle Rechtsberatung.
 
-## 5. Rollback
+### Datenmodell und Verknüpfungen
 
-Der gesamte Sales Execution Core ist in einem einzigen `<script id="kk-sales-execution-core-js">`-Block plus den zugehörigen HTML-Blöcken (`#kkSalesCoreCC`, `#kkSalesCoreCallDialog`, `#kkSalesCorePolicyDialog`, "Kontaktfreigabe"-Button) gekapselt. Entfernen dieser Blöcke plus der vier neuen `kk_*`-Keys stellt den Vorzustand vollständig wieder her, ohne bestehende Kontakt-/Aktivitäts-/Pipeline-/Zusagen-Daten zu berühren.
+- Stable-ID-Migration für Kontakte, Follow-ups, Aktivitäten, Objekte, Zusagen, Verkaufschancen, Kalenderereignisse, Feedback und Link-Queue.
+- `kk_entity_link_queue_v1` unterstützt Kontakt- und Objektprobleme mit `entityType`, `candidateEntityIds`, `resolvedContactId` beziehungsweise `resolvedPropertyId`.
+- Eindeutige Links erzeugen keinen unnötigen Queue-Eintrag; bestehende Queue-Einträge werden nur bei fachlicher Änderung aktualisiert. Empfehlungsermittlung bleibt damit schreibfrei, soweit kein neuer Datenqualitätsfall entsteht.
+- Neue Aktivität, Follow-up und Zusage erhalten dieselben stabilen `contactId`, `opportunityId`, `propertyId`, `sessionId` und `recommendationId`.
 
-## 6. Bekannte Grenzen (bewusst nicht gelöst in V1)
+### Idempotenz und Recovery
 
-- **Regeln 3, 5, 7 sind Näherungen**, nicht exakt aus der PDF übernommene Signale (kein strukturiertes "dokumentiertes Verkaufsinteresse mit Zeithorizont"-Feld existiert im Bestand) — sie nutzen die nächstbeste vorhandene Datenlage (Status/Kategorie/Zeitabstand) und sind im Code mit Kommentar zur Herkunft versehen.
-- **Kontaktpolitik-Default für Bestandskontakte ohne dokumentierte Freigabe**: bewusst NICHT hart blockierend (sonst würde der bestehende, seit Jahren genutzte manuelle Anruf-Workflow für alle Bestandskontakte sofort funktionsunfähig). Stattdessen sichtbarer Hinweis "Kontaktfreigabe nicht dokumentiert" pro Empfehlung/vor dem Anruf. **Dies ist eine Produktentscheidung, keine Rechtsberatung** — Kevin sollte diese Default-Entscheidung fachlich/rechtlich bestätigen oder korrigieren (siehe Phase 5 des Auftrags: rechtliche Einzelfallentscheidungen wurden bewusst nicht autonom getroffen).
-- **"Unpassend"-Ablehnung** speichert aktuell eine feste Standardbegründung statt einer frei eingegebenen Nutzerbegründung (um `prompt()`/`confirm()` im Kernworkflow zu vermeiden, wie ausdrücklich verlangt) — eine kleine Freitext-UI dafür ist ein sinnvoller Folgeschritt, aber kein Blocker für V1.
-- **Einwand-Genom, Eigentümer-Intent-Radar, Verkäufertermin-War-Room, Lost-Deal-Blackbox, Regional-Dominance-Engine**: bewusst nicht Teil von Phase 1, siehe PDF-Roadmap Phase 2–5.
-- **Performance bei 1.000+ Kontakten**: nicht mit synthetischen Großdatensätzen lastgetestet (kein Blocker, da Engine bereits mit einmaligem Index-Aufbau statt verschachtelter Suchen arbeitet; echter Lasttest wäre ein sinnvoller Folgeschritt).
+- Eine CallSession vergibt alle später benötigten IDs vor dem ersten Fachwrite.
+- Aktivitäten, Follow-ups, Zusagen, Feedback und Pipeline werden per ID aktualisiert statt blind angehängt.
+- Doppelklickschutz über synchrones Save-Lock und deaktivierten Button.
+- Bereits erledigte Empfehlungen lassen sich nicht erneut starten.
+- Nach Reload rekonstruiert eine vorhandene Aktivität den fehlenden Feedback-Abschluss, ohne einen zweiten Datensatz zu erzeugen.
+- Pipeline-Änderung nur nach ausdrücklicher Bestätigung.
+- Das Ergebnis „erreicht/nicht erreicht“ ist vor dem Speichern verpflichtend.
 
-## 7. Tests
+### Storage, Backup und Archivierung
 
-- **Neu**: `tests/e2e/test-sales-execution-core.js` — 32/32 Checks grün. Deckt ab: Determinismus, Regel-Priorisierung, Kontaktpolitik-Ausschluss, ID-Referenzierung, ehrlicher Leerzustand, Command-Center-Integration ohne neuen Tab, vollständiger Telefonworkflow (genau eine Aktivität + höchstens ein Follow-up, Zusage wird aktualisiert statt dupliziert, Empfehlung verschwindet aus der Queue), Zurückstellen mit neuem Datum, Vertriebsereignis-Log, Mobile 390px ohne Overflow, Touch-Ziel ≥44px, Kontaktfreigabe-Dialog additiv und sofort wirksam.
-- **Regression**: alle 15 bestehenden E2E-Dateien erneut ausgeführt — 100% grün (`verify.js`, `test-a11y-focus-restore.js` 6/6, `test-datasource-registry.js` 7/7, `test-official-gis.js` 40/40, `test-repository-layer.js` 11/11, `test-chart-canvas-reuse.js` 3/3, `test-data-quality-sentinel.js` 6/6, `test-masterprompt-p0..p3.js` 15/11/8/7, `test-map-fixes.js` 15/15, `test-market-geocode-order.js` 6/6, `test-central-objects-migration.js` 24/24, `test-central-object-editor-single-form.js` 33/33).
-- `npm run check:functions` — grün. `npm run lint` — 0 Fehler (4 vorbestehende Warnungen, unverändert). `npm audit --audit-level=high` — 0 Schwachstellen. `npm run test:functions` — 18/18.
-- CI-Workflow (`.github/workflows/ci.yml`) um den neuen E2E-Schritt ergänzt.
+Neue/aktive Keys:
 
-## 8. Akzeptanzkriterien (PDF §8) — einzeln geprüft
+| Key | Zweck | Backup |
+|---|---|---|
+| `kk_action_feedback_v1` | Entscheidung zu Empfehlungen, Upsert per `recommendationId` | erforderlich |
+| `kk_call_session_v1` | laufender, wiederherstellbarer Anrufzustand | erforderlich |
+| `kk_entity_link_queue_v1` | ungeklärte/mehrdeutige Entitätsbezüge | erforderlich |
+| `kk_sales_events_v1` | aktives, idempotentes Ereignisfenster | erforderlich |
+| `kk_sales_event_archive_v1` | monatliche Verdichtung älterer Ereignisse | erforderlich |
 
-1. Daily Command Center erzeugt aus echten Daten eine priorisierte Aktionsliste — ✅ (Test A/B).
-2. Jede Empfehlung zeigt mindestens einen nachvollziehbaren Grund — ✅ (`whyNow`, Test B).
-3. Keine Empfehlung basiert auf einem erfundenen/nicht erklärbaren Score — ✅ (kein Score-Feld, Test B).
-4. Gesperrte Kontakte/unzulässige Kanäle werden nicht empfohlen — ✅ (Test D).
-5. Überfällige Zusagen stehen vor unverbindlichen Neukontakten — ✅ (Regel 1 vor Regel 7, Test B).
-6. Empfehlung verweist über IDs auf bestehende Kontakte/Chancen — ✅ soweit auflösbar (Test E); bei Mehrdeutigkeit bewusst kein Rateverweis (siehe §6).
-7. Anruf startbar direkt aus dem Daily Command Center — ✅ ("Anrufserie starten"/"Anruf starten" pro Karte).
-8. Vor dem Anruf werden Ziel/Grund/Einstieg/minimaler nächster Schritt angezeigt — ✅ (Test H).
-9. Nach dem Anruf entsteht genau eine neue Interaktion — ✅ (Test I).
-10. Bei vereinbartem nächsten Schritt entsteht genau ein Follow-up/Commitment — ✅ (Test I).
-11. Wiederholtes Speichern erzeugt keine Duplikate — ✅ (deterministische Empfehlungs-ID, Feedback-Upsert statt Duplikat).
-12. Pipeline wird nur bei expliziter Bestätigung verändert — ✅ (`kksecPipelineConfirmCheck`).
-13. Zurückgestellte Empfehlungen benötigen eine Begründung/ein neues Datum — ✅ neues Datum (Test K); Freitext-Begründung ist ein bekannter, dokumentierter Folgeschritt (§6).
-14. Erledigte Empfehlungen verschwinden aus der aktiven Queue — ✅ (Test J).
-15. Nicht erreichte Person mit zwei Klicks neu terminierbar — ✅ ("Nicht erreicht" + Follow-up-Datum im selben Nachbereitungsschritt).
-16. Vollständiger Ablauf funktioniert auf 390px — ✅ (Test M).
-17. Alle bestehenden Daten bleiben lesbar/exportierbar — ✅ (rein additive Storage-Erweiterung, keine Migration bestehender Datensätze).
-18. Bestehende Backups weiterhin wiederherstellbar — ✅ (keine Backup-/Restore-Mechanik verändert; neue Keys folgen der `kk_`-Backup-Konvention).
-19. Kein neuer Haupt-Tab — ✅ (Test G, Tab-Anzahl unverändert bei 11).
-20. Alle bisherigen E2E-Tests bleiben grün — ✅ (§7).
+Alle Keys wurden in `ACTIVE_STORAGE_KEYS`, Modulklassifizierung, Importbezeichnungen und Schema Registry aufgenommen. Sie ersetzen keine bestehende kanonische Quelle.
 
-## 9. Status
+Technische Migrationssicherungen:
 
-Branch `feat/sales-execution-core-v1` gepusht. **Kein Merge, kein Produktions-Deployment** — wie ausdrücklich verlangt. Draft-PR wird mit diesem Bericht verlinkt.
+- `kk_pre_import_storage_migrations_v28`
+- `kk_pre_import_sales_core_v2`
+
+Diese Keys sind bewusst technische Wiederherstellungspunkte und werden nicht in normale Backups verschachtelt.
+
+## 4. Testabdeckung
+
+`tests/e2e/test-sales-execution-core.js` prüft mindestens:
+
+- unbekannte Kontaktgrundlage,
+- dokumentierte Einwilligung,
+- Rückrufwunsch,
+- bestehende Beziehung,
+- Opt-out,
+- Sperrvermerk,
+- widerrufene Einwilligung,
+- widersprüchliche Kontaktinformationen,
+- manuelle Warnbestätigung inklusive Pflichtfeldern,
+- Ausschluss aus automatischer Tagespriorisierung,
+- zukünftige Follow-ups und erledigte Zusagen,
+- mehrdeutige Namensverknüpfung,
+- vollständige Empfehlungsfelder,
+- stabile Kontakt-/Opportunity-/Objektverknüpfung,
+- Doppelklick, Wiederöffnung, Reload und unterbrochenen Speichervorgang,
+- leere und beschädigte Legacy-Daten,
+- 450 Kontakte/Follow-ups,
+- mobilen 390-Pixel-Viewport,
+- Migrationsbackup und Idempotenz,
+- vollständiges Backup/Restore aller neuen Keys,
+- Begrenzung und Archivierung des Ereignis-Logs.
+
+### Lokale Prüfergebnisse
+
+- `node --check` für den neuen Sales-Core-Scriptblock: **bestanden**
+- `node --check tests/e2e/test-sales-execution-core.js`: **bestanden**
+- `npm run check:functions`: **bestanden**
+- `npm run lint`: **bestanden, 0 Fehler; 4 bereits bestehende Warnungen**
+- `npm run test:functions`: **29/29 Checks bestanden**
+- isolierter VM-Test der ContactPolicy/ActionEngine/Ambiguitäts-Queue: **bestanden**
+- vollständige Playwright- und Regressionssuite: **wird am finalen PR-Head durch GitHub Actions dokumentiert**
+
+## 5. Verbleibende Einschränkungen
+
+1. Die Anwendung nutzt LocalStorage und besitzt keine serverseitige Transaktion. Der Workflow ist deshalb idempotent und recovery-fähig, aber nicht mit einer ACID-Datenbank gleichzusetzen.
+2. Historische mehrdeutige Legacy-Bezüge müssen manuell geklärt werden; sie werden bewusst nicht automatisch repariert.
+3. Ältere Ereignisse werden nach Erreichen der Grenze als Monatsaggregate aufbewahrt. Eine vollständige, unbegrenzte Einzelereignis-Historie ist wegen LocalStorage-Grenzen bewusst nicht vorgesehen.
+4. Die Kontaktpolitik ist eine technische Sicherheitslogik und ersetzt keine rechtliche Einzelfallprüfung.
+5. Das System bleibt Single-User. Gleichzeitige Bearbeitung aus mehreren Tabs/Geräten besitzt keine verteilte Sperre; stabile IDs und Upserts reduzieren das Risiko, ersetzen aber keine zentrale Synchronisation.
+
+## 6. Migrationsverhalten
+
+- Migrationen laufen additiv beim Modulstart.
+- Vor dem ersten migrationsbedingten Write wird ein technischer Snapshot erstellt.
+- Vorhandene `id`/`_id`-Werte bleiben unangetastet.
+- Nur Datensätze ohne stabile ID erhalten eine neue ID.
+- Ein zweiter oder späterer Lauf meldet keine weiteren Änderungen.
+- Beschädigte oder primitive Legacy-Einträge werden nicht umgedeutet und von der Engine sicher ignoriert.
+
+## 7. Rollback-Anleitung
+
+1. Vor jedem Rollback ein externes Komplettbackup über die zentrale Backup-Funktion erstellen.
+2. Die finalen PR-Commits revertieren oder den Branch auf den letzten Commit vor PR #11 zurücksetzen.
+3. Bei einer fehlerhaften ID-/Storage-Migration die Daten aus `kk_pre_import_sales_core_v2` beziehungsweise `kk_pre_import_storage_migrations_v28` wiederherstellen.
+4. Die fünf neuen Sales-Core-Keys können entfernt werden, ohne bestehende Kontakte, Aktivitäten, Follow-ups, Objekte oder Pipeline-Daten zu löschen.
+5. Keine Wiederherstellung im Importmodus „Ersetzen“ durchführen, bevor das externe Backup geprüft wurde.
+6. Kein Deployment eines Rollbacks ohne separate ausdrückliche Freigabe.
+
+## 8. Merge-Empfehlung
+
+**Bis zum erfolgreichen vollständigen CI-Lauf am finalen PR-Head: noch nicht freigabefähig.**
+
+Nach grünem Abschluss aller bestehenden und neuen Checks kann die technische Empfehlung auf **freigabefähig** gesetzt werden. Dies ist keine Merge-Ausführung: Der PR bleibt unabhängig vom technischen Urteil als Draft beziehungsweise klar „NICHT MERGEN“, bis Kevin den Merge ausdrücklich freigibt.
