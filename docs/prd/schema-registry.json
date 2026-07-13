@@ -1,7 +1,7 @@
 {
   "registryVersion": 2,
-  "generatedAt": "2026-07-11",
-  "source": "docs/prd/00-ist-zustand-inventar.md + statische Analyse der index.html (Phase 2); v2: 4 seit Phase 2 hinzugekommene Keys ergaenzt (kk_geo_active_layers_v1, kk_market_observations_v1, kk_market_presentation_mode, kk_official_gis_capabilities_cache_v2) nach vollstaendigem Abgleich aller kk_*-Literale in index.html gegen diese Registry",
+  "generatedAt": "2026-07-13",
+  "source": "docs/prd/00-ist-zustand-inventar.md + statische Analyse der index.html (Phase 2); v2: 4 seit Phase 2 hinzugekommene Keys ergaenzt (kk_geo_active_layers_v1, kk_market_observations_v1, kk_market_presentation_mode, kk_official_gis_capabilities_cache_v2) nach vollstaendigem Abgleich aller kk_*-Literale in index.html gegen diese Registry; Phase 27: 4 neue Keys fuer Sales Execution Core V1 ergaenzt (kk_action_feedback_v1, kk_call_session_v1, kk_entity_link_queue_v1, kk_sales_events_v1), kk_crm_contacts/kk_crm_activities-Notes um additive Erweiterung ergaenzt",
   "backupDetectionRegex": "^(kk_|kkbib|kk11|kk12|kkref|kk[A-Z]|kkcrm|kkops|kkdom|kkprod|__kk)",
   "idPrefixes": {
     "contact_": "Kontakt (uid-Praefix, entspricht sinngemaess PRD ct_)",
@@ -16,6 +16,16 @@
     "kkref20_": "Tippgeber-Empfehlungsmaschine-V20-IDs"
   },
   "keys": [
+    {
+      "key": "kk_action_feedback_v1",
+      "owner": "sales-execution-core",
+      "entity": "ActionFeedback[]",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "kanonisch, neu (Sales Execution Core V1) - Nutzerentscheidung zu Empfehlungen, referenziert per recommendationId (deterministisch, nicht persistiert)"
+    },
     {
       "key": "kk_ai_prompt_assistant_v1",
       "owner": "ki-prompts",
@@ -67,6 +77,16 @@
       "notes": "kanonisch, operative Queue"
     },
     {
+      "key": "kk_call_session_v1",
+      "owner": "sales-execution-core",
+      "entity": "CallSession (Singleton)",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "optional",
+      "retention": "user-controlled",
+      "notes": "kanonisch, neu (Sales Execution Core V1) - Wiederherstellungspunkt fuer laufenden gefuehrten Anruf, wird bei Abschluss/Abbruch geleert"
+    },
+    {
       "key": "kk_calls_log_v27",
       "owner": "heute",
       "entity": "CallItem[] (Legacy)",
@@ -104,7 +124,7 @@
       "sensitivity": "internal",
       "backup": "required",
       "retention": "user-controlled",
-      "notes": "kanonisch"
+      "notes": "kanonisch; additiv optionale opportunityId/propertyId/direction (Sales Execution Core V1, siehe ADR-0008)"
     },
     {
       "key": "kk_crm_contacts",
@@ -114,7 +134,7 @@
       "sensitivity": "personal",
       "backup": "required",
       "retention": "user-controlled",
-      "notes": "kanonisch"
+      "notes": "kanonisch; additiv erweitert um optionales contactPolicy{} (Sales Execution Core V1, siehe ADR-0008)"
     },
     {
       "key": "kk_crm_duplicates",
@@ -235,6 +255,16 @@
       "backup": "required",
       "retention": "user-controlled",
       "notes": "Eigentuemer-Datensaetze (Legacy-Bezeichnung, vor CRM-Pro-Konsolidierung)"
+    },
+    {
+      "key": "kk_entity_link_queue_v1",
+      "owner": "sales-execution-core",
+      "entity": "EntityLinkCandidate[]",
+      "schemaVersion": 1,
+      "sensitivity": "personal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "kanonisch, neu (Sales Execution Core V1) - mehrdeutige Namens-zu-Kontakt-Zuordnungen, keine automatische Rateverknuepfung"
     },
     {
       "key": "kk_final_qa_v28_4_last_smoke",
@@ -1085,6 +1115,16 @@
       "backup": "required",
       "retention": "user-controlled",
       "notes": "Legacy-Key, Zweck aus Namen ableitbar; formale Zuordnung folgt bei Bedarf (kein aktiver Datenverlust-Risiko durch diese Dokumentationsluecke, da Backup-Regex ihn ohnehin erfasst)"
+    },
+    {
+      "key": "kk_sales_events_v1",
+      "owner": "sales-execution-core",
+      "entity": "SalesEvent[] (append-only)",
+      "schemaVersion": 1,
+      "sensitivity": "internal",
+      "backup": "required",
+      "retention": "user-controlled",
+      "notes": "kanonisch, neu (Sales Execution Core V1) - append-only Vertriebsereignis-Log, keine Loeschung/Aenderung bestehender Eintraege"
     },
     {
       "key": "kk_sales_pipeline",

@@ -1,6 +1,6 @@
 # Keim CRM Pro — Project Instructions
 
-Single-file Vanilla-JS Makler-CRM (`index.html`, ~16.900 Zeilen; historischer Dateiname `kevin keim makler betriebssystem v30 7 ux finalisiert repariert 2.html` wurde bereits vor mehreren Phasen auf `index.html` umbenannt). Primärer Nutzer: Kevin Keim, Main-Kinzig-Kreis. Wird auf Netlify öffentlich ausgeliefert.
+Single-file Vanilla-JS Makler-CRM (`index.html`, >18.600 Zeilen; historischer Dateiname `kevin keim makler betriebssystem v30 7 ux finalisiert repariert 2.html` wurde bereits vor mehreren Phasen auf `index.html` umbenannt). Primärer Nutzer: Kevin Keim, Main-Kinzig-Kreis. Wird auf Netlify öffentlich ausgeliefert.
 
 Das verbindliche Master-PRD steht in `docs/prd/01` bis `05` (Produktstrategie, UX/Design, Architektur/Datenmodell, Marktmonitor/Karte, Development Manual). Bei jedem größeren Auftrag zuerst den relevanten Teil lesen, nicht raten. `docs/prd/00-ist-zustand-inventar.md` enthält das Storage-/API-Inventar der Codebasis.
 
@@ -28,7 +28,7 @@ Das verbindliche Master-PRD steht in `docs/prd/01` bis `05` (Produktstrategie, U
 - Vor String-Ersetzung immer die Trefferanzahl zählen (`grep -c`); keine globale Ersetzung ohne Kollisionsprüfung.
 - Nach jedem Änderungsblock den bearbeiteten Bereich erneut lesen und `git diff` prüfen.
 - Spätere CSS-/Script-Schichten können frühere überschreiben (bekannt: ID-Selektor schlägt Klassen-Selektor auch bei `!important`). Bei unsichtbaren Änderungen zuerst per `getComputedStyle` prüfen, welche Regel tatsächlich gewinnt.
-- `KK_APP_SHELL.REGISTRY` (~Zeile 11037) und `KK_V30_SHELL.tabs` (~Zeile 12706) sind zwei parallele Tab-Listen und müssen synchron gehalten werden, bis A1 (KK_NAV) sie konsolidiert.
+- `KK_APP_SHELL.REGISTRY` ist die alleinige Navigations-Quelle; `KK_V30_SHELL` leitet seine Tabs per `deriveTabs()` daraus ab und hält nur noch Präsentations-Overrides (Label/Icon) lokal. Der frühere Hinweis auf zwei synchron zu haltende parallele Listen ist überholt (siehe `docs/releases/phase27-sales-execution-core-v1-bestandsaufnahme-plan.md` §1.7).
 
 ## Tests
 
