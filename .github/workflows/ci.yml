@@ -1,9 +1,8 @@
 name: Apply PR11 Final Review
 
 on:
-  push:
-    branches: [feat/sales-execution-core-v1]
-    paths: ['.github/workflows/ci.yml']
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
@@ -18,7 +17,6 @@ jobs:
           fetch-depth: 0
 
       - name: Reconstruct and verify reviewed patch
-        shell: bash
         run: |
           cat .github/pr11-patch/chunk* | base64 -d | gzip -d > /tmp/pr11-final.patch
           echo '180f60cd6d27685da13229faa1537597cb5d26098c59e6ad1bfbd3400666e326  /tmp/pr11-final.patch' | sha256sum -c -
@@ -48,19 +46,16 @@ jobs:
         run: npm run test:e2e:full
 
       - name: Restore permanent CI and remove staging chunks
-        shell: bash
-        env:
-          FINAL_CI_B64: 'bmFtZTogQ0kKCm9uOgogIHB1c2g6CiAgICBicmFuY2hlczogW21haW5dCiAgcHVsbF9yZXF1ZXN0OgoKam9iczoKICB0ZXN0OgogICAgcnVucy1vbjogdWJ1bnR1LWxhdGVzdAogICAgc3RlcHM6CiAgICAgIC0gdXNlczogYWN0aW9ucy9jaGVja291dEB2NAoKICAgICAgLSB1c2VzOiBhY3Rpb25zL3NldHVwLW5vZGVAdjQKICAgICAgICB3aXRoOgogICAgICAgICAgbm9kZS12ZXJzaW9uLWZpbGU6ICcubnZtcmMnCiAgICAgICAgICBjYWNoZTogJ25wbScKCiAgICAgIC0gbmFtZTogSW5zdGFsbCBkZXBlbmRlbmNpZXMKICAgICAgICBydW46IG5wbSBjaQoKICAgICAgLSBuYW1lOiBTeW50YXgtY2hlY2sgTmV0bGlmeSBGdW5jdGlvbnMKICAgICAgICBydW46IG5wbSBydW4gY2hlY2s6ZnVuY3Rpb25zCgogICAgICAtIG5hbWU6IExpbnQgKG5ldGxpZnkvZnVuY3Rpb25zICsgdGVzdHMpCiAgICAgICAgcnVuOiBucG0gcnVuIGxpbnQKCiAgICAgIC0gbmFtZTogRGVwZW5kZW5jeSBhdWRpdCAoZmFpbHMgb24gaGlnaC9jcml0aWNhbCkKICAgICAgICBydW46IG5wbSBhdWRpdCAtLWF1ZGl0LWxldmVsPWhpZ2gKCiAgICAgIC0gbmFtZTogSW5zdGFsbCBQbGF5d3JpZ2h0IENocm9taXVtCiAgICAgICAgcnVuOiBucHggcGxheXdyaWdodCBpbnN0YWxsIC0td2l0aC1kZXBzIGNocm9taXVtCgogICAgICAtIG5hbWU6IFBsYXl3cmlnaHQgZW52aXJvbm1lbnQgaW5mbwogICAgICAgIHJ1bjogfAogICAgICAgICAgbm9kZSAtLXZlcnNpb24KICAgICAgICAgIG5weCBwbGF5d3JpZ2h0IC0tdmVyc2lvbgogICAgICAgICAgbm9kZSAtZSAiY29uc29sZS5sb2coJ3BsYXl3cmlnaHQtY29yZTonLCByZXF1aXJlKCdwbGF5d3JpZ2h0LWNvcmUvcGFja2FnZS5qc29uJykudmVyc2lvbikiCgogICAgICAtIG5hbWU6IFJ1biBmdW5jdGlvbi1sZXZlbCB0ZXN0cyAobm8gYnJvd3Nlciwgbm8gbmV0d29yaykKICAgICAgICBydW46IG5wbSBydW4gdGVzdDpmdW5jdGlvbnMKCiAgICAgICMgU3BsaXQgaW50byBvbmUgc3RlcCBwZXIgZmlsZSAoaW5zdGVhZCBvZiBvbmUgY29tYmluZWQgInRlc3Q6ZTJlOmZ1bGwiCiAgICAgICMgc3RlcCkgc28gYSBmYWlsdXJlJ3Mgc3RlcCBuYW1lIGFsb25lIGlkZW50aWZpZXMgd2hpY2ggc3BlY2lmaWMgdGVzdAogICAgICAjIGNyYXNoZWQgLSB0aGlzIHJlcG8ncyBDSSBydW5zIGluIGFuIGVudmlyb25tZW50IHdlIGNhbm5vdCBnZXQgcmF3IGxvZ3MKICAgICAgIyBmcm9tIGludGVyYWN0aXZlbHksIHNvIHN0ZXAtbmFtZSBncmFudWxhcml0eSBpcyB0aGUgcHJpbWFyeSBkaWFnbm9zdGljLgogICAgICAtIG5hbWU6IEUyRSAtIHZlcmlmeS5qcyAoZnVsbCB0YWIvWFNTL292ZXJmbG93IHJlZ3Jlc3Npb24pCiAgICAgICAgcnVuOiBub2RlIHRlc3RzL2UyZS92ZXJpZnkuanMKCiAgICAgIC0gbmFtZTogRTJFIC0gdGVzdC1hMTF5LWZvY3VzLXJlc3RvcmUuanMKICAgICAgICBydW46IG5vZGUgdGVzdHMvZTJlL3Rlc3QtYTExeS1mb2N1cy1yZXN0b3JlLmpzCgogICAgICAtIG5hbWU6IEUyRSAtIHRlc3QtZGF0YXNvdXJjZS1yZWdpc3RyeS5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1kYXRhc291cmNlLXJlZ2lzdHJ5LmpzCgogICAgICAtIG5hbWU6IEUyRSAtIHRlc3Qtb2ZmaWNpYWwtZ2lzLmpzCiAgICAgICAgcnVuOiBub2RlIHRlc3RzL2UyZS90ZXN0LW9mZmljaWFsLWdpcy5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LXJlcG9zaXRvcnktbGF5ZXIuanMKICAgICAgICBydW46IG5vZGUgdGVzdHMvZTJlL3Rlc3QtcmVwb3NpdG9yeS1sYXllci5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LWNoYXJ0LWNhbnZhcy1yZXVzZS5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1jaGFydC1jYW52YXMtcmV1c2UuanMKCiAgICAgIC0gbmFtZTogRTJFIC0gdGVzdC1kYXRhLXF1YWxpdHktc2VudGluZWwuanMKICAgICAgICBydW46IG5vZGUgdGVzdHMvZTJlL3Rlc3QtZGF0YS1xdWFsaXR5LXNlbnRpbmVsLmpzCgogICAgICAtIG5hbWU6IEUyRSAtIHRlc3QtbWFzdGVycHJvbXB0LXAwLmpzCiAgICAgICAgcnVuOiBub2RlIHRlc3RzL2UyZS90ZXN0LW1hc3RlcnByb21wdC1wMC5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LW1hc3RlcnByb21wdC1wMS5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1tYXN0ZXJwcm9tcHQtcDEuanMKCiAgICAgIC0gbmFtZTogRTJFIC0gdGVzdC1tYXN0ZXJwcm9tcHQtcDIuanMKICAgICAgICBydW46IG5vZGUgdGVzdHMvZTJlL3Rlc3QtbWFzdGVycHJvbXB0LXAyLmpzCgogICAgICAtIG5hbWU6IEUyRSAtIHRlc3QtbWFzdGVycHJvbXB0LXAzLmpzCiAgICAgICAgcnVuOiBub2RlIHRlc3RzL2UyZS90ZXN0LW1hc3RlcnByb21wdC1wMy5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LW1hcC1maXhlcy5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1tYXAtZml4ZXMuanMKCiAgICAgIC0gbmFtZTogRTJFIC0gdGVzdC1tYXJrZXQtZ2VvY29kZS1vcmRlci5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1tYXJrZXQtZ2VvY29kZS1vcmRlci5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LWNlbnRyYWwtb2JqZWN0cy1taWdyYXRpb24uanMKICAgICAgICBydW46IG5vZGUgdGVzdHMvZTJlL3Rlc3QtY2VudHJhbC1vYmplY3RzLW1pZ3JhdGlvbi5qcwoKICAgICAgLSBuYW1lOiBFMkUgLSB0ZXN0LWNlbnRyYWwtb2JqZWN0LWVkaXRvci1zaW5nbGUtZm9ybS5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1jZW50cmFsLW9iamVjdC1lZGl0b3Itc2luZ2xlLWZvcm0uanMKCiAgICAgIC0gbmFtZTogRTJFIC0gdGVzdC1zYWxlcy1leGVjdXRpb24tY29yZS5qcwogICAgICAgIHJ1bjogbm9kZSB0ZXN0cy9lMmUvdGVzdC1zYWxlcy1leGVjdXRpb24tY29yZS5qcwo='
         run: |
-          printf '%s' "$FINAL_CI_B64" | base64 -d > .github/workflows/ci.yml
+          git show origin/main:.github/workflows/ci.yml > .github/workflows/ci.yml
+          printf '\n      - name: E2E - test-sales-execution-core.js\n        run: node tests/e2e/test-sales-execution-core.js\n' >> .github/workflows/ci.yml
           rm -rf .github/pr11-patch
           git diff --check
 
       - name: Commit reviewed implementation to PR branch
-        shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html tests/e2e/test-sales-execution-core.js docs/adr/ADR-0008-sales-execution-core-v1.md docs/prd/schema-registry.json docs/releases/phase27-sales-execution-core-v1-abschlussbericht.md docs/releases/phase27-sales-execution-core-v1-bestandsaufnahme-plan.md .github/workflows/ci.yml .github/pr11-patch
+          git add -A
           git commit -m 'fix(sales): finalize safe execution core review'
           git push origin HEAD:feat/sales-execution-core-v1
