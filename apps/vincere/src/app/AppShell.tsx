@@ -6,6 +6,13 @@ import { Modal } from '../components/ui';
 import { ContactForm } from '../features/contacts/ContactForm';
 import { useAppStore } from './AppStore';
 
+const roleLabel = {
+  owner: 'Founder · Owner',
+  admin: 'Administration',
+  agent: 'Immobilienvertrieb',
+  viewer: 'Lesezugriff',
+} as const;
+
 export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [newContactOpen, setNewContactOpen] = useState(false);
@@ -13,9 +20,10 @@ export function AppShell() {
   const [query, setQuery] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
-  const { contacts } = useAppStore();
+  const { contacts, currentUser, workspace } = useAppStore();
 
   const current = navigation.find((item) => item.path === location.pathname) ?? navigation[0];
+  const initials = currentUser.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return [];
@@ -47,9 +55,9 @@ export function AppShell() {
           ))}
         </nav>
         <div className="sidebar-watermark">V</div>
-        <div className="profile-card">
-          <div className="avatar">KK</div>
-          <div><strong>Kevin Keim</strong><span>Founder · Immobilienvertrieb</span></div>
+        <div className="profile-card" title={`${workspace.name} · ${workspace.region}`}>
+          <div className="avatar">{initials}</div>
+          <div><strong>{currentUser.name}</strong><span>{roleLabel[currentUser.role]}</span></div>
         </div>
       </aside>
 
