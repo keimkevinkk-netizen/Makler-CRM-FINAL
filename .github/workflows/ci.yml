@@ -21,9 +21,22 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import base64, gzip, hashlib
-          chunks = sorted(Path('.github/pr11-patch').glob('chunk[0-9][0-9]'))
-          assert len(chunks) == 9, f'expected 9 chunks, found {len(chunks)}'
-          encoded = ''.join(path.read_text(encoding='utf-8').strip() for path in chunks)
+          root = Path('.github/pr11-patch')
+          parts = [
+              root / 'chunk00',
+              root / 'chunk01',
+              *(root / f'replacement02-{index:02d}' for index in range(4)),
+              root / 'chunk03',
+              root / 'chunk04',
+              root / 'chunk05',
+              root / 'chunk06',
+              root / 'chunk07',
+              root / 'chunk08',
+          ]
+          missing = [str(path) for path in parts if not path.is_file()]
+          assert not missing, f'missing patch parts: {missing}'
+          encoded = ''.join(path.read_text(encoding='utf-8').strip() for path in parts)
+          assert len(encoded) == 64120, f'unexpected encoded length: {len(encoded)}'
           patch = gzip.decompress(base64.b64decode(encoded, validate=True))
           digest = hashlib.sha256(patch).hexdigest()
           expected = '180f60cd6d27685da13229faa1537597cb5d26098c59e6ad1bfbd3400666e326'
