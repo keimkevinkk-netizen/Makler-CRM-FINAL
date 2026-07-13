@@ -2853,6 +2853,167 @@ else window.addEventListener('load', function(){ setTimeout(selfTest, 3000); });
   window.KK_GEOCODE=Object.freeze({version:'1.0.0',needsGeocoding:needsGeocoding,geocodeIfNeeded:geocodeIfNeeded,setManualPosition:setManualPosition,resetPosition:resetPosition,applyResult:applyResult,ENDPOINT:ENDPOINT});
 })();
 </script>
+<script id="kk-central-objects-v1">
+(function(){
+  'use strict';
+  if(window.KK_OBJECTS) return;
+  var U=window.KK_UTIL;
+  var CENTRAL_KEY='kk_crm_objects';
+  var RECORD_TYPES=['inventory','market','research'];
+
+  /* Zentrale Objektdatenbank (Master-Auftrag "Zentrale Objekterfassung"): EIN
+     Speicher (kk_crm_objects) fuer inventory/market/research, unterschieden
+     nur ueber recordType. Kein neuer Key - additive Erweiterung des
+     bestehenden, bereits am weitesten entwickelten Objekt-Keys. */
+  function readRecordContainer(storageKey){
+    var raw=U.readJSON(storageKey,[]);
+    if(Array.isArray(raw))return {list:raw,wrap:function(list){return list}};
+    if(raw&&Array.isArray(raw.items))return {list:raw.items,wrap:function(list){raw.items=list;return raw}};
+    return {list:[],wrap:function(list){return list}};
+  }
+  function readAll(){return readRecordContainer(CENTRAL_KEY).list;}
+  function writeAll(list){var c=readRecordContainer(CENTRAL_KEY); U.writeJSON(CENTRAL_KEY,c.wrap(list));}
+
+  /* undefined/null/'' -> 'inventory' (Bestandsdaten aus der Zeit vor recordType
+     gelten als eigener Bestand). Ein expliziter, aber unbekannter Wert wird
+     NICHT stillschweigend zu 'inventory' - er ist ungueltig (null), damit
+     saveCentralObject ihn ablehnen kann statt ihn falsch einzuordnen. */
+  function normalizeRecordType(rt){
+    if(rt===undefined||rt===null||rt==='')return 'inventory';
+    return RECORD_TYPES.indexOf(rt)>=0?rt:null;
+  }
+
+  /* EINE zentrale Policy-Funktion, von Karte/Pipeline/Objektliste/Marktmonitor/
+     Heute/Aufgaben/Follow-ups/Analysen/KPIs gemeinsam genutzt - keine
+     Zweitimplementierung dieser Regeln an anderer Stelle. */
+  function getObjectPolicy(recordType){
+    var rt=normalizeRecordType(recordType);
+    return {
+      showOnMap: rt==='inventory',
+      showInPipeline: rt==='inventory',
+      allowTasks: rt==='inventory',
+      allowFollowUps: rt==='inventory',
+      countAsActiveObject: rt==='inventory',
+      allowOwnerLink: rt==='inventory',
+      useForMarketAnalytics: rt==='market'||rt==='research',
+      useForComparison: rt==='market'||rt==='research'
+    };
+  }
+
+  /* Harte Kartenregel: NUR inventory mit gueltiger, nicht ausgeblendeter
+     Position darf jemals als Marker erscheinen. market/research NIE, auch
+     nicht mit vorhandenen Koordinaten - keine Ausnahme, kein Analyse-Layer. */
+  function mayAppearOnMap(record){
+    return Boolean(record && getObjectPolicy(record.recordType).showOnMap &&
+      record.geo && Number.isFinite(Number(record.geo.latitude)) && Number.isFinite(Number(record.geo.longitude)) &&
+      record.geo.visibility!=='hidden');
+  }
+  function mayAppearInPipeline(record){
+    return Boolean(record && getObjectPolicy(record.recordType).showInPipeline);
+  }
+
+  function addrString(rec){
+    if(!rec)return '';
+    if(rec.address&&typeof rec.address==='object'){
+      return rec.address.formatted||[rec.address.street,rec.address.houseNumber,rec.address.postalCode,rec.address.city].filter(Boolean).join(' ');
+    }
+    return rec.address||rec.objectAddress||'';
+  }
+  function normAddr(s){return String(s||'').toLowerCase().replace(/\s+/g,' ').trim();}
+
+  /* Dublettenpruefung vor dem Speichern (Adresse/URL/externe ID) - warnt statt
+     automatisch zu loeschen oder zu ueberschreiben. */
+  function findDuplicates(record){
+    var list=readAll();
+    var addr=normAddr(addrString(record));
+    var url=(record.source&&record.source.url)||record.link||'';
+    var externalId=(record.source&&record.source.externalId)||'';
+    var legacyKey=(record.migration&&record.migration.legacySourceKey)||record.legacySourceKey;
+    var legacyId=(record.migration&&record.migration.legacyId)||record.legacyId;
+    return list.filter(function(x){
+      if(record.id&&x.id===record.id)return false;
+      if(legacyKey&&legacyId&&x.migration&&x.migration.legacySourceKey===legacyKey&&x.migration.legacyId===legacyId)return true;
+      if(externalId&&x.source&&x.source.externalId===externalId)return true;
+      if(url&&((x.source&&x.source.url)===url||x.link===url))return true;
+      if(addr&&normAddr(addrString(x))===addr)return true;
+      return false;
+    });
+  }
+
+  /* EINZIGE Schreib-API fuer die zentrale Objektdatenbank. Keine Ansicht
+     schreibt mehr direkt in localStorage - Normalisierung, Timestamps,
+     typeHistory und Events laufen ausschliesslich hier. Geo-Erhalt/-Neuermittlung
+     bleibt Aufgabe der aufrufenden Maske (KK_GEO/KK_GEOCODE, wie bereits fuer
+     Fehler B gehaertet) - diese Funktion persistiert nur, was uebergeben wird. */
+  function saveCentralObject(record,opts){
+    opts=opts||{};
+    if(!record||typeof record!=='object')return {error:'invalid_record',message:'Kein Objekt übergeben.'};
+    var list=readAll();
+    var isNew=!record.id;
+    var id=record.id||U.uid('obj');
+    var idx=list.findIndex(function(x){return x.id===id});
+    var existing=idx>=0?list[idx]:null;
+    var explicitType=Object.prototype.hasOwnProperty.call(record,'recordType')?record.recordType:(existing&&existing.recordType);
+    var recordType=normalizeRecordType(explicitType);
+    if(recordType===null){
+      return {error:'invalid_record_type',message:'Ungültiger recordType: '+String(record.recordType)};
+    }
+    var now=new Date().toISOString();
+    var typeHistory=(existing&&Array.isArray(existing.typeHistory))?existing.typeHistory.slice():[];
+    if(existing&&existing.recordType&&normalizeRecordType(existing.recordType)!==recordType){
+      typeHistory.push({from:existing.recordType,to:recordType,changedAt:now,reason:opts.typeChangeReason||''});
+    }
+    var merged=Object.assign({},existing,record,{id:id,recordType:recordType,schemaVersion:2,typeHistory:typeHistory,updatedAt:now});
+    if(!existing)merged.createdAt=merged.createdAt||now;
+    if(idx>=0)list[idx]=merged; else list.unshift(merged);
+    writeAll(list);
+    try{window.dispatchEvent(new CustomEvent('kk:object-saved',{detail:{id:id,recordType:recordType,isNew:isNew}}))}catch(e){}
+    if(existing&&existing.recordType&&normalizeRecordType(existing.recordType)!==recordType){
+      try{window.dispatchEvent(new CustomEvent('kk:object-type-changed',{detail:{id:id,from:existing.recordType,to:recordType}}))}catch(e){}
+    }
+    try{window.dispatchEvent(new CustomEvent('kk:storage-changed',{detail:{key:CENTRAL_KEY}}))}catch(e){}
+    return merged;
+  }
+
+  function getObject(id){return readAll().find(function(x){return x.id===id})||null;}
+  function listObjects(filter){
+    filter=filter||{};
+    return readAll().filter(function(x){
+      if(filter.recordType&&normalizeRecordType(x.recordType)!==filter.recordType)return false;
+      return true;
+    });
+  }
+  function changeRecordType(id,newType,reason){
+    var rec=getObject(id);
+    if(!rec)return null;
+    return saveCentralObject(Object.assign({},rec,{recordType:newType}),{typeChangeReason:reason||''});
+  }
+  function archiveObject(id,reason){
+    var rec=getObject(id);
+    if(!rec)return null;
+    var result=saveCentralObject(Object.assign({},rec,{status:'archiviert',archivedAt:new Date().toISOString(),archiveReason:reason||''}));
+    try{window.dispatchEvent(new CustomEvent('kk:object-archived',{detail:{id:id}}))}catch(e){}
+    return result;
+  }
+
+  window.KK_OBJECTS=Object.freeze({
+    version:'1.0.0',
+    CENTRAL_KEY:CENTRAL_KEY,
+    RECORD_TYPES:RECORD_TYPES.slice(),
+    normalizeRecordType:normalizeRecordType,
+    getObjectPolicy:getObjectPolicy,
+    mayAppearOnMap:mayAppearOnMap,
+    mayAppearInPipeline:mayAppearInPipeline,
+    findDuplicates:findDuplicates,
+    saveCentralObject:saveCentralObject,
+    getObject:getObject,
+    listObjects:listObjects,
+    changeRecordType:changeRecordType,
+    archiveObject:archiveObject,
+    readAll:readAll
+  });
+})();
+</script>
 <script id="kk-app-bootstrap-v28-3">
 (function(){
   'use strict';
