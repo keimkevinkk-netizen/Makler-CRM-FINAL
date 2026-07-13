@@ -4043,7 +4043,17 @@ function metricValue(d,m){if(!d)return 0;return num(d[m])}
 function colorFor(d,m,max){if(!d||!d.hasOperationalData)return COLORS.gray;var v=metricValue(d,m),ratio=max>0?v/max:0;if(m==='potential'){if(v>=80)return COLORS.blue;if(v>=60)return COLORS.green;if(v>=40)return COLORS.yellow;if(v>=20)return COLORS.orange;return COLORS.red}if(ratio>=.8)return COLORS.blue;if(ratio>=.55)return COLORS.green;if(ratio>=.3)return COLORS.yellow;if(ratio>0)return COLORS.orange;return COLORS.red}
 function renderMap(){var D=data(),list=q('#kkv30MarketSummaryList');if(list){var ranked=Object.keys(NAMES).map(function(k){return {key:k,name:NAMES[k],d:D[k],v:metricValue(D[k],'potential')}}).sort(function(a,b){return b.v-a.v}).slice(0,5);list.innerHTML=ranked.length?ranked.map(function(r){return '<button type="button" class="kkv30-market-summary-row" data-v30-town="'+r.key+'"><span>'+esc(r.name)+'</span><b>'+(r.d&&r.d.hasOperationalData?Math.round(r.v)+'%':'–')+'</b></button>'}).join(''):'<div class="kkv30-market-summary-empty">Noch keine Daten.</div>'}qa('[data-v30-town]').forEach(function(g){g.classList.toggle('is-selected',g.dataset.v30Town===selectedTown)});renderArea()}
 function renderArea(){var d=data()[selectedTown]||{},name=NAMES[selectedTown]||selectedTown;var nameEl=q('#kkv30AreaName'),status=q('#kkv30AreaStatus');if(nameEl)nameEl.textContent=name;if(status){status.textContent=d.status||'Keine Daten';status.style.background=d.hasOperationalData?'var(--v30-green-soft)':'#eef1f5';status.style.color=d.hasOperationalData?'var(--v30-green)':'#667085'}var rows=[['Eigentümer',d.owners],['Suchkunden',d.searchCustomers],['Aktive Objekte',d.activeObjects],['Verkäufe YTD',d.sales],['Ø Verkaufspreis',d.avgPrice?Number(d.avgPrice).toLocaleString('de-DE')+' €/m²':'–'],['Vermarktungsdauer',d.avgMarketingDays?d.avgMarketingDays+' Tage':'–']];q('#kkv30AreaMetrics').innerHTML=rows.map(function(r){return '<div class="kkv30-area-row"><span>'+esc(r[0])+'</span><b>'+esc(r[1]==null?'–':r[1])+'</b></div>'}).join('');var sig=[['Follow-ups',d.openFollowups||0],['Bewertungen',d.valuationAppointments||0],['Besichtigungen',d.viewings||0],['Neue Eigentümer',d.newOwnerInquiries||0]];q('#kkv30AreaSignals').innerHTML=sig.map(function(r){return '<div class="kkv30-area-signal"><b>'+esc(r[1])+'</b><span>'+esc(r[0])+'</span></div>'}).join('')}
-function renderKpis(){var objects=uniq(arr('kk_crm_objects').concat(arr('kk12_objects')),'obj').filter(function(x){return openStatus(x.status)});var deals=uniq(arr('kk_sales_pipeline').concat(arr('kk_crm_owner_pipeline')),'deal').filter(function(x){return openStatus(x.status||x.stage||x.phase)&&!stageClosed(x)});var contacts=arr('kk_crm_contacts').filter(function(c){var t=[c.category,c.contactType,c.role,c.status].join(' ');return openStatus(c.status)&&/(lead|eigentümer|eigentuemer|käufer|kaeufer|suchkunde|interessent|chance)/i.test(t)});q('#kkv30KpiObjectsValue').textContent=String(objects.length+deals.length);q('#kkv30KpiObjectsSub').textContent=objects.length+' Objekte · '+deals.length+' Chancen';q('#kkv30KpiLeadsValue').textContent=String(contacts.length);q('#kkv30KpiLeadsSub').textContent='offene CRM-Kontakte'}
+function renderKpis(){
+  /* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 15: nur recordType
+     'inventory' zaehlt als aktives Objekt (countAsActiveObject-Policy) - nach
+     Phase-6-Migration liegen auch ehemalige Marktbeobachtungen (recordType
+     'market') in kk_crm_objects und duerfen hier NICHT mitgezaehlt werden.
+     kk12_objects-Eintraege, die bereits nach kk_crm_objects migriert wurden
+     (migratedToCentral), werden hier ausgeblendet, damit sie nicht doppelt
+     gezaehlt werden (existieren dann schon als Kopie in kk_crm_objects). */
+  var centralObjects=arr('kk_crm_objects').filter(function(x){return !window.KK_OBJECTS||window.KK_OBJECTS.getObjectPolicy(x.recordType).countAsActiveObject});
+  var legacyKk12=arr('kk12_objects').filter(function(x){return !x.migratedToCentral});
+  var objects=uniq(centralObjects.concat(legacyKk12),'obj').filter(function(x){return openStatus(x.status)});var deals=uniq(arr('kk_sales_pipeline').concat(arr('kk_crm_owner_pipeline')),'deal').filter(function(x){return openStatus(x.status||x.stage||x.phase)&&!stageClosed(x)});var contacts=arr('kk_crm_contacts').filter(function(c){var t=[c.category,c.contactType,c.role,c.status].join(' ');return openStatus(c.status)&&/(lead|eigentümer|eigentuemer|käufer|kaeufer|suchkunde|interessent|chance)/i.test(t)});q('#kkv30KpiObjectsValue').textContent=String(objects.length+deals.length);q('#kkv30KpiObjectsSub').textContent=objects.length+' Objekte · '+deals.length+' Chancen';q('#kkv30KpiLeadsValue').textContent=String(contacts.length);q('#kkv30KpiLeadsSub').textContent='offene CRM-Kontakte'}
 function renderPipeline(){var all=uniq(arr('kk_sales_pipeline').concat(arr('kk_crm_owner_pipeline')),'deal').filter(function(x){return openStatus(x.status||x.stage||x.phase)&&!stageClosed(x)});all.sort(function(a,b){var da=String(a.deadline||a.followUpDate||'9999-12-31'),db=String(b.deadline||b.followUpDate||'9999-12-31');return da.localeCompare(db)||String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))});q('#kkv30PipelineCount').textContent=all.length+' Chancen';var list=q('#kkv30PipelineList');if(!all.length){list.innerHTML='<div class="kkv30-pipeline-empty">Keine offenen Pipeline-Chancen.</div>';q('#kkv30PipelineProgress').style.width='0%';q('#kkv30PipelineFoot').textContent='Keine offenen Chancen';return}list.innerHTML=all.slice(0,5).map(function(x){var name=x.name||x.contactName||x.owner||x.objectLabel||'Verkaufschance',stage=x.stage||x.status||x.phase||'Offen',area=x.area||x.town||x.city||'ohne Gebiet',prob=Math.max(0,Math.min(100,num(x.probability)));return '<div class="kkv30-pipeline-item"><div><strong>'+esc(name)+'</strong><span>'+esc(stage+' · '+area)+'</span></div><b>'+prob+' %</b></div>'}).join('');var avg=Math.round(all.reduce(function(s,x){return s+num(x.probability)},0)/all.length);q('#kkv30PipelineProgress').style.width=Math.max(3,avg)+'%';q('#kkv30PipelineFoot').textContent='Ø Wahrscheinlichkeit '+avg+' %'}
 function renderNew(){if(!root||root.dataset.v303Layout!=='1')return;renderKpis();renderPipeline();renderMap();renderNowDo()}
 function openTab(tab,hash){try{if(window.KK_APP_SHELL&&typeof KK_APP_SHELL.openTab==='function')KK_APP_SHELL.openTab(tab);else if(window.KK_APP_SHELL&&typeof KK_APP_SHELL.setActiveTab==='function')KK_APP_SHELL.setActiveTab(tab)}catch(e){}if(hash)location.hash=hash}
@@ -7065,7 +7075,7 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
     var box=$('#kkcrmproDueFollowups');
     if(box)box.innerHTML=fus.map(function(f){return '<div class="kkcp-item hot"><strong>'+esc(f.name||f.contactName)+'</strong><span class="kkcp-pill red">fällig</span><span class="kkcp-pill">'+esc(f.channel||'')+'</span><small>'+esc(f.goal||f.nextDesiredStep||'—')+'</small><div class="kkcp-item-actions"><button class="kkcp-btn light" data-fu-done="'+esc(f.id)+'">erledigt</button></div></div>'}).join('')||'<div class="kkcp-empty">Keine überfälligen oder heute fälligen Follow-ups.</div>';
   }
-  function renderObjects(){var list=arr(KEYS.objects); $('#kkcrmproObjectList').innerHTML=list.map(function(o){var missing=DOCS.length-(o.docs||[]).length; return '<div class="kkcp-item"><strong>'+esc(o.address)+'</strong><span class="kkcp-pill">'+esc(o.area||'')+'</span><span class="kkcp-pill '+(missing?'orange':'green')+'">'+(missing?missing+' Unterlagen fehlen':'Unterlagen vollständig')+'</span><small>'+esc(o.ownerName||'ohne Eigentümer')+' · '+esc(o.status||'')+'</small><small>Marktwert: '+money(o.marketValue||0)+' · Preisrisiko: '+esc(o.priceRisk||'unklar')+'</small><div class="kkcp-item-actions"><button class="kkcp-btn light" data-edit-object="'+esc(o.id)+'">Bearbeiten</button></div></div>'}).join('')||'<div class="kkcp-empty">Noch keine Objektakten.</div>'; bindMiniActions()}
+  function renderObjects(){var list=arr(KEYS.objects).filter(function(o){return !window.KK_OBJECTS||window.KK_OBJECTS.getObjectPolicy(o.recordType).showInPipeline}); $('#kkcrmproObjectList').innerHTML=list.map(function(o){var missing=DOCS.length-(o.docs||[]).length; return '<div class="kkcp-item"><strong>'+esc(o.address)+'</strong><span class="kkcp-pill">'+esc(o.area||'')+'</span><span class="kkcp-pill '+(missing?'orange':'green')+'">'+(missing?missing+' Unterlagen fehlen':'Unterlagen vollständig')+'</span><small>'+esc(o.ownerName||'ohne Eigentümer')+' · '+esc(o.status||'')+'</small><small>Marktwert: '+money(o.marketValue||0)+' · Preisrisiko: '+esc(o.priceRisk||'unklar')+'</small><div class="kkcp-item-actions"><button class="kkcp-btn light" data-edit-object="'+esc(o.id)+'">Bearbeiten</button></div></div>'}).join('')||'<div class="kkcp-empty">Noch keine Objektakten.</div>'; bindMiniActions()}
   function qualityMetrics(){var contacts=arr(KEYS.contacts); var dups=detectDupes(); var noNext=contacts.filter(function(c){return !c.nextAction}).length; var withNext=contacts.length-noNext; var coveragePct=contacts.length?Math.round(withNext/contacts.length*100):null; return {total:contacts.length,noPhone:contacts.filter(function(c){return !normPhone(c.phone)}).length,noEmail:contacts.filter(function(c){return !normEmail(c.email)}).length,noNext:noNext,noFollow:contacts.filter(function(c){return !contactNext(c)}).length,noArea:contacts.filter(function(c){return !c.area}).length,dups:dups.length,overdue:contacts.filter(function(c){return due(contactNext(c))}).length,coveragePct:coveragePct} }
   function detectDupes(){var contacts=arr(KEYS.contacts), groups={}; contacts.forEach(function(c){var keys=[]; if(normEmail(c.email))keys.push('mail:'+normEmail(c.email)); if(normPhone(c.phone))keys.push('tel:'+normPhone(c.phone)); if(norm(c.name))keys.push('name:'+norm(c.name)+'|area:'+norm(c.area)); if(norm(c.address))keys.push('addr:'+norm(c.address)); keys.forEach(function(k){(groups[k]=groups[k]||[]).push(c)})}); return Object.keys(groups).filter(function(k){return groups[k].length>1}).map(function(k){return {key:k,items:groups[k]}})}
   function renderQuality(){var q=qualityMetrics(); var covEl=$('#kkcrmproQualityCoverage'); if(covEl)covEl.innerHTML=stat(q.coveragePct==null?'–':q.coveragePct+' %','Next-Step Coverage','Anteil Kontakte mit dokumentierter nächster Aktion'); $('#kkcrmproQualityStats').innerHTML=[stat(q.total,'Kontakte gesamt',''),stat(q.noPhone,'ohne Telefonnummer','prüfen'),stat(q.noFollow,'ohne Wiedervorlage','kritisch'),stat(q.dups,'Dublettenverdacht','zusammenführen')].join(''); var advice=[]; if(q.noNext)advice.push(q.noNext+' Kontakte ohne nächste Aktion'); if(q.noArea)advice.push(q.noArea+' Kontakte ohne Gebiet'); $('#kkcrmproQualityAdvice').innerHTML=advice.length?'<div class="kkcp-alert orange">'+esc(advice.join(' · '))+'</div>':'<div class="kkcp-alert green">Datenqualität ist brauchbar. Fokus auf echte Kontakte und Wiedervorlagen.</div>'; var ignored=read(KEYS.duplicates,{}); $('#kkcrmproDuplicateList').innerHTML=detectDupes().filter(function(g){return ignored[g.key]!=='ignorieren'}).slice(0,12).map(function(g){return '<div class="kkcp-item"><strong>'+esc(g.key)+'</strong><small>'+g.items.map(function(c){return esc(c.name)+' ('+esc(c.phone||c.email||c.area||'')+')'}).join('<br>')+'</small><div class="kkcp-item-actions"><button class="kkcp-btn light" data-dupe-action="prüfen" data-dupe-key="'+esc(g.key)+'">prüfen</button><button class="kkcp-btn light" data-dupe-action="zusammenführen" data-dupe-key="'+esc(g.key)+'">zusammenführen</button><button class="kkcp-btn light" data-dupe-action="ignorieren" data-dupe-key="'+esc(g.key)+'">ignorieren</button></div></div>'}).join('')||'<div class="kkcp-empty">Keine Dubletten sichtbar.</div>'; $('#kkcrmproRequiredRows').innerHTML=REQUIRED.map(function(r){return '<tr><td><b>'+esc(r[0])+'</b></td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td></tr>'}).join(''); bindMiniActions()}
@@ -13976,7 +13986,18 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
   function openTab(tab,target){try{if(window.KK_APP_SHELL&&typeof window.KK_APP_SHELL.setActiveTab==='function'){window.KK_APP_SHELL.setActiveTab(tab,{preserveHash:!!target});setTimeout(function(){var el=target&&DOC.getElementById(String(target).replace(/^#/,''));if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},80);return;}}catch(e){} if(target)location.hash=target;else location.hash=tab;}
   var toast=function(msg){return window.KK_UTIL.toast(msg,{root:DOC,selector:'#kkv8Toast',id:'kkv8Toast',className:'kk12-toast',visibleClass:'is-visible',duration:2300,create:true})};
 
-  function marketEntries(){var arr=read(MARKET_KEY,[]);return Array.isArray(arr)?arr:[]}
+  /* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 16: der Marktmonitor
+     schreibt/liest nicht mehr in einen eigenen Speicher (kk_market_monitor_entries_v1),
+     sondern in die zentrale Objektdatenbank (window.KK_OBJECTS, recordType:'market').
+     Feldform bleibt unveraendert (town/platform/type/price/sqm/link/status/object/
+     addr/geo/done) - saveCentralObject() haelt beliebige Zusatzfelder, dadurch
+     bleiben alle bestehenden render*()-Funktionen dieses Moduls unveraendert
+     kompatibel. Fallback auf den Legacy-Key nur, falls KK_OBJECTS ausnahmsweise
+     nicht geladen ist (Testsicherheit, sollte im Normalbetrieb nie greifen). */
+  function marketEntries(){
+    if(window.KK_OBJECTS)return window.KK_OBJECTS.listObjects({recordType:'market'});
+    var arr=read(MARKET_KEY,[]); return Array.isArray(arr)?arr:[];
+  }
   function saveMarketEntries(arr){write(MARKET_KEY,arr)}
   /* Kevin Abschnitt 9: Marktbeobachtungen brauchen ein optionales, strukturiertes
      Adress-/Geo-Modell statt gar keins - keine zweite Geocoding-Logik, sondern
@@ -13985,31 +14006,33 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
      ungefaehre Ortsposition (resolvePosition() faellt automatisch auf den
      Orts-Anker zurueck, wenn keine Strasse geocodiert werden konnte) - "object"
      bleibt bewusst ein reines Freitextfeld und wird NIE als Adresse interpretiert
-     (Kevin: "Das Feld object darf nicht pauschal als Adresse interpretiert werden"). */
-  /* FIX (Kevin Live-Test, "wieder ganz wo anders, irgendwo im Feld", diesmal MIT
-     Strasse+Hausnummer+PLZ+Ort angegeben): der eigentliche Bug - geocodeIfNeeded()
-     wurde bisher aufgerufen, BEVOR der neue Eintrag ueberhaupt in
-     kk_market_monitor_entries_v1 geschrieben war (arr.unshift/saveMarketEntries
-     kamen danach). geocodeIfNeeded() liest das Storage-Array intern selbst neu
-     ein und sucht die uebergebene ID darin - die ID existierte zu diesem
-     Zeitpunkt noch gar nicht im Storage, der Aufruf gab also IMMER
-     {skipped:true,reason:'not_found'} zurueck und die echte Nominatim-
-     Geocodierung feuerte nie, selbst bei vollstaendiger Adresse. Die Position
-     blieb dadurch immer beim groben, bis zu 650m gestreuten Orts-Anker-
-     Fallback haengen - kann bei laendlichen Ortsankern durchaus "irgendwo im
-     Feld" statt an der echten Strasse landen. Fix: erst speichern, DANACH
-     geocodieren (exakt wie im bereits korrekten saveObject()-Pfad fuer
-     CRM-Objekte). */
-  function addMarketEntry(entry){var arr=marketEntries();entry.id=entry.id||('market_'+Date.now()+'_'+Math.random().toString(16).slice(2));entry.createdAt=entry.createdAt||new Date().toISOString();entry.updatedAt=new Date().toISOString();entry.done=!!entry.done;if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(entry,{city:'town'});arr.unshift(entry);saveMarketEntries(arr.slice(0,400));renderMarket();renderTodayExtension();
-    if(entry.addr&&entry.addr.street&&window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded(MARKET_KEY,entry.id).then(function(){renderMarket();if(window.KK_REALMAP){try{window.KK_REALMAP.focusRecordSoon(MARKET_KEY,entry.id)}catch(e){}}});
-    /* Kevin Live-Test: neue Marktbeobachtung war "opt-in"-Ebene, unsichtbar bis
-       manuell aktiviert - Nutzer sah stattdessen einen unabhaengigen, staendig
-       sichtbaren Marker und hielt ihn faelschlich fuer seinen neuen Eintrag.
-       Fix: Ebene automatisch aktivieren und direkt zur neuen Position + Popup
-       springen, damit sofort ohne Suchen sichtbar ist, wo der Eintrag liegt. */
-    if(window.KK_REALMAP){try{window.KK_REALMAP.activateLayer('market_observations');window.KK_REALMAP.focusRecordSoon(MARKET_KEY,entry.id)}catch(e){}}
-    return entry}
-  function updateMarketEntry(id,patch){var arr=marketEntries().map(function(x){if(x.id===id){Object.keys(patch).forEach(function(k){x[k]=patch[k]});x.updatedAt=new Date().toISOString();}return x});saveMarketEntries(arr);renderMarket();renderTodayExtension();}
+     (Kevin: "Das Feld object darf nicht pauschal als Adresse interpretiert werden").
+     Position wird weiterhin ermittelt (fuer spaetere Typumwandlung zu inventory
+     und fuer Distanz-/Vergleichsanalysen) - erscheint aber NIE als Kartenmarker,
+     solange recordType==='market' bleibt (Abschnitt 14, harte Kartenregel). */
+  function addMarketEntry(entry){
+    entry.id=entry.id||('market_'+Date.now()+'_'+Math.random().toString(16).slice(2));
+    entry.createdAt=entry.createdAt||new Date().toISOString();
+    entry.updatedAt=new Date().toISOString();
+    entry.done=!!entry.done;
+    entry.recordType='market';
+    if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(entry,{city:'town'});
+    var centralKey=window.KK_OBJECTS?window.KK_OBJECTS.CENTRAL_KEY:MARKET_KEY;
+    var saved=window.KK_OBJECTS?window.KK_OBJECTS.saveCentralObject(entry):(function(){var arr=marketEntries();arr.unshift(entry);saveMarketEntries(arr.slice(0,400));return entry})();
+    renderMarket();renderTodayExtension();
+    if(saved&&!saved.error&&entry.addr&&entry.addr.street&&window.KK_GEOCODE){
+      window.KK_GEOCODE.geocodeIfNeeded(centralKey,entry.id).then(function(){renderMarket()});
+    }
+    return saved;
+  }
+  function updateMarketEntry(id,patch){
+    if(window.KK_OBJECTS){
+      var existing=window.KK_OBJECTS.getObject(id);
+      if(existing){window.KK_OBJECTS.saveCentralObject(Object.assign({},patch,{id:id,recordType:'market'}));renderMarket();renderTodayExtension();return}
+    }
+    var arr=marketEntries().map(function(x){if(x.id===id){Object.keys(patch).forEach(function(k){x[k]=patch[k]});x.updatedAt=new Date().toISOString();}return x});
+    saveMarketEntries(arr); renderMarket();renderTodayExtension();
+  }
   function searchUrl(platform,town){
     var q=encodeURIComponent(town+' Haus Wohnung kaufen');
     if(platform==='ImmoScout24')return 'https://www.immobilienscout24.de/Suche/de/hessen/main-kinzig-kreis/'+encodeURIComponent(town.toLowerCase())+'/immobilien-kaufen';
@@ -14836,7 +14859,11 @@ function buildData(){
   contacts.forEach(function(c){if(c.townKey&&data[c.townKey])data[c.townKey].contacts.push({kind:'CRM',name:c.name||c.company||c.firma||'Kontakt',category:c.category||c.contactType||c.role||'Kontakt',status:c.status||'',phone:c.phone||c.telefon||''})});
   var followups=uniq(list('kk_followups'),function(f,i){return recordId('fu',f,i)});
   followups.forEach(function(f){if(!dueOpen(f))return;var k=townKeyFromRecord(f,contactById,contactByName);if(!k||!data[k]){addUnassigned('Follow-up',f,{kind:'followup',tab:'followups',panel:'followups',storageKey:'kk_followups'});return}markAssigned();data[k].openFollowups++;data[k].followups.push(f);addSource(data[k],'openFollowups','Follow-up',f,{tab:'followups',panel:'followups'})});
-  var objects=uniq(list('kk_crm_objects').concat(list('kk12_objects')),function(o,i){return recordId('obj',o,i)});
+  /* Zentrale Objekterfassung Abschnitt 15/22: nur inventory zaehlt als
+     "Objektakte"/aktives Objekt in dieser Orts-Datenqualitaets-Auswertung;
+     bereits nach kk_crm_objects migrierte kk12_objects-Eintraege werden hier
+     ausgeblendet, um Doppelzaehlung zu vermeiden (siehe renderKpis()). */
+  var objects=uniq(list('kk_crm_objects').filter(function(x){return !window.KK_OBJECTS||window.KK_OBJECTS.getObjectPolicy(x.recordType).countAsActiveObject}).concat(list('kk12_objects').filter(function(x){return !x.migratedToCentral})),function(o,i){return recordId('obj',o,i)});
   objects.forEach(function(o){var k=townKeyFromRecord(o,contactById,contactByName);if(!k||!data[k]){addUnassigned('Objektakte',o,{kind:'object',tab:'crm',panel:'objects',storageKeys:['kk_crm_objects','kk12_objects']});return}markAssigned();if(openStatus(o.status)){data[k].activeObjects++;addSource(data[k],'activeObjects','Objektakte',o,{tab:'crm',panel:'objects'})}});
   var deals=uniq(list('kk_sales_pipeline').concat(list('kk_crm_owner_pipeline')),function(d,i){return String(d.id||d._id||d.contactId||canon(d.name||'')+'|'+canon(d.objectType||'')+'|'+townKeyFromRecord(d,contactById,contactByName)||'deal'+i)});
   deals.forEach(function(deal){var k=townKeyFromRecord(deal,contactById,contactByName);if(!k||!data[k]){addUnassigned('Pipeline',deal,{kind:'pipeline',tab:'pipeline',panel:'pipeline',storageKeys:['kk_sales_pipeline','kk_crm_owner_pipeline']});return}var d=data[k],txt=canon(textOf(deal,['stage','status','phase','nextStep']));markAssigned();if(dealClosed(deal)){var y=dateYear(deal);if(!y||y===currentYear()){d.sales++;addSource(d,'sales','Pipeline · Verkauf',deal,{tab:'pipeline',panel:'pipeline'})}}else if(openStatus(textOf(deal,['stage','status','phase']))){d.activeObjects++;d.openLeads++;addSource(d,'activeObjects','Pipeline · Chance',deal,{tab:'pipeline',panel:'pipeline'});addSource(d,'openLeads','Pipeline · offener Lead',deal,{tab:'pipeline',panel:'pipeline'})}if(/bewert|marktpreis/.test(txt)){d.valuations++;addSource(d,'valuations','Pipeline · Bewertung',deal,{tab:'pipeline',panel:'pipeline'})}});
@@ -15533,8 +15560,13 @@ function popupHead(typeLabel,title){return '<div class="kkgeo-popup-type">'+esc(
    Cluster verwenden ausschliesslich deren Rueckgabe - keine zweite/abweichende
    Filterlogik irgendwo sonst im Karten-Code. */
 var LAYER_DEFS=[
-  {key:'objects',label:'Objekte / Immobilien',storageKey:'kk_crm_objects',color:'#182C46',icon:ICONS.house,
-    extract:function(arr){return arr},
+  /* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 14 (harte Kartenregel):
+     NUR recordType==='inventory' darf je als Marker erscheinen - market/research
+     NIE, auch nicht mit vorhandenen Koordinaten. Fehlt recordType (Altbestand vor
+     dieser Phase), gilt er als inventory (KK_OBJECTS.getObjectPolicy-Default) und
+     bleibt sichtbar, bis eine Migration/Typumwandlung ihn explizit umtypisiert. */
+  {key:'objects',label:'Objekte / Immobilien (Bestand)',storageKey:'kk_crm_objects',color:'#182C46',icon:ICONS.house,
+    extract:function(arr){return arr.filter(function(o){return !window.KK_OBJECTS||window.KK_OBJECTS.getObjectPolicy(o&&o.recordType).showOnMap})},
     popup:function(o){return popupHead('Objekt / Immobilie',o.address||'Objekt ohne Adresse')+
       fieldRow('Objektart',o.objectType)+
       fieldRow('Status / Vermarktungsstatus',o.status)+
@@ -15613,34 +15645,16 @@ var LAYER_DEFS=[
       fieldRow('Telefon',x.phone)+
       fieldRow('E-Mail',x.email)+
       fieldRow('Letzte Aktivität',x.lastContact?fmtDate(x.lastContact):'')+
-      fieldRow('Quelle / Modul','CRM Pro · Pipeline')}},
-  /* Fehler B (Kevin, Live-Test): eine als Marktbeobachtung erfasste Adresse
-     (kk_market_monitor_entries_v1) erschien nicht auf der Karte, weil KEINE
-     LAYER_DEFS-Ebene diesen Speicher je gelesen hat - die Ebene "Objekte" liest
-     ausschliesslich kk_crm_objects. Marktbeobachtung und CRM-Objekt sind
-     fachlich unterschiedliche Dinge (Kevin Abschnitt 8: "Marktbeobachtung ist
-     nicht gleich CRM-Objekt") und bleiben es - eigene Ebene statt die
-     Trennung stillschweigend aufzuheben. */
-  {key:'market_observations',label:'Marktbeobachtungen / Angebote',storageKey:'kk_market_monitor_entries_v1',color:'#0EA5A5',icon:ICONS.eye,
-    extract:function(arr){return arr.filter(function(x){return x&&x.status!=='Archiviert'})},
-    popup:function(x){return popupHead('Marktbeobachtung (kein eigenes Vermarktungsobjekt)',x.object||x.town||'Marktbeobachtung')+
-      fieldRow('Ort',x.town)+
-      fieldRow('Quelle / Plattform',x.platform)+
-      fieldRow('Beobachtungsart',x.type)+
-      fieldRow('Preis',x.price?money(x.price):'')+
-      fieldRow('Fläche',x.sqm?x.sqm+' m²':'')+
-      fieldRow('Status',x.status)+
-      fieldRow('Link',x.link)+
-      fieldRow('Quelle / Modul','Marktmonitor')+
-      /* FIX (Kevin Live-Test, "kann nicht draufklicken"): fruehere Version wickelte
-         den Uebernehmen-Button in eine EIGENE .kkgeo-popup-actions-Div, die
-         buildRecordMarkers() danach in eine ZWEITE, identisch benannte Div fuer
-         die generischen Aktionen (Datensatz oeffnen etc.) einbettete - zwei
-         verschachtelte gleich-klassige Flex-Container konnten je nach CSS-
-         Spezifitaet Buttons ausserhalb des sichtbaren/klickbaren Bereichs
-         schieben. Jetzt ein einzelner, nicht verschachtelter Button. */
-      (x.crmObjectId?'<div class="kkgeo-popup-precision">Bereits als CRM-Objekt übernommen.</div>':
-        '<button type="button" class="kkgeo-layer-only" data-kkgeo-adopt="'+esc(x.id)+'">Als CRM-Objekt übernehmen</button>')}}
+      fieldRow('Quelle / Modul','CRM Pro · Pipeline')}}
+  /* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 14 (verbindlich): die in
+     PR #9 als Fehler-B-Fix hinzugefuegte Ebene "market_observations"
+     (kk_market_monitor_entries_v1) ist HIER VOLLSTAENDIG ENTFERNT - kein Toggle,
+     kein versteckter Layer, keine optionale Analyseebene. Marktbeobachtungen
+     duerfen nach der neuen, von Kevin verbindlich vorgegebenen Systemlogik NIE
+     als Kartenmarker erscheinen, selbst wenn eine Position vorhanden ist. Die
+     Daten bleiben erhalten (kk_market_monitor_entries_v1 wird durch Phase 6
+     additiv in die zentrale Objektdatenbank uebernommen, recordType:'market') -
+     nur die Kartenanzeige entfaellt ersatzlos. */
 ];
 /* Bekannter "Phantommarker"-Fehler (Master-Prompt Punkt 11.2): buildTownMarkers()
    (Orts-Gesamtpotenzial-Kreise) wurde bisher IMMER gerendert, unabhaengig von
@@ -15648,49 +15662,26 @@ var LAYER_DEFS=[
    Orts-Uebersicht wird jetzt selbst als Eintrag im SELBEN activeLayers-System
    gefuehrt (TOWN_OVERVIEW_KEY), damit exakt EINE zentrale Filterlogik entscheidet,
    was sichtbar ist - keine getrennte "immer an"-Sonderregel mehr. */
-/* Kevin Abschnitt 8.5 "Als CRM-Objekt uebernehmen": bewusste, einmalige
-   Aktion statt automatischer Uebernahme jeder Marktbeobachtung (Kevin: "nicht
-   automatisch aus jeder Marktbeobachtung ein CRM-Objekt machen"). Adresse/Geo
-   werden 1:1 uebernommen (kein zweiter Geocoding-Aufruf noetig, wenn die
-   Marktbeobachtung schon eine Position hat); crmObjectId auf der
-   Marktbeobachtung verhindert eine zweite Uebernahme (keine Duplikate bei
-   zweitem Klick). */
+/* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 17 (Typumwandlung):
+   Marktbeobachtungen leben seit Phase 6 in DERSELBEN zentralen
+   Objektdatenbank wie Bestandsobjekte (kk_crm_objects), nur recordType
+   unterscheidet sie - "Uebernehmen" ist daher keine Kopie in einen zweiten
+   Speicher mehr, sondern eine kontrollierte Typumwandlung ueber
+   window.KK_OBJECTS.changeRecordType() mit typeHistory-Eintrag. Weiterhin eine
+   bewusste, einmalige Aktion (Kevin Abschnitt 8: "nicht automatisch aus jeder
+   Marktbeobachtung ein CRM-Objekt machen") - kein automatischer Trigger. */
 function adoptMarketObservation(id){
-  var raw=window.KK_UTIL.readJSON('kk_market_monitor_entries_v1',[]);
-  var arr=Array.isArray(raw)?raw:[];
-  var idx=arr.findIndex(function(x){return x&&x.id===id});
-  if(idx<0)return;
-  var entry=arr[idx];
-  if(entry.crmObjectId){
-    if(window.KK_UTIL.toast)window.KK_UTIL.toast('Diese Marktbeobachtung wurde bereits als CRM-Objekt übernommen.');
+  if(!window.KK_OBJECTS)return;
+  var rec=window.KK_OBJECTS.getObject(id);
+  if(!rec)return;
+  if(window.KK_OBJECTS.normalizeRecordType(rec.recordType)==='inventory'){
+    if(window.KK_UTIL.toast)window.KK_UTIL.toast('Dieser Datensatz ist bereits Bestand.');
     return;
   }
-  var objects=window.KK_UTIL.readJSON('kk_crm_objects',[]);
-  if(!Array.isArray(objects))objects=[];
-  var newId=window.KK_UTIL.uid?window.KK_UTIL.uid('obj'):('obj_'+Date.now());
-  var obj={
-    id:newId,
-    address:entry.object||entry.town||'',
-    area:entry.town||'',
-    objectType:entry.type||'',
-    status:'Marktbeobachtung übernommen',
-    notes:['Übernommen aus Marktbeobachtung.',entry.note,entry.link?('Inserat: '+entry.link):'',entry.platform?('Quelle: '+entry.platform):''].filter(Boolean).join(' · '),
-    wantedPrice:Number(entry.price)||0,
-    docs:[],
-    nextStep:'Objekt qualifizieren',
-    marketObservationId:entry.id,
-    createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()
-  };
-  if(entry.addr)obj.addr=JSON.parse(JSON.stringify(entry.addr));
-  if(entry.geo)obj.geo=JSON.parse(JSON.stringify(entry.geo));
-  if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(obj,{city:'area'});
-  objects.unshift(obj);
-  window.KK_UTIL.writeJSON('kk_crm_objects',objects);
-  entry.crmObjectId=newId;
-  entry.updatedAt=new Date().toISOString();
-  arr[idx]=entry;
-  window.KK_UTIL.writeJSON('kk_market_monitor_entries_v1',arr);
-  if(window.KK_UTIL.toast)window.KK_UTIL.toast('Als CRM-Objekt übernommen.');
+  var result=window.KK_OBJECTS.changeRecordType(id,'inventory','Marktbeobachtung/Recherche als Bestand übernommen');
+  if(!result||result.error)return;
+  if(!result.status||result.status==='Neu')window.KK_OBJECTS.saveCentralObject({id:id,recordType:'inventory',status:'Objekt identifiziert',nextStep:result.nextStep||'Objekt qualifizieren'});
+  if(window.KK_UTIL.toast)window.KK_UTIL.toast('Als Bestand übernommen – erscheint jetzt auf Karte und in der Pipeline.');
   renderNow();
 }
 
@@ -15935,7 +15926,6 @@ function openRecordDetail(layerKey,id){
     if(layerKey==='objects'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('crm');setTimeout(function(){if(window.KK_CRM_PRO)window.KK_CRM_PRO.editObject(id)},170)}
     else if(layerKey==='owners'||layerKey==='buyers'||layerKey==='leads'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('crm');setTimeout(function(){if(window.KK_CRM_PRO)window.KK_CRM_PRO.editContact(id)},170)}
     else if(layerKey==='referrers'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('tippgeber');setTimeout(function(){if(window.KK_REFERRAL_NETWORK_V1)window.KK_REFERRAL_NETWORK_V1.editRecord(id)},170)}
-    else if(layerKey==='market_observations'){if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('marktmonitor')}
     else{if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('pipeline')}
   }catch(err){}
 }

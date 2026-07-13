@@ -1,14 +1,20 @@
 // Regression test for a real ordering bug found via Kevin's second live-test
 // round (deploy preview, real device, full address with street/house number/
 // postal code/town this time): addMarketEntry() called
-// window.KK_GEOCODE.geocodeIfNeeded(MARKET_KEY, entry.id) BEFORE the new entry
-// was actually written to kk_market_monitor_entries_v1 (arr.unshift/
-// saveMarketEntries happened afterwards). geocodeIfNeeded() re-reads the
+// window.KK_GEOCODE.geocodeIfNeeded(key, entry.id) BEFORE the new entry
+// was actually written to storage. geocodeIfNeeded() re-reads the
 // storage array internally and looks up the id there - since the id did not
 // exist in storage yet at call time, the geocoding call ALWAYS silently
 // no-op'd ({skipped:true,reason:'not_found'}), so real Nominatim geocoding
 // never fired even with a complete address - the marker was stuck on the
 // crude ~650m-jittered town anchor fallback forever ("irgendwo im Feld").
+//
+// Updated for the "Zentrale Objekterfassung" master task: market entries are
+// no longer written to kk_market_monitor_entries_v1 directly but to the
+// central object store (window.KK_OBJECTS, recordType='market') - the
+// geocode call now targets KK_OBJECTS.CENTRAL_KEY. The ordering guarantee
+// this test protects (save BEFORE geocode) is unchanged and equally
+// critical in the new central-store code path.
 //
 // Uses a real local HTTP server + page.route() network mocking (same pattern
 // as test-official-gis.js) instead of file:// - this sandbox's pinned
@@ -60,8 +66,7 @@ function startStaticServer(filePath) {
       // that's exactly the bug: verify it directly from inside the mocked
       // network handler, at the real point in time the call actually happens.
       geocodeSawTheRecordAsSaved = await page.evaluate(() => {
-        var arr = JSON.parse(localStorage.getItem('kk_market_monitor_entries_v1') || '[]');
-        return arr.length > 0;
+        return window.KK_OBJECTS.listObjects({ recordType: 'market' }).length > 0;
       });
       route.fulfill({
         status: 200, contentType: 'application/json',
@@ -73,7 +78,7 @@ function startStaticServer(filePath) {
     });
 
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 60000 });
-    await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_GEOCODE && window.KK_REALMAP), null, { timeout: 15000 });
+    await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_GEOCODE && window.KK_REALMAP && window.KK_OBJECTS), null, { timeout: 15000 });
     await page.evaluate(() => { window.KK_APP_SHELL.setActiveTab('marktmonitor'); });
     await page.waitForSelector('#kkv8MarketEntryForm', { state: 'visible', timeout: 15000 });
 
@@ -86,17 +91,23 @@ function startStaticServer(filePath) {
     await page.click('#kkv8MarketEntryForm button[type="submit"]');
 
     await page.waitForFunction(() => {
-      var arr = JSON.parse(localStorage.getItem('kk_market_monitor_entries_v1') || '[]');
+      var arr = window.KK_OBJECTS.listObjects({ recordType: 'market' });
       return arr.length > 0 && arr[0].geo && (arr[0].geo.status === 'exact' || arr[0].geo.status === 'street');
     }, null, { timeout: 10000 });
 
     check('geocode-Function wurde tatsächlich aufgerufen (Geocoding feuert bei vollständiger Adresse)', geocodeCallCount >= 1, results);
-    check('DER BUG: zum Zeitpunkt des geocode-Aufrufs war der neue Eintrag bereits in kk_market_monitor_entries_v1 gespeichert (nicht mehr "not_found")', geocodeSawTheRecordAsSaved === true, results);
+    check('DER BUG: zum Zeitpunkt des geocode-Aufrufs war der neue Eintrag bereits in der zentralen Objektdatenbank gespeichert (nicht mehr "not_found")', geocodeSawTheRecordAsSaved === true, results);
 
-    const finalEntry = await page.evaluate(() => JSON.parse(localStorage.getItem('kk_market_monitor_entries_v1'))[0]);
+    const finalEntry = await page.evaluate(() => window.KK_OBJECTS.listObjects({ recordType: 'market' })[0]);
     console.log('finalEntry.geo:', JSON.stringify(finalEntry.geo));
     check('Marktbeobachtung übernimmt die ECHTE geocodierte Position (50.21/8.92) statt beim groben Orts-Anker-Fallback zu bleiben', finalEntry.geo.latitude === 50.21 && finalEntry.geo.longitude === 8.92, results);
     check('Geo-Status ist "exact" oder "street" (echtes Geocoding-Ergebnis), nicht "city" (Orts-Anker-Fallback)', finalEntry.geo.status === 'exact' || finalEntry.geo.status === 'street', results);
+
+    // Master-Auftrag "Zentrale Objekterfassung" Abschnitt 14: selbst mit einer
+    // exakten, echt geocodierten Position darf diese Marktbeobachtung NIE auf
+    // der Karte erscheinen (recordType bleibt 'market').
+    const mayAppear = await page.evaluate(() => window.KK_OBJECTS.mayAppearOnMap(window.KK_OBJECTS.listObjects({ recordType: 'market' })[0]));
+    check('Trotz exakter Position: mayAppearOnMap() ist false, solange recordType=market bleibt (harte Kartenregel)', mayAppear === false, results);
 
     check('no page errors', pageErrors.length === 0, results);
     await browser.close();

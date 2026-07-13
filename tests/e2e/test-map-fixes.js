@@ -1,12 +1,19 @@
-// Regression test for the two real production bugs Kevin reported from live
-// mobile use (Fehler B: Marktbeobachtung fehlt auf der Karte) plus the two
-// directly-linked workflow bugs found while investigating it: geo data being
-// silently wiped on every CRM-object edit, and the map not distinguishing
-// "no data" from "data without a position". BORIS (Fehler A) is covered
-// separately in test-official-gis.js. Runs against the local file:// copy -
-// no real network/Leaflet needed, since all assertions read the underlying
-// data layer (window.KK_REALMAP/window.KK_GEO/localStorage), not rendered
-// map pixels (Leaflet/CDN unavailable in this sandbox, see ADR-0002).
+// Regression test for the map-related bugs found during Kevin's live mobile
+// testing (Fehler B: Marktbeobachtung fehlt auf der Karte; geo data being
+// silently wiped on every CRM-object edit; the map not distinguishing
+// "no data" from "data without a position") PLUS the subsequent, binding
+// "Zentrale Objekterfassung" master task, which explicitly REVERSES the
+// Fehler-B map layer: market observations must now NEVER appear on the map,
+// under any circumstance, even with a valid position (hard map policy,
+// Abschnitt 14). This file was rewritten accordingly - the old
+// "market_observations is a map layer" assertions are gone; new assertions
+// prove the opposite (market data is saved centrally, geocodable for future
+// type-conversion, but categorically invisible on the map). BORIS (Fehler A)
+// is covered separately in test-official-gis.js. Runs against the local
+// file:// copy - no real network/Leaflet needed, since all assertions read
+// the underlying data layer (window.KK_REALMAP/KK_OBJECTS/KK_GEO/
+// localStorage), not rendered map pixels (Leaflet/CDN unavailable in this
+// sandbox, see ADR-0002).
 const { chromium } = require('playwright');
 const path = require('path');
 
@@ -29,72 +36,51 @@ function check(name, cond, results) {
     page.on('dialog', async (dialog) => { await dialog.accept(); });
 
     await page.goto(fileUrl, { waitUntil: 'load' });
-    await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_REALMAP && window.KK_GEO && window.KK_GEOCODE), null, { timeout: 15000 });
+    await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_REALMAP && window.KK_GEO && window.KK_GEOCODE && window.KK_OBJECTS), null, { timeout: 15000 });
     await page.evaluate(() => { window.KK_APP_SHELL.openTab('marktmonitor'); });
 
-    // --- Fehler B: eigene Kartenebene fuer Marktbeobachtungen ---
+    // --- Master-Auftrag Abschnitt 14 (harte Kartenregel): KEINE eigene Kartenebene mehr ---
     const hasLayer = await page.evaluate(() => window.KK_REALMAP.getLayerDefs().some((d) => d.key === 'market_observations'));
-    check('Neue Kartenebene "Marktbeobachtungen / Angebote" existiert in LAYER_DEFS', hasLayer, results);
+    check('Die Kartenebene "market_observations" aus PR #9 wurde vollständig entfernt (kein Toggle, kein versteckter Layer)', !hasLayer, results);
 
     // Eine Marktbeobachtung mit NUR einem Ort (kein Straße/PLZ) anlegen - genau
     // Kevins realer Fall ("Bruchköbel · Im kleinen Feld 15" als freies "object"-
-    // Textfeld, ohne strukturierte Adresse) - muss trotzdem ueber den Orts-Anker
-    // ungefaehr kartierbar sein (Kevin Abschnitt 9: "Wenn nur der Ort vorhanden
-    // ist: ungefaehrer Ortsmarker ist zulaessig").
+    // Textfeld, ohne strukturierte Adresse).
     await page.fill('#kkv8MarketObject', 'Im kleinen Feld 15');
     await page.selectOption('#kkv8MarketTown', 'Bruchköbel');
     await page.click('#kkv8MarketEntryForm button[type="submit"]');
-    await page.waitForFunction(() => JSON.parse(localStorage.getItem('kk_market_monitor_entries_v1') || '[]').length >= 1, null, { timeout: 10000 });
+    await page.waitForFunction(() => window.KK_OBJECTS.listObjects({ recordType: 'market' }).length >= 1, null, { timeout: 10000 });
 
-    const entryAddr = await page.evaluate(() => JSON.parse(localStorage.getItem('kk_market_monitor_entries_v1'))[0]);
+    const entryAddr = await page.evaluate(() => window.KK_OBJECTS.listObjects({ recordType: 'market' })[0]);
+    check('Marktbeobachtung wird in der ZENTRALEN Objektdatenbank gespeichert (recordType=market), kein separater Primärspeicher mehr', entryAddr && entryAddr.recordType === 'market', results);
     check('Marktbeobachtung bekommt automatisch addr.city aus dem Ort-Feld (ensureRecordGeo)', entryAddr.addr && entryAddr.addr.city === 'Bruchköbel', results);
 
-    // Kevin Live-Test ("nicht annähernd an der Adresse"): wahrscheinlichste Ursache
-    // war, dass die neue Ebene nicht automatisch aktiviert wurde, der Nutzer also
-    // einen ANDEREN, staendig sichtbaren Marker faelschlich fuer seinen neuen
-    // Eintrag hielt. addMarketEntry() muss die Ebene jetzt selbst aktivieren.
-    const layerAutoActivated = await page.evaluate(() => window.KK_REALMAP.getActiveLayers().indexOf('market_observations') > -1);
-    check('addMarketEntry() aktiviert die "market_observations"-Ebene automatisch, kein manuelles Zuschalten nötig um den neuen Eintrag zu sehen', layerAutoActivated, results);
+    // Master-Auftrag Abschnitt 14: eine Marktbeobachtung darf NIE als Kartenmarker
+    // erscheinen, selbst wenn sie (wie hier, ueber den Orts-Anker) eine gueltige
+    // Position hat. mayAppearOnMap() muss das kategorisch verneinen.
+    const mayAppear = await page.evaluate((id) => window.KK_OBJECTS.mayAppearOnMap(window.KK_OBJECTS.getObject(id)), entryAddr.id);
+    check('KK_OBJECTS.mayAppearOnMap() verneint für recordType=market kategorisch, auch mit gültiger Position', mayAppear === false, results);
 
-    // Kevin Live-Test ("kann nicht drauf klicken"): die fruehere Popup-Markup hatte
-    // eine verschachtelte .kkgeo-popup-actions-Div (Uebernehmen-Button innerhalb
-    // des popup()-Outputs) INNERHALB der generischen .kkgeo-popup-actions-Div von
-    // buildRecordMarkers() - genau das wurde entfernt (Einzel-Button ohne eigene
-    // Actions-Div). Verifiziert direkt am generierten Popup-HTML-String (kein
-    // Leaflet-Rendering noetig, buildRecordMarkers() ist reine String-Logik).
-    const popupNestingCheck = await page.evaluate(() => {
+    const marketOnObjectsLayer = await page.evaluate(() => {
       var data = window.KK_REALMAP.buildRecordMarkers();
-      var rec = data.records.find((r) => r.storageKey === 'kk_market_monitor_entries_v1');
-      if (!rec) return { found: false };
-      var html = rec.singlePopupHtml;
-      var actionsDivCount = (html.match(/class="kkgeo-popup-actions"/g) || []).length;
-      return { found: true, actionsDivCount: actionsDivCount, hasAdoptButton: /data-kkgeo-adopt=/.test(html) };
+      return { objectsCount: data.counts.objects, allRecords: data.records.map(function (r) { return r.storageKey; }) };
     });
-    console.log('popupNestingCheck:', JSON.stringify(popupNestingCheck));
-    check('Marktbeobachtungs-Popup hat den "Übernehmen"-Button, aber KEINE verschachtelte zweite .kkgeo-popup-actions-Div (der Klick-Bug)', popupNestingCheck.found && popupNestingCheck.hasAdoptButton && popupNestingCheck.actionsDivCount === 1, results);
+    console.log('marketOnObjectsLayer:', JSON.stringify(marketOnObjectsLayer));
+    check('Die Ebene "Objekte / Immobilien" zählt die Marktbeobachtung NICHT mit (nur recordType=inventory)', marketOnObjectsLayer.objectsCount === 0, results);
+    check('Kein einziger Kartendatensatz stammt aus einer Marktbeobachtung (keine versteckte/optionale Analyseebene)', !marketOnObjectsLayer.allRecords.some(function (k) { return k === 'kk_market_monitor_entries_v1'; }), results);
 
-    await page.evaluate(() => { window.KK_REALMAP.setActiveLayers(window.KK_REALMAP.getActiveLayers().concat(['market_observations'])); });
-    const marketMapped = await page.evaluate(() => {
-      var data = window.KK_REALMAP.buildRecordMarkers();
-      return { mapped: data.mappedCounts.market_observations, total: data.counts.market_observations, objectsCount: data.counts.objects };
-    });
-    console.log('marketMapped:', JSON.stringify(marketMapped));
-    check('Marktbeobachtung (nur Ort bekannt) ist auf der Karte auflösbar (ungefähre Ortsposition), nicht "0 sichtbar" trotz vorhandenem Datensatz', marketMapped.mapped >= 1, results);
-    check('Fehler B Kernbefund reproduziert: die Marktbeobachtung zählt NICHT als "Objekte / Immobilien" (kk_crm_objects bleibt unberührt von reinen Marktbeobachtungen)', marketMapped.objectsCount === 0, results);
-
-    // --- "Als CRM-Objekt übernehmen": bewusste, einmalige Aktion, keine Duplikate ---
-    const entryId = await page.evaluate(() => JSON.parse(localStorage.getItem('kk_market_monitor_entries_v1'))[0].id);
+    // --- "Als Bestand übernehmen": kontrollierte Typumwandlung statt Kopie in einen zweiten Speicher ---
+    const entryId = entryAddr.id;
     await page.evaluate((id) => { window.KK_REALMAP.adoptMarketObservation(id); }, entryId);
-    const afterAdopt = await page.evaluate(() => ({
-      objects: JSON.parse(localStorage.getItem('kk_crm_objects') || '[]'),
-      entry: JSON.parse(localStorage.getItem('kk_market_monitor_entries_v1'))[0]
-    }));
-    check('"Als CRM-Objekt übernehmen" legt einen neuen kk_crm_objects-Datensatz an', afterAdopt.objects.some((o) => o.marketObservationId === entryId), results);
-    check('Die übernommene Marktbeobachtung ist über crmObjectId mit dem neuen CRM-Objekt verknüpft', !!afterAdopt.entry.crmObjectId, results);
-    const objectsCountBefore = afterAdopt.objects.length;
+    const afterAdopt = await page.evaluate((id) => window.KK_OBJECTS.getObject(id), entryId);
+    check('"Als Bestand übernehmen" wandelt den bestehenden Datensatz per changeRecordType() um (keine Kopie, keine neue ID)', afterAdopt && afterAdopt.recordType === 'inventory', results);
+    check('Typumwandlung wird in typeHistory protokolliert (Abschnitt 17)', Array.isArray(afterAdopt.typeHistory) && afterAdopt.typeHistory.some(function (h) { return h.from === 'market' && h.to === 'inventory'; }), results);
+    const objectsCountBefore = await page.evaluate(() => window.KK_OBJECTS.listObjects({ recordType: 'inventory' }).length);
     await page.evaluate((id) => { window.KK_REALMAP.adoptMarketObservation(id); }, entryId); // zweiter Klick
-    const objectsCountAfter = await page.evaluate(() => JSON.parse(localStorage.getItem('kk_crm_objects') || '[]').length);
-    check('Ein zweiter "Übernehmen"-Klick auf dieselbe Marktbeobachtung erzeugt KEIN Duplikat', objectsCountAfter === objectsCountBefore, results);
+    const objectsCountAfter = await page.evaluate(() => window.KK_OBJECTS.listObjects({ recordType: 'inventory' }).length);
+    check('Ein zweiter "Übernehmen"-Klick auf denselben Datensatz erzeugt KEIN Duplikat', objectsCountAfter === objectsCountBefore, results);
+    const mayAppearAfterAdopt = await page.evaluate((id) => window.KK_OBJECTS.mayAppearOnMap(window.KK_OBJECTS.getObject(id)), entryId);
+    check('Nach der Umwandlung zu inventory darf der Datensatz (mit gültiger Position) auf der Karte erscheinen', mayAppearAfterAdopt === true, results);
 
     // --- Geo-Preserve-on-Edit-Fix: Position darf beim Bearbeiten nicht verschwinden ---
     await page.evaluate(() => { window.KK_APP_SHELL.setActiveTab('crm'); });
@@ -125,8 +111,6 @@ function check(name, cond, results) {
 
     // Jetzt NUR ein unabhaengiges Feld aendern (Notiz) und erneut speichern -
     // das ist Kevins Abschnitt 11 Kernfall: die Position darf NICHT verschwinden.
-    // Objekt-ID direkt setzen und Formular manuell fuellen (deckt exakt denselben
-    // readObjectForm()/saveObject()-Codepfad ab wie ein echter Edit-Klick).
     await page.evaluate((id) => {
       document.getElementById('kkcrmproObjectId').value = id;
       document.getElementById('kkcrmproObjectAddress').value = 'Musterstraße 1, 63456 Hanau';
