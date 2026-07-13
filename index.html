@@ -4341,13 +4341,11 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 <div class="kk12-grid kk12-two">
 <div class="kk12-card">
 <h3>Objektakte pro Immobilie</h3>
-<form class="kk12-grid" id="kk12ObjectForm">
-<input id="kk12ObjectId" type="hidden"/>
-<div class="kk12-row two"><div class="kk12-field"><label>Eigentümer</label><input aria-label="kk12ObjOwner" id="kk12ObjOwner" required=""/></div><div class="kk12-field"><label>Adresse / Lage</label><input aria-label="kk12ObjAddress" id="kk12ObjAddress" required=""/></div></div>
-<div class="kk12-row"><div class="kk12-field"><label>Gebiet</label><select aria-label="kk12ObjArea" id="kk12ObjArea"></select></div><div class="kk12-field"><label>Objektart</label><select aria-label="kk12ObjType" id="kk12ObjType"><option>Haus</option><option>Wohnung</option><option>Mehrfamilienhaus</option><option>Grundstück</option></select></div><div class="kk12-field"><label>Wert €</label><input aria-label="kk12ObjValue" id="kk12ObjValue" min="0" step="1000" type="number"/></div><div class="kk12-field"><label>Status</label><select aria-label="kk12ObjStatus" id="kk12ObjStatus"><option>Erstinfo</option><option>Bewertung geplant</option><option>Bewertet</option><option>Maklerauftrag offen</option><option>In Vermarktung</option><option>Notar</option><option>Abgeschlossen</option></select></div></div>
-<div class="kk12-field"><label>Nächste Aktion</label><input aria-label="kk12ObjNext" id="kk12ObjNext"/></div>
-<button class="kk12-btn" type="submit">Objektakte speichern</button>
-</form>
+<!-- Korrekturauftrag Abschnitt 7: eigenstaendiges Legacy-Formular entfernt -
+     Erfassung/Bearbeitung laeuft ausschliesslich ueber den zentralen
+     Objekteditor (derselbe wie CRM/Marktmonitor/Datensammlung). -->
+<p>Neue Objektakten werden über den zentralen Objekteditor erfasst - derselbe Editor wie im CRM-Tab.</p>
+<button type="button" class="kk12-btn" id="kk12ObjectOpenCentralBtn">Objekt erfassen</button>
 </div>
 <div class="kk12-card">
 <h3>Objekte</h3>
@@ -4553,66 +4551,16 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
       <div class="kkv8-quicklinks" id="kkv8MarketQuicklinks"></div>
     </div>
 
-    <div class="kkv8-grid kkv8-two">
-      <form class="kkv8-card kkv8-form" id="kkv8MarketEntryForm" autocomplete="off">
-        <h3>Neue Marktbeobachtung erfassen</h3>
-        <div class="kkv8-row three">
-          <div class="kkv8-field"><label for="kkv8MarketTown">Ort</label><select id="kkv8MarketTown" name="town"><option>Bruchköbel</option>
-<option>Hanau</option>
-<option>Schöneck</option>
-<option>Nidderau</option>
-<option>Erlensee</option>
-<option>Langenselbold</option>
-<option>Maintal</option>
-<option>Neuberg</option>
-<option>Hammersbach</option>
-<option>Rodenbach</option>
-<option>Freigericht</option>
-<option>Gelnhausen</option></select></div>
-          <div class="kkv8-field"><label for="kkv8MarketPlatform">Plattform</label><select id="kkv8MarketPlatform" name="platform"><option>ImmoScout24</option><option>Immowelt</option><option>Kleinanzeigen</option><option>Immonet</option><option>Ohne Plattform / Umfeld</option></select></div>
-          <div class="kkv8-field"><label for="kkv8MarketType">Beobachtung</label><select id="kkv8MarketType" name="type"><option>Neues Angebot</option><option>Auffälliges Inserat</option><option>Preisänderung</option><option>Lange inseriert</option><option>Akquise-Anlass</option></select></div>
-        </div>
-        <div class="kkv8-row three">
-          <div class="kkv8-field"><label for="kkv8MarketObject">Objekt / Adresse</label><input id="kkv8MarketObject" name="object" placeholder="z. B. EFH, Bruchköbel-Roßdorf"></div>
-          <div class="kkv8-field"><label for="kkv8MarketPrice">Preis</label><input id="kkv8MarketPrice" name="price" inputmode="numeric" placeholder="z. B. 649000"></div>
-          <div class="kkv8-field"><label for="kkv8MarketSqm">m²</label><input id="kkv8MarketSqm" name="sqm" inputmode="numeric" placeholder="z. B. 145"></div>
-        </div>
-        <div class="kkv8-row two">
-          <div class="kkv8-field"><label for="kkv8MarketLink">Link</label><input id="kkv8MarketLink" name="link" placeholder="Inseratslink einfügen"></div>
-          <div class="kkv8-field"><label for="kkv8MarketStatus">Status</label><select id="kkv8MarketStatus" name="status"><option>Neu prüfen</option><option>Relevant</option><option>Akquise ableiten</option><option>Beobachten</option><option>Archiviert</option></select></div>
-        </div>
-        <div class="kkv8-row three">
-          <div class="kkv8-field"><label for="kkv8MarketStreet">Straße + Hausnummer (optional, für genaue Kartenposition)</label><input id="kkv8MarketStreet" name="street" placeholder="z. B. Im kleinen Feld"></div>
-          <div class="kkv8-field"><label for="kkv8MarketHouseNo">Hausnummer</label><input id="kkv8MarketHouseNo" name="houseNo" placeholder="z. B. 15"></div>
-          <div class="kkv8-field"><label for="kkv8MarketPostal">PLZ (optional)</label><input id="kkv8MarketPostal" name="postal" inputmode="numeric" placeholder="z. B. 63486"></div>
-        </div>
-        <div class="kkv8-field"><label for="kkv8MarketNote">Chancen-Notiz</label><textarea id="kkv8MarketNote" name="note" placeholder="Was bedeutet das für Akquise, Vergleichsobjekte, Eigentümeransprache oder Eigentümeransprache?"></textarea></div>
-        <button class="kkv8-btn" type="submit">Marktbeobachtung speichern</button>
-      </form>
-
-      <div class="kkv8-card">
-        <h3>Import-/Notizfeld für kopierte Inseratsdaten</h3>
-        <p>Stufe 3: Text aus einem Inserat, Portal oder Marktbericht hier einfügen. Das System legt daraus eine Beobachtung an, ohne Web-Scraping vorzutäuschen.</p>
-        <form class="kkv8-form" id="kkv8MarketImportForm">
-          <div class="kkv8-row two">
-            <div class="kkv8-field"><label for="kkv8MarketImportTown">Ort</label><select id="kkv8MarketImportTown" name="town"><option>Bruchköbel</option>
-<option>Hanau</option>
-<option>Schöneck</option>
-<option>Nidderau</option>
-<option>Erlensee</option>
-<option>Langenselbold</option>
-<option>Maintal</option>
-<option>Neuberg</option>
-<option>Hammersbach</option>
-<option>Rodenbach</option>
-<option>Freigericht</option>
-<option>Gelnhausen</option></select></div>
-            <div class="kkv8-field"><label for="kkv8MarketImportType">Typ</label><select id="kkv8MarketImportType" name="type"><option>Neues Angebot</option><option>Auffälliges Inserat</option><option>Preisänderung</option><option>Lange inseriert</option><option>Akquise-Anlass</option></select></div>
-          </div>
-          <div class="kkv8-field"><label for="kkv8MarketImportText">Kopierte Daten</label><textarea id="kkv8MarketImportText" name="text" placeholder="Titel, Preis, Lage, Link, Beschreibung hier einfügen"></textarea></div>
-          <button class="kkv8-btn light" type="submit">Als Marktbeobachtung übernehmen</button>
-        </form>
-      </div>
+    <!-- Master-Auftrag "Zentrale Objekterfassung" (Korrekturauftrag) Abschnitt 7:
+         die frueheren eigenstaendigen Schnellerfassungsformulare
+         (#kkv8MarketEntryForm/#kkv8MarketImportForm, eigene Speichern-Buttons,
+         eigene Ausleselogik) sind aus der sichtbaren UI entfernt. Erfassung
+         laeuft ausschliesslich ueber den EINEN zentralen Objekteditor
+         (recordType=market vorgewaehlt) - kein zweites Formular mehr. -->
+    <div class="kkv8-card">
+      <h3>Marktbeobachtung erfassen</h3>
+      <p>Fremdangebote/Marktbeobachtungen werden über den zentralen Objekteditor erfasst - derselbe Editor wie für Bestand und Datensammlung, nur mit vorausgewähltem Typ "Auf dem Markt".</p>
+      <button type="button" class="kkv8-btn" id="kkv8MarketOpenCentralBtn">Marktbeobachtung erfassen</button>
     </div>
 
     <div class="kkv8-card" style="margin-top:12px">
@@ -4627,18 +4575,12 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
       </div>
     </div>
 
+    <!-- Korrekturauftrag Abschnitt 7: eigenstaendiges Formular entfernt -
+         Erfassung laeuft ueber den zentralen Objekteditor (recordType=research). -->
     <div class="kkv8-card" style="margin-top:12px" id="kkv8-research-section">
       <h3>Datensammlung (Vergleichsobjekte / Recherche)</h3>
-      <p>Reine Vergleichs- und Recherchedaten (Kaufpreise, historische Angebote, Vergleichsobjekte) - <strong>nicht</strong> Teil des Bestands. Erscheint nie auf der Karte, nie in der Objekt-Pipeline, erzeugt keine automatischen Aufgaben. Wird zentral gespeichert (recordType: research) und kann später kontrolliert zu Markt oder Bestand umgewandelt werden.</p>
-      <form class="kkv8-form" id="kkv8ResearchEntryForm" autocomplete="off">
-        <div class="kkv8-grid kkv8-three">
-          <div class="kkv8-field"><label for="kkv8ResearchTown">Ort</label><select id="kkv8ResearchTown" name="town" required=""><option value="">Bitte wählen</option><option>Hanau</option><option>Bruchköbel</option><option>Schöneck</option><option>Nidderau</option><option>Erlensee</option><option>Langenselbold</option><option>Maintal</option><option>Neuberg</option><option>Hammersbach</option><option>Rodenbach</option><option>Freigericht</option><option>Gelnhausen</option></select></div>
-          <div class="kkv8-field"><label for="kkv8ResearchTitle">Bezeichnung</label><input id="kkv8ResearchTitle" name="title" placeholder="z. B. Vergleichs-EFH, Verkaufspreis 2023"/></div>
-          <div class="kkv8-field"><label for="kkv8ResearchPrice">Preis €</label><input id="kkv8ResearchPrice" name="price" type="number" min="0" step="1000"/></div>
-        </div>
-        <div class="kkv8-field"><label for="kkv8ResearchNote">Notiz / Quelle</label><textarea id="kkv8ResearchNote" name="note" placeholder="Quelle, Kontext, Vergleichsgrund"></textarea></div>
-        <button class="kkv8-btn light" type="submit">Als Datensammlung speichern</button>
-      </form>
+      <p>Reine Vergleichs- und Recherchedaten (Kaufpreise, historische Angebote, Vergleichsobjekte) - <strong>nicht</strong> Teil des Bestands. Erscheint nie auf der Karte, nie in der Objekt-Pipeline, erzeugt keine automatischen Aufgaben. Wird über denselben zentralen Objekteditor erfasst (Typ "Nur Datensammlung") und kann später kontrolliert zu Markt oder Bestand umgewandelt werden.</p>
+      <button type="button" class="kkv8-btn light" id="kkv8ResearchOpenCentralBtn">Datensammlung erfassen</button>
       <div class="kkv8-list" id="kkv8ResearchList" style="margin-top:10px"></div>
     </div>
 
@@ -6806,6 +6748,43 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
     #crm-pro-os .kkcp-type-card strong{font-size:14px;font-weight:950}
     #crm-pro-os .kkcp-type-card small{color:var(--muted);font-weight:750;line-height:1.35}
     @media (max-width:620px){#crm-pro-os .kkcp-type-cards{grid-template-columns:1fr}}
+    /* Der zentrale Objekteditor-Dialog liegt als direktes Kind von <main>
+       AUSSERHALB von #crm-pro-os (siehe Kommentar an der Dialog-Definition),
+       deshalb hier eigene, nicht auf #crm-pro-os angewiesene Regeln fuer
+       dieselben .kkcp-type-card/.kkcp-detail-*-Bausteine. */
+    #kkCentralObjectEditorDialog{border:0;border-radius:18px;box-shadow:var(--v30-shadow-lg,0 20px 48px rgba(16,20,24,.16));padding:0;width:min(760px,94vw);max-height:90vh;color:var(--primary);background:#fff;overflow:auto}
+    #kkCentralObjectEditorDialog::backdrop{background:rgba(20,26,32,.5)}
+    #kkCentralObjectEditorDialog *{box-sizing:border-box}
+    #kkCentralObjectEditorDialog input,#kkCentralObjectEditorDialog select,#kkCentralObjectEditorDialog textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:9px 10px;background:#fff;color:var(--text);font:inherit;font-size:13px;outline:none}
+    #kkCentralObjectEditorDialog textarea{min-height:70px;resize:vertical}
+    #kkCentralObjectEditorDialog input:focus,#kkCentralObjectEditorDialog select:focus,#kkCentralObjectEditorDialog textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(20,28,40,.08)}
+    #kkCentralObjectEditorDialog .kkcp-field{margin-bottom:8px}
+    #kkCentralObjectEditorDialog .kkcp-field label{display:block;font-size:11px;font-weight:850;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+    #kkCentralObjectEditorDialog .kkcp-row{display:grid;gap:8px;margin-bottom:2px}
+    #kkCentralObjectEditorDialog .kkcp-row.two{grid-template-columns:1fr 1fr}
+    #kkCentralObjectEditorDialog .kkcp-row.four{grid-template-columns:repeat(4,1fr)}
+    #kkCentralObjectEditorDialog .kkcp-type-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+    #kkCentralObjectEditorDialog .kkcp-type-card{display:flex;flex-direction:column;gap:4px;text-align:left;min-height:64px;padding:14px;border:2px solid var(--line);border-radius:16px;background:#fffdf9;cursor:pointer;font-family:inherit;color:var(--primary)}
+    #kkCentralObjectEditorDialog .kkcp-type-card:hover,#kkCentralObjectEditorDialog .kkcp-type-card:focus-visible{border-color:var(--accent)}
+    #kkCentralObjectEditorDialog .kkcp-type-card.is-active{border-color:var(--primary);background:#fff;box-shadow:0 0 0 2px rgba(20,28,40,.12) inset}
+    #kkCentralObjectEditorDialog .kkcp-type-card strong{font-size:14px;font-weight:950}
+    #kkCentralObjectEditorDialog .kkcp-type-card small{color:var(--muted);font-weight:750;line-height:1.35}
+    #kkCentralObjectEditorDialog .kkcp-type-cards-compact{margin-top:0}
+    #kkCentralObjectEditorDialog .kkcp-type-cards-compact .kkcp-type-card{min-height:auto;padding:9px 12px}
+    #kkCentralObjectEditorDialog .kkcp-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+    #kkCentralObjectEditorDialog .kkcp-detail-close{border:1px solid var(--line);background:#fff;border-radius:10px;width:34px;height:34px;cursor:pointer;font-size:14px;color:var(--muted);flex:0 0 auto}
+    #kkCentralObjectEditorDialog .kkcp-detail-section{padding:14px 20px 0}
+    #kkCentralObjectEditorDialog .kkcp-detail-section summary{cursor:pointer;list-style:revert}
+    #kkCentralObjectEditorDialog .kkcp-detail-actions{display:flex;gap:8px;flex-wrap:wrap;padding:14px 20px;position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);margin-top:14px}
+    #kkCentralObjectEditorDialog .kkcp-field-error{color:var(--accent,#c0392b);font-size:11px;font-weight:800;margin-top:3px}
+    #kkCentralObjectEditorDialog .kk-central-dupe-warning{border-left:4px solid var(--orange,#f39c12);background:rgba(243,156,18,.12);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;color:var(--primary)}
+    @media (max-width:620px){
+      #kkCentralObjectEditorDialog{width:100vw;max-width:100vw;height:100vh;max-height:100vh;border-radius:0}
+      #kkCentralObjectEditorDialog .kkcp-row.two,#kkCentralObjectEditorDialog .kkcp-row.four{grid-template-columns:1fr}
+      #kkCentralObjectEditorDialog .kkcp-type-cards{grid-template-columns:1fr}
+      #kkCentralObjectEditorDialog .kkcp-type-cards-compact{grid-template-columns:1fr 1fr 1fr}
+      #kkCentralObjectEditorDialog .kkcp-detail-actions{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+    }
   </style>
 <div class="kkcp-shell">
 <div class="kkcp-head kkcp-head-actions-only">
@@ -6884,14 +6863,19 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
 <div class="kkcp-grid kkcp-two">
 <article class="kkcp-card" id="kk-central-object-launcher">
 <h3>Objekt erfassen</h3>
-<p>Ein Eingang für alle Objektarten. Alle drei landen in derselben zentralen Objektdatenbank - nur der Typ entscheidet automatisch, ob ein Datensatz auf der Karte, in der Pipeline und bei Follow-ups erscheint.</p>
-<div class="kkcp-type-cards">
-<button type="button" class="kkcp-type-card" data-kk-object-type="inventory"><strong>In meinem Bestand</strong><small>Eigenes Vermarktungsobjekt – erscheint auf Karte, in Pipeline, Follow-ups</small></button>
-<button type="button" class="kkcp-type-card" data-kk-object-type="market"><strong>Auf dem Markt</strong><small>Fremdangebot / Marktbeobachtung – nur Analyse, nie auf der Karte, keine Aufgaben</small></button>
-<button type="button" class="kkcp-type-card" data-kk-object-type="research"><strong>Nur Datensammlung</strong><small>Vergleichs-/Recherchedaten – nur Analyse, nie auf der Karte, keine Aufgaben</small></button>
-</div>
+<p>Ein einziger Objekteditor für alle Objektarten. Alle drei landen in derselben zentralen Objektdatenbank - nur der Typ entscheidet automatisch, ob ein Datensatz auf der Karte, in der Pipeline und bei Follow-ups erscheint.</p>
+<button type="button" class="kkcp-btn" id="kkCentralOpenBtn">Objekt erfassen</button>
 </article>
-<article class="kkcp-card"><h3>Objektakte anlegen (Bestand)</h3><form id="kkcrmproObjectForm"><input id="kkcrmproObjectId" type="hidden"/><div class="kkcp-row two"><div class="kkcp-field"><label>Eigentümer / Kontakt</label><input aria-label="kkcrmproObjectOwner" id="kkcrmproObjectOwner"/></div><div class="kkcp-field"><label>Objektadresse *</label><input aria-label="kkcrmproObjectAddress" id="kkcrmproObjectAddress" required=""/></div></div><div class="kkcp-row four"><div class="kkcp-field"><label>Straße</label><input aria-label="kkcrmproObjectStreet" id="kkcrmproObjectStreet" placeholder="optional, für genaue Kartenposition"/></div><div class="kkcp-field"><label>Hausnummer</label><input aria-label="kkcrmproObjectHouseNo" id="kkcrmproObjectHouseNo"/></div><div class="kkcp-field"><label>PLZ</label><input aria-label="kkcrmproObjectPostal" id="kkcrmproObjectPostal" inputmode="numeric" maxlength="5"/></div><div class="kkcp-field"><label>Standort-Sichtbarkeit</label><select aria-label="kkcrmproObjectVisibility" id="kkcrmproObjectVisibility"><option value="exact">Exakt</option><option value="street">Straßengenau</option><option value="district">Nur Ortsteil</option><option value="city">Nur Ort</option><option value="hidden">Auf Karte ausblenden</option></select></div></div><div class="kkcp-row four"><div class="kkcp-field"><label>Gemarkung</label><input aria-label="kkcrmproObjectGemarkung" id="kkcrmproObjectGemarkung" placeholder="optional"/></div><div class="kkcp-field"><label>Flur</label><input aria-label="kkcrmproObjectFlur" id="kkcrmproObjectFlur" placeholder="optional"/></div><div class="kkcp-field"><label>Flurstücksnummer</label><input aria-label="kkcrmproObjectFlurstueck" id="kkcrmproObjectFlurstueck" placeholder="optional"/></div><div class="kkcp-field"><label>Interne Standortnotiz</label><input aria-label="kkcrmproObjectAddrNote" id="kkcrmproObjectAddrNote" placeholder="z. B. Zufahrt über Hof"/></div></div><div class="kkcp-row four"><div class="kkcp-field"><label>Gebiet</label><select aria-label="kkcrmproObjectArea" id="kkcrmproObjectArea"></select></div><div class="kkcp-field"><label>Ortsteil</label><input aria-label="kkcrmproObjectDistrict" id="kkcrmproObjectDistrict" list="kkcrmproObjectDistrictList"/><datalist id="kkcrmproObjectDistrictList"></datalist></div><div class="kkcp-field"><label>Objektart</label><select aria-label="kkcrmproObjectKind" id="kkcrmproObjectKind"></select></div><div class="kkcp-field"><label>Status</label><select aria-label="kkcrmproObjectStatus" id="kkcrmproObjectStatus"></select></div></div><div class="kkcp-row four"><div class="kkcp-field"><label>Baujahr</label><input aria-label="kkcrmproBuildYear" id="kkcrmproBuildYear"/></div><div class="kkcp-field"><label>Wohnfläche m²</label><input aria-label="kkcrmproLivingArea" id="kkcrmproLivingArea" type="number"/></div><div class="kkcp-field"><label>Grundstück m²</label><input aria-label="kkcrmproPlotArea" id="kkcrmproPlotArea" type="number"/></div><div class="kkcp-field"><label>Zimmer</label><input aria-label="kkcrmproRooms" id="kkcrmproRooms"/></div></div><div class="kkcp-row four"><div class="kkcp-field"><label>Zustand</label><input aria-label="kkcrmproCondition" id="kkcrmproCondition"/></div><div class="kkcp-field"><label>Energieklasse</label><input aria-label="kkcrmproEnergy" id="kkcrmproEnergy"/></div><div class="kkcp-field"><label>Heizung</label><input aria-label="kkcrmproHeating" id="kkcrmproHeating"/></div><div class="kkcp-field"><label>Modernisierungen</label><input aria-label="kkcrmproModernizations" id="kkcrmproModernizations"/></div></div><div class="kkcp-field" id="kkcrmproValuationBox" aria-live="polite"><b>Automatische Marktwertindikation</b><div id="kkcrmproValuationContent" class="kkcp-empty">Fläche, Objektart und Ortsteil/Gebiet eingeben, um eine unverbindliche, datenbasierte Preiseinschätzung aus den eigenen Marktbeobachtungen zu erhalten.</div></div><div class="kkcp-row four"><div class="kkcp-field"><label>Marktwert</label><input aria-label="kkcrmproMarketValue" id="kkcrmproMarketValue" type="number"/></div><div class="kkcp-field"><label>Wunschpreis</label><input aria-label="kkcrmproWantedPrice" id="kkcrmproWantedPrice" type="number"/></div><div class="kkcp-field"><label>realistische Spanne</label><input aria-label="kkcrmproPriceRange" id="kkcrmproPriceRange"/></div><div class="kkcp-field"><label>Preisrisiko</label><select aria-label="kkcrmproPriceRisk" id="kkcrmproPriceRisk"><option>unklar</option><option>niedrig</option><option>mittel</option><option>hoch</option></select></div></div><div class="kkcp-row two"><div class="kkcp-field"><label>Strategiepreis</label><input aria-label="kkcrmproStrategyPrice" id="kkcrmproStrategyPrice" type="number"/></div><div class="kkcp-field"><label>Bewertung erstellt am</label><input aria-label="kkcrmproValuationDate" id="kkcrmproValuationDate" type="date"/></div></div><div class="kkcp-field"><label>Unterlagen vorhanden</label><div class="kkcp-checks" id="kkcrmproDocChecks"></div></div><div class="kkcp-field"><label>Sanierungsbedarf / Notizen</label><textarea aria-label="kkcrmproObjectNotes" id="kkcrmproObjectNotes"></textarea></div><button class="kkcp-btn" type="submit">Objektakte speichern</button></form></article>
+<!-- Master-Auftrag "Zentrale Objekterfassung" (Korrekturauftrag): GENAU EIN
+     sichtbarer Objekteditor fuer inventory/market/research - kein Tab-Wechsel,
+     keine Weiterleitung zu einem anderen Formular. Dieselbe DOM-Struktur,
+     derselbe #kkcrmproObjectForm, derselbe Speichern-Button fuer alle drei
+     Typen; nur die Sektionen (kkCentralSection*) werden je nach recordType
+     ein-/ausgeblendet. Als natives <dialog> (wie kkcrmproContactDetailDialog/
+     kkImportPreviewDialog) direkt vor </main> platziert (siehe dort) - NICHT
+     hier im CRM-Tab-Panel, weil <dialog> in einem Vorfahren mit display:none
+     (inaktiver Tab) nicht anzeigbar waere; muss aber aus jedem Tab oeffenbar
+     sein (Bestand/Markt/Datensammlung-Einstieg). -->
 <article class="kkcp-card"><h3>Objektakten</h3><div class="kkcp-list" id="kkcrmproObjectList"></div></article>
 </div>
 </div>
@@ -6981,7 +6965,16 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
   var LOST=['anderer Makler','Privatverkauf','Preisvorstellung zu hoch','Provision','kein Verkaufsdruck','Beziehung zu anderem Makler','zu spät nachgefasst','kein Vertrauen','Unterlagenproblem','Entscheidung verschoben'];
   var MODEL=[['Kontakt','Person oder Organisation, die du kennst. Noch kein Lead.','Wer ist die Person und warum ist sie relevant?'],['Lead','Kontakt mit möglichem Immobilienbezug.','Gibt es Verkaufsabsicht, Objektbezug oder Tippgeberwert?'],['Verkaufschance','Qualifizierter Eigentümer mit möglichem Auftrag.','Wie wahrscheinlich ist ein Mandat und was ist der nächste Schritt?'],['Objekt','Konkrete Immobilie mit Adresse, Daten und Unterlagen.','Was fehlt, damit Bewertung oder Auftrag möglich wird?'],['Auftrag','Gewonnenes Mandat mit Preisstrategie und Vermarktungsstart.','Was muss passieren, damit es verkauft und empfohlen wird?'],['Aktivität','Jeder echte Touchpoint mit Ergebnis.','Was ist passiert und wann wird wieder nachgefasst?'],['Wiedervorlage','Fällige nächste Aktion.','Was darf heute nicht liegen bleiben?'],['Empfehlung','Lead aus Partner- oder Tippgeberquelle.','Wer hat Wert geliefert und wie pflegst du die Beziehung?']];
   var REQUIRED=[['Eigentümer qualifiziert','Name, Telefonnummer, Gebiet, Objektbezug, Verkaufsabsicht, nächster Schritt, Wiedervorlage','Ohne diese Daten ist die Chance nicht steuerbar.'],['Bewertungstermin gebucht','Objektadresse, Objektart, Verkaufsgrund, Zeitraum, Entscheider, Termin, Unterlagenstatus','Sonst wird der Termin operativ schwach vorbereitet.'],['Auftrag gewonnen','Objektakte, Bewertung, Provisionsmodell, Auftragstyp, Preisstrategie, Vermarktungsstart, Eigentümerziel','Sonst entsteht nach dem Auftrag Chaos statt Geschwindigkeit.']];
-  var $=function(s,c){return (c||root).querySelector(s)}, $$=function(s,c){return Array.prototype.slice.call((c||root).querySelectorAll(s));};
+  /* Korrekturauftrag: der zentrale Objekteditor-Dialog liegt bewusst
+     AUSSERHALB von #crm-pro-os (direkter Kindknoten von <main>, siehe
+     Kommentar an der Dialog-Definition - <dialog> in einem
+     display:none-Vorfahren waere sonst von keinem anderen Tab aus oeffenbar).
+     $/$$ waren zuvor auf "root" (also #crm-pro-os) beschraenkt - dadurch fand
+     $('#kkcrmproObjectForm') das verschobene Formular nicht mehr, sobald der
+     Dialog ausserhalb lag (Boot-Fehler "Cannot set properties of null" beim
+     Verdrahten von #kkcrmproObjectForm). Alle kkcrmpro*-IDs sind app-weit
+     eindeutig, daher ist eine document-weite Suche hier sicher. */
+  var $=function(s,c){return (c||document).querySelector(s)}, $$=function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s));};
   var esc=window.KK_UTIL.esc;
   var read=window.KK_UTIL.readJSON;
   var arr=function(k){return window.KK_UTIL.readArray(k)};
@@ -7103,19 +7096,59 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
     return '<span class="kkcp-pill '+cls+'">'+money(v.estimatedValue)+'</span><br><small>'+esc(v.confidenceLabel)+' · '+v.sampleSize+' Vergleiche</small>';
   }
   function renderObjectPipeline(){var objects=arr(KEYS.objects); $('#kkcrmproObjectPipelineRows').innerHTML=objects.map(function(o){var missing=DOCS.filter(function(d){return (o.docs||[]).indexOf(d)<0}); return '<tr><td><b>'+esc(o.address)+'</b><br><small>'+esc(o.objectType||o.kind||'')+'</small></td><td>'+esc(o.ownerName||'—')+'</td><td>'+esc(o.area||'—')+'</td><td>'+esc(o.status||'—')+'</td><td>'+valuationPillHtml(o)+'</td><td>'+(missing.slice(0,4).map(function(x){return '<span class="kkcp-pill orange">'+esc(x)+'</span>'}).join('')||'<span class="kkcp-pill green">vollständig</span>')+'</td><td>'+esc(o.nextStep||'Unterlagen prüfen')+'</td><td><button class="kkcp-btn light" data-edit-object="'+esc(o.id)+'">Bearbeiten</button></td></tr>'}).join('')||'<tr><td colspan="8">Noch keine Objektakten.</td></tr>'; bindMiniActions()}
-  function readObjectForm(){var docs=$$('#kkcrmproDocChecks input:checked').map(function(i){return i.value}); var id=$('#kkcrmproObjectId').value||uid('obj'); var existing=arr(KEYS.objects).find(function(x){return x.id===id}); var o={id:id,ownerName:$('#kkcrmproObjectOwner').value,address:$('#kkcrmproObjectAddress').value,area:$('#kkcrmproObjectArea').value,district:$('#kkcrmproObjectDistrict').value,objectType:$('#kkcrmproObjectKind').value,status:$('#kkcrmproObjectStatus').value,buildYear:$('#kkcrmproBuildYear').value,livingArea:num($('#kkcrmproLivingArea').value),plotArea:num($('#kkcrmproPlotArea').value),rooms:$('#kkcrmproRooms').value,condition:$('#kkcrmproCondition').value,energyClass:$('#kkcrmproEnergy').value,heating:$('#kkcrmproHeating').value,modernizations:$('#kkcrmproModernizations').value,marketValue:num($('#kkcrmproMarketValue').value),wantedPrice:num($('#kkcrmproWantedPrice').value),priceRange:$('#kkcrmproPriceRange').value,priceRisk:$('#kkcrmproPriceRisk').value,strategyPrice:num($('#kkcrmproStrategyPrice').value),valuationDate:$('#kkcrmproValuationDate').value,docs:docs,notes:$('#kkcrmproObjectNotes').value,nextStep:docs.length<DOCS.length?'fehlende Unterlagen anfordern':'Bewertung / Auftrag vorbereiten'};
+  /* Master-Auftrag "Zentrale Objekterfassung" (Korrekturauftrag): EIN
+     zentraler Objekteditor (#kkcrmproObjectForm, jetzt im Dialog
+     #kkCentralObjectEditorDialog) fuer inventory/market/research. Diese
+     Funktion liest ALLE Felder unabhaengig vom aktuell sichtbaren Typ aus -
+     verborgene Sektionen behalten ihre Werte, es wird beim Speichern nichts
+     stillschweigend geleert (Abschnitt 5/10). Eine Ausleselogik statt drei. */
+  function readCentralObjectForm(){
+    var docs=$$('#kkcrmproDocChecks input:checked').map(function(i){return i.value});
+    var id=$('#kkcrmproObjectId').value||uid('obj');
+    var recordType=($('#kkCentralRecordType')&&$('#kkCentralRecordType').value)||'inventory';
+    var existing=window.KK_OBJECTS?window.KK_OBJECTS.getObject(id):arr(KEYS.objects).find(function(x){return x.id===id});
+    var v=function(sel){var el=$(sel);return el?el.value:''};
+    var o={
+      id:id,recordType:recordType,
+      ownerName:v('#kkcrmproObjectOwner'),address:v('#kkcrmproObjectAddress'),area:v('#kkcrmproObjectArea'),
+      district:v('#kkcrmproObjectDistrict'),objectType:v('#kkcrmproObjectKind'),status:v('#kkcrmproObjectStatus'),
+      buildYear:v('#kkcrmproBuildYear'),livingArea:num(v('#kkcrmproLivingArea')),plotArea:num(v('#kkcrmproPlotArea')),
+      usableArea:num(v('#kkCentralUsableArea')),rooms:v('#kkcrmproRooms'),condition:v('#kkcrmproCondition'),
+      source:v('#kkCentralSource'),link:v('#kkCentralLink'),price:num(v('#kkCentralPrice')),
+      notes:v('#kkcrmproObjectNotes'),docs:docs
+    };
+    // Inventory-spezifisch (immer gelesen, nur relevant/sichtbar wenn recordType=inventory)
+    o.marketValue=num(v('#kkcrmproMarketValue')); o.wantedPrice=num(v('#kkcrmproWantedPrice'));
+    o.priceRange=v('#kkcrmproPriceRange'); o.priceRisk=v('#kkcrmproPriceRisk'); o.strategyPrice=num(v('#kkcrmproStrategyPrice'));
+    o.valuationDate=v('#kkcrmproValuationDate'); o.marketingStart=v('#kkCentralMarketingStart');
+    o.energyClass=v('#kkcrmproEnergy'); o.heating=v('#kkcrmproHeating'); o.modernizations=v('#kkcrmproModernizations');
+    o.mandateStatus=v('#kkCentralMandateStatus');
+    o.nextStep=v('#kkCentralNextStep')||(docs.length<DOCS.length?'fehlende Unterlagen anfordern':'Bewertung / Auftrag vorbereiten');
+    // Markt-spezifisch
+    o.platform=v('#kkCentralPlatform'); o.listingStatus=v('#kkCentralListingStatus');
+    o.priceChange=v('#kkCentralPriceChange'); o.firstSeenAt=v('#kkCentralFirstSeen'); o.lastCheckedAt=v('#kkCentralLastChecked');
+    o.daysOnMarket=num(v('#kkCentralDaysOnMarket')); o.relevance=v('#kkCentralRelevance'); o.observationReason=v('#kkCentralObservationReason');
+    o.pricePerSqm=recordType==='research'?num(v('#kkCentralResearchPricePerSqm')):num(v('#kkCentralPricePerSqm'));
+    // Datensammlung-spezifisch
+    o.dataSource=v('#kkCentralDataSource'); o.referenceDate=v('#kkCentralReferenceDate');
+    o.quality=v('#kkCentralDataQuality'); o.confidence=v('#kkCentralConfidence'); o.comparability=v('#kkCentralComparability');
+    o.purpose=v('#kkCentralPurpose'); o.historicalContext=v('#kkCentralHistoricalContext');
+
     var street=$('#kkcrmproObjectStreet')?$('#kkcrmproObjectStreet').value.trim():'',houseNo=$('#kkcrmproObjectHouseNo')?$('#kkcrmproObjectHouseNo').value.trim():'',postal=$('#kkcrmproObjectPostal')?$('#kkcrmproObjectPostal').value.trim():'',vis=$('#kkcrmproObjectVisibility')?$('#kkcrmproObjectVisibility').value:'exact';
     var gemarkung=$('#kkcrmproObjectGemarkung')?$('#kkcrmproObjectGemarkung').value.trim():'',flur=$('#kkcrmproObjectFlur')?$('#kkcrmproObjectFlur').value.trim():'',flurstueck=$('#kkcrmproObjectFlurstueck')?$('#kkcrmproObjectFlurstueck').value.trim():'',addrNote=$('#kkcrmproObjectAddrNote')?$('#kkcrmproObjectAddrNote').value.trim():'';
-    /* Geo-Preserve-on-Edit-Fix (Kevin Abschnitt 11): o ist bei JEDEM Speichern
-       (auch beim Bearbeiten) ein frisch aufgebautes Objekt ohne .geo/.addr -
-       ensureRecordGeo() erzeugt darauf immer ein LEERES emptyGeo(), und
-       saveOrUpdate() (Object.assign) ueberschreibt damit anschliessend
-       bedingungslos die bereits geocodierte Position des Bestandsdatensatzes.
-       Fix: vorhandenen addr/geo-Stand VOR ensureRecordGeo() uebernehmen, damit
-       ensureRecordGeo() ihn nur ERGAENZT statt zu ersetzen. */
+    /* Geo-Preserve-on-Edit-Fix (Kevin Abschnitt 11, unveraendert wichtig): o ist
+       bei JEDEM Speichern (auch beim Bearbeiten) ein frisch aufgebautes Objekt
+       ohne .geo/.addr - ensureRecordGeo() erzeugt darauf sonst immer ein
+       LEERES emptyGeo(), das anschliessend die bereits geocodierte Position
+       ueberschreiben wuerde. Fix: vorhandenen addr/geo-Stand VOR
+       ensureRecordGeo() uebernehmen, damit ensureRecordGeo() ihn nur
+       ERGAENZT statt zu ersetzen. */
     if(existing){
       if(existing.addr)o.addr=JSON.parse(JSON.stringify(existing.addr));
       if(existing.geo)o.geo=JSON.parse(JSON.stringify(existing.geo));
+      if(existing.typeHistory)o.typeHistory=existing.typeHistory.slice();
+      if(existing.migration)o.migration=existing.migration;
+      if(existing.createdAt)o.createdAt=existing.createdAt;
     }
     if(window.KK_GEO){window.KK_GEO.ensureRecordGeo(o,{city:'area',district:'district',rawAddress:'address'}); if(street)o.addr.street=street; if(houseNo)o.addr.houseNumber=houseNo; if(postal)o.addr.postalCode=postal; o.geo.visibility=vis; if(gemarkung)o.addr.gemarkung=gemarkung; if(flur)o.addr.flur=flur; if(flurstueck)o.addr.flurstueck=flurstueck; if(addrNote)o.addr.note=addrNote;
       /* 11A/11B: nur bei TATSAECHLICHER Adressaenderung neu geocodieren -
@@ -7127,34 +7160,77 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
       }
     }
     return o; }
-  function saveObject(e){e.preventDefault(); var o=readObjectForm(); if(!o.address){toast('Objektadresse fehlt'); return}
-    /* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 12: diese Maske ist
-       der "In meinem Bestand"-Pfad (recordType inventory) und schreibt seit
-       Phase 5 ueber die zentrale API statt direkt per saveOrUpdate() - gleicher
-       zugrundeliegende Storage-Key (kk_crm_objects), aber eine einzige
-       Schreibstelle mit Normalisierung/typeHistory/Events. Abschnitt 20: vor
-       dem Speichern eine sichtbare, nicht blockierende Dubletten-Warnung statt
-       automatischem Ueberschreiben. */
-    o.recordType=o.recordType||'inventory';
+  /* Zentrale Validierung (Abschnitt 11): eine Funktion fuer alle drei Typen -
+     gemeinsame Regeln zuerst, dann typabhaengige Zusatzregeln. Gibt ein
+     Fehlerobjekt {feldId: meldung} zurueck, leer = gueltig. */
+  /* Abschnitt 11: "Market: Plattform und Quelle sinnvoll prüfen, KEINE
+     operativen Bestandspflichten erzwingen" / "Research: ... sofern
+     erforderlich, keine Eigentümer- oder Pipelinepflichten erzwingen" - bewusst
+     KEINE Pflichtfelder fuer Plattform/Datenquelle (nur die gemeinsame
+     Adresse/Bezeichnung ist Pflicht, wie bei inventory). Ein leeres
+     Plattform-/Quellenfeld darf eine schnelle Marktbeobachtungs-/
+     Datensammlungserfassung nicht blockieren. */
+  function validateCentralObject(o){
+    var errors={};
+    if(!o.recordType||['inventory','market','research'].indexOf(o.recordType)<0)errors._global='Bitte zuerst einen Objekttyp wählen.';
+    if(!String(o.address||'').trim())errors.kkcrmproObjectAddress='Adresse / Bezeichnung fehlt.';
+    if(o.link&&!/^https?:\/\//i.test(o.link))errors.kkCentralLink='Link muss mit http:// oder https:// beginnen.';
+    return errors;
+  }
+  function renderCentralErrors(errors){
+    var host=$('#kkCentralErrors'); if(!host)return;
+    $$('#kkCentralObjectEditorDialog .kkcp-field-error').forEach(function(el){el.remove()});
+    var keys=Object.keys(errors||{});
+    if(!keys.length){host.innerHTML='';return}
+    var globalMsgs=[];
+    keys.forEach(function(k){
+      if(k==='_global'){globalMsgs.push(errors[k]);return}
+      var input=$('#'+k); if(!input)return;
+      var field=input.closest('.kkcp-field')||input.parentElement;
+      var msg=document.createElement('div'); msg.className='kkcp-field-error'; msg.textContent=errors[k];
+      if(field)field.appendChild(msg);
+    });
+    host.innerHTML=globalMsgs.map(function(m){return '<div class="kkcp-field-error">'+esc(m)+'</div>'}).join('');
+  }
+  var pendingDupeConfirm=false;
+  function saveObject(e){e.preventDefault();
+    var o=readCentralObjectForm();
+    var errors=validateCentralObject(o);
+    if(Object.keys(errors).length){renderCentralErrors(errors); pendingDupeConfirm=false; return}
+    /* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 12: eine einzige
+       Schreibstelle fuer alle drei Typen - keine Maske schreibt mehr direkt
+       in localStorage. Abschnitt 20: vor dem Speichern eine sichtbare, nicht
+       blockierende Dubletten-Warnung statt automatischem Ueberschreiben -
+       ein zweiter Klick auf Speichern speichert trotz Warnung. */
     var dupes=window.KK_OBJECTS?window.KK_OBJECTS.findDuplicates(o):[];
-    if(window.KK_OBJECTS)window.KK_OBJECTS.saveCentralObject(o); else saveOrUpdate(KEYS.objects,o);
-    if(dupes.length)toast('Hinweis: möglicherweise bereits vorhanden ('+(dupes[0].address||'ähnliches Objekt')+') – bitte prüfen, kein automatisches Zusammenführen.');
-    if(o.ownerName)createActivity({contact:o.ownerName,type:'Unterlagen angefordert',channel:'CRM',result:'Objektakte aktualisiert',nextStep:o.nextStep,note:o.address}); $('#kkcrmproObjectForm').reset(); $('#kkcrmproObjectId').value=''; $$('#kkcrmproDocChecks input').forEach(function(x){x.checked=false}); renderAll(); renderLiveValuation();
+    if(dupes.length&&!pendingDupeConfirm){
+      pendingDupeConfirm=true;
+      renderCentralErrors({_global:'Möglicherweise bereits vorhanden ("'+(dupes[0].address||dupes[0].title||'ähnliches Objekt')+'"). Erneut auf Speichern klicken, um trotzdem zu speichern.'});
+      return;
+    }
+    pendingDupeConfirm=false;
+    var saved=window.KK_OBJECTS?window.KK_OBJECTS.saveCentralObject(o):saveOrUpdate(KEYS.objects,o);
+    if(saved&&saved.error){renderCentralErrors({_global:saved.message||'Fehler beim Speichern.'}); return}
+    if(o.ownerName&&o.recordType==='inventory')createActivity({contact:o.ownerName,type:'Unterlagen angefordert',channel:'CRM',result:'Objektakte aktualisiert',nextStep:o.nextStep,note:o.address});
+    renderAll(); renderLiveValuation();
+    try{window.dispatchEvent(new CustomEvent('kk:central-editor-saved',{detail:{id:o.id,recordType:o.recordType}}))}catch(err){}
+    closeCentralEditor();
     /* Kevin Abschnitt 10: sichtbarer Geocoding-Status statt eines einzigen
        "gespeichert"-Toasts unabhaengig vom tatsaechlichen Ergebnis - Objekt ist
        so oder so bereits sicher gespeichert (kein 0,0-Marker, kein Datenverlust
        bei Fehlschlag), nur die Kartenposition folgt asynchron. */
     if(window.KK_GEOCODE&&window.KK_GEOCODE.needsGeocoding(o,{})){
-      toast('Objektakte gespeichert – Kartenposition wird ermittelt…');
-      window.KK_GEOCODE.geocodeIfNeeded('kk_crm_objects',o.id).then(function(outcome){
+      toast('Objekt gespeichert – Kartenposition wird ermittelt…');
+      window.KK_GEOCODE.geocodeIfNeeded(window.KK_OBJECTS?window.KK_OBJECTS.CENTRAL_KEY:'kk_crm_objects',o.id).then(function(outcome){
         renderAll(); renderLiveValuation();
+        try{window.dispatchEvent(new CustomEvent('kk:central-editor-saved',{detail:{id:o.id,recordType:o.recordType}}))}catch(err){}
         if(!outcome)return;
         if(outcome.status==='resolved')toast('Kartenposition gefunden.');
         else if(outcome.status==='ambiguous')toast('Mehrere mögliche Adressen gefunden – Position bitte prüfen.');
         else if(outcome.status==='failed')toast('Keine Kartenposition gefunden. Adresse prüfen oder Position manuell setzen.');
       });
     }else{
-      toast('Objektakte gespeichert');
+      toast('Objekt gespeichert');
     }
   }
   /* Master-Prompt Punkt 27 "Live-Berechnung in der Objektmaske": kompakte, sich
@@ -7183,16 +7259,97 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
     box.innerHTML=valuationBadgeHtml(window.KK_VALUATION.computeForObject(draft));
   }
   function scheduleLiveValuation(){clearTimeout(liveValuationTimer);liveValuationTimer=setTimeout(renderLiveValuation,400)}
-  function editObject(id){var o=arr(KEYS.objects).find(function(x){return x.id===id}); if(!o)return; [['ObjectId','id'],['ObjectOwner','ownerName'],['ObjectAddress','address'],['ObjectDistrict','district'],['BuildYear','buildYear'],['LivingArea','livingArea'],['PlotArea','plotArea'],['Rooms','rooms'],['Condition','condition'],['Energy','energyClass'],['Heating','heating'],['Modernizations','modernizations'],['MarketValue','marketValue'],['WantedPrice','wantedPrice'],['PriceRange','priceRange'],['StrategyPrice','strategyPrice'],['ValuationDate','valuationDate'],['ObjectNotes','notes']].forEach(function(p){var el=$('#kkcrmpro'+p[0]); if(el)el.value=o[p[1]]||''}); [['ObjectArea','area'],['ObjectKind','objectType'],['ObjectStatus','status'],['PriceRisk','priceRisk']].forEach(function(p){var el=$('#kkcrmpro'+p[0]); if(el)el.value=o[p[1]]||el.value}); $$('#kkcrmproDocChecks input').forEach(function(x){x.checked=(o.docs||[]).indexOf(x.value)>-1});
+  /* Master-Auftrag "Zentrale Objekterfassung" (Korrekturauftrag) Abschnitt 6:
+     EINE Populate-Funktion fuer den EINEN Editor - fuellt alle common- UND
+     typabhaengigen Felder (auch die fuer den aktuell nicht sichtbaren Typ),
+     damit ein Typwechsel waehrend des Bearbeitens keine Daten verliert. */
+  function populateCentralObjectFields(o){
+    var setVal=function(sel,val){var el=$(sel); if(el)el.value=val==null?'':val};
+    setVal('#kkcrmproObjectId',o.id||''); setVal('#kkCentralRecordType',o.recordType||'inventory');
+    setVal('#kkcrmproObjectOwner',o.ownerName); setVal('#kkcrmproObjectAddress',o.address); setVal('#kkcrmproObjectDistrict',o.district);
+    setVal('#kkcrmproBuildYear',o.buildYear); setVal('#kkcrmproLivingArea',o.livingArea||''); setVal('#kkcrmproPlotArea',o.plotArea||'');
+    setVal('#kkCentralUsableArea',o.usableArea||''); setVal('#kkcrmproRooms',o.rooms); setVal('#kkcrmproCondition',o.condition);
+    setVal('#kkCentralSource',o.source); setVal('#kkCentralLink',o.link); setVal('#kkCentralPrice',o.price||'');
+    setVal('#kkcrmproObjectNotes',o.notes);
+    ['ObjectArea','ObjectKind','ObjectStatus','PriceRisk'].forEach(function(suffix){var el=$('#kkcrmpro'+suffix);if(el)el.value=({ObjectArea:o.area,ObjectKind:o.objectType,ObjectStatus:o.status,PriceRisk:o.priceRisk})[suffix]||el.value});
+    $$('#kkcrmproDocChecks input').forEach(function(x){x.checked=(o.docs||[]).indexOf(x.value)>-1});
+    setVal('#kkcrmproMarketValue',o.marketValue||''); setVal('#kkcrmproWantedPrice',o.wantedPrice||''); setVal('#kkcrmproPriceRange',o.priceRange);
+    setVal('#kkcrmproStrategyPrice',o.strategyPrice||''); setVal('#kkcrmproValuationDate',o.valuationDate); setVal('#kkCentralMarketingStart',o.marketingStart);
+    setVal('#kkcrmproEnergy',o.energyClass); setVal('#kkcrmproHeating',o.heating); setVal('#kkcrmproModernizations',o.modernizations);
+    setVal('#kkCentralMandateStatus',o.mandateStatus); setVal('#kkCentralNextStep',o.nextStep);
+    setVal('#kkCentralPlatform',o.platform); setVal('#kkCentralListingStatus',o.listingStatus); setVal('#kkCentralPriceChange',o.priceChange);
+    setVal('#kkCentralFirstSeen',o.firstSeenAt); setVal('#kkCentralLastChecked',o.lastCheckedAt); setVal('#kkCentralDaysOnMarket',o.daysOnMarket||'');
+    setVal('#kkCentralRelevance',o.relevance); setVal('#kkCentralObservationReason',o.observationReason);
+    setVal('#kkCentralPricePerSqm',o.pricePerSqm||''); setVal('#kkCentralResearchPricePerSqm',o.pricePerSqm||'');
+    setVal('#kkCentralDataSource',o.dataSource); setVal('#kkCentralReferenceDate',o.referenceDate); setVal('#kkCentralDataQuality',o.quality);
+    setVal('#kkCentralConfidence',o.confidence); setVal('#kkCentralComparability',o.comparability); setVal('#kkCentralPurpose',o.purpose);
+    setVal('#kkCentralHistoricalContext',o.historicalContext);
     /* Strukturiertes Adressfeld (o.addr/o.geo) wurde beim Speichern befuellt, aber bisher beim
        erneuten Oeffnen der Objektakte nicht zurueckgeschrieben - Strasse/Hausnummer/PLZ/
        Sichtbarkeit/Flurstueck-Felder erschienen leer, obwohl Daten vorhanden waren. */
     if(o.addr){[['ObjectStreet','street'],['ObjectHouseNo','houseNumber'],['ObjectPostal','postalCode'],['ObjectGemarkung','gemarkung'],['ObjectFlur','flur'],['ObjectFlurstueck','flurstueck'],['ObjectAddrNote','note']].forEach(function(p){var el=$('#kkcrmpro'+p[0]); if(el)el.value=o.addr[p[1]]||''})}
     var visEl=$('#kkcrmproObjectVisibility'); if(visEl)visEl.value=(o.geo&&o.geo.visibility)||'exact';
-    showTab('objects'); renderLiveValuation()}
+  }
+  function resetCentralObjectFields(){
+    var form=$('#kkcrmproObjectForm'); if(form)form.reset();
+    setValSafe('#kkcrmproObjectId',''); setValSafe('#kkCentralRecordType','');
+    $$('#kkcrmproDocChecks input').forEach(function(x){x.checked=false});
+  }
+  function setValSafe(sel,val){var el=$(sel); if(el)el.value=val}
+  /* Abschnitt 3/9: EIN Typ-Wechsel-Handler fuer die grossen Einstiegskarten
+     UND den kompakten Umschalter im geoeffneten Formular - kein Tab-Wechsel,
+     keine andere Formular-Komponente, nur sichtbare Sektionen aendern sich. */
+  function selectCentralType(type){
+    setValSafe('#kkCentralRecordType',type);
+    $$('#kkCentralObjectEditorDialog [data-kk-central-type]').forEach(function(b){b.classList.toggle('is-active',b.getAttribute('data-kk-central-type')===type)});
+    var typeStep=$('#kkCentralTypeStep'), formBody=$('#kkCentralFormBody');
+    if(typeStep)typeStep.hidden=true; if(formBody)formBody.hidden=false;
+    var sections={inventory:'#kkCentralSectionInventory',market:'#kkCentralSectionMarket',research:'#kkCentralSectionResearch'};
+    /* <details> ohne "open" bleibt eingeklappt, selbst wenn hidden entfernt
+       wird - die aktive Sektion muss also zusaetzlich explizit geoeffnet
+       werden, sonst sind ihre Felder unsichtbar/nicht interaktiv (Abschnitt 5:
+       "nicht passende Sektionen sind nicht interaktiv" gilt NICHT fuer die
+       gerade ausgewaehlte Sektion). */
+    Object.keys(sections).forEach(function(t){var el=$(sections[t]); if(el){el.hidden=(t!==type); if(t===type)el.open=true}});
+    var subtitleMap={inventory:'In meinem Bestand',market:'Auf dem Markt',research:'Nur Datensammlung'};
+    var sub=$('#kkCentralEditorSubtitle'); if(sub)sub.textContent=subtitleMap[type]||'';
+    renderCentralErrors({});
+  }
+  /* Abschnitt 8: EIN Oeffnungsweg fuer create/edit/duplicate - jeder
+     Einstiegspunkt (Launcher, "Bearbeiten" ueberall im CRM/Marktmonitor/
+     Datensammlung, Kartenpopup) ruft diese Funktion mit denselben Optionen
+     auf. Kein Tab-Wechsel, keine andere Formular-Komponente. */
+  function openCentralEditor(options){
+    options=options||{};
+    var mode=options.mode||(options.objectId?'edit':'create');
+    var existing=options.objectId&&window.KK_OBJECTS?window.KK_OBJECTS.getObject(options.objectId):null;
+    resetCentralObjectFields();
+    initOptions();
+    var title=$('#kkCentralEditorTitle'); if(title)title.textContent=mode==='edit'?'Objekt bearbeiten':'Objekt erfassen';
+    if(existing){
+      if(mode==='duplicate'){existing=Object.assign({},existing,{id:'',typeHistory:[]});}
+      populateCentralObjectFields(existing);
+      selectCentralType(existing.recordType||'inventory');
+    }else if(options.recordType){
+      selectCentralType(options.recordType);
+      if(options.area)selectExistingOption($('#kkcrmproObjectArea'),options.area);
+    }else{
+      var typeStep=$('#kkCentralTypeStep'), formBody=$('#kkCentralFormBody');
+      if(typeStep)typeStep.hidden=false; if(formBody)formBody.hidden=true;
+    }
+    var dlg=$('#kkCentralObjectEditorDialog');
+    if(dlg&&typeof dlg.showModal==='function')dlg.showModal();
+    setTimeout(function(){
+      var focusTarget=$('#kkCentralFormBody')&&!$('#kkCentralFormBody').hidden?$('#kkcrmproObjectAddress'):($$('#kkCentralTypeStep [data-kk-central-type]')[0]);
+      if(focusTarget)focusTarget.focus();
+    },80);
+    renderLiveValuation();
+  }
+  function closeCentralEditor(){var dlg=$('#kkCentralObjectEditorDialog'); if(dlg&&typeof dlg.close==='function')dlg.close(); pendingDupeConfirm=false; renderCentralErrors({})}
+  function editObject(id){openCentralEditor({objectId:id,mode:'edit'})}
   function selectExistingOption(el,value){if(!el)return false;var target=norm(value),found=false;Array.prototype.forEach.call(el.options||[],function(o){if(norm(o.value||o.textContent)===target){el.value=o.value;found=true}});return found}
   function newContactForm(area){resetLeadForm();selectExistingOption($('#kkcrmproArea'),area);showTab('capture');var form=$('#kkcrmproLeadForm');if(form)form.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(function(){var name=$('#kkcrmproName');if(name)name.focus()},180)}
-  function newObjectForm(area){var form=$('#kkcrmproObjectForm');if(form)form.reset();$('#kkcrmproObjectId').value='';$$('#kkcrmproDocChecks input').forEach(function(x){x.checked=false});initOptions();selectExistingOption($('#kkcrmproObjectArea'),area);showTab('objects');if(form)form.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(function(){var address=$('#kkcrmproObjectAddress');if(address)address.focus()},180);renderLiveValuation()}
+  function newObjectForm(area){openCentralEditor({recordType:'inventory',area:area})}
   function newFollowupForm(area){var form=$('#kkcrmproFollowupForm');if(form)form.reset();initOptions();selectExistingOption($('#kkcrmproFuArea'),area);$('#kkcrmproFuDate').value=today();showTab('followups');if(form)form.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(function(){var name=$('#kkcrmproFuName');if(name)name.focus()},180)}
   function saveFollowupForm(e){e.preventDefault(); createFollowup({name:$('#kkcrmproFuName').value,area:$('#kkcrmproFuArea').value,channel:$('#kkcrmproFuChannel').value,date:$('#kkcrmproFuDate').value,type:$('#kkcrmproFuType').value,priority:$('#kkcrmproFuPriority').value,pipelineRef:$('#kkcrmproFuPipelineRef').value,goal:$('#kkcrmproFuGoal').value,reason:$('#kkcrmproFuReason').value,lastState:$('#kkcrmproFuLastState').value,nextDesiredStep:$('#kkcrmproFuNext').value}); $('#kkcrmproFollowupForm').reset(); initOptions(); renderAll(); toast('Follow-up gespeichert')}
   function renderFollowups(){var fs=arr(KEYS.followups).sort(function(a,b){return String(a.date||a.dueDate||a.followUpDate||'9999').localeCompare(String(b.date||b.dueDate||b.followUpDate||'9999'))}).slice(0,25); $('#kkcrmproFollowupList').innerHTML=fs.map(function(f){var d=f.date||f.dueDate||f.followUpDate; return '<div class="kkcp-item '+(due(d)&&isOpen(f.status)?'hot':'')+'"><strong>'+esc(f.name||f.contactName)+'</strong><span class="kkcp-pill '+(due(d)&&isOpen(f.status)?'red':'')+'">'+esc(d||'ohne Datum')+'</span><span class="kkcp-pill">'+esc(f.channel||'')+'</span>'+(f.area?'<span class="kkcp-pill">'+esc(f.area)+'</span>':'')+'<span class="kkcp-pill">'+esc(f.type||'Nachfassgespräch')+'</span><small>Ziel: '+esc(f.goal||f.nextDesiredStep||'—')+'</small><small>Grund: '+esc(f.reason||'—')+'</small><div class="kkcp-item-actions"><button class="kkcp-btn light" data-fu-done="'+esc(f.id)+'">erledigt</button></div></div>'}).join('')||'<div class="kkcp-empty">Keine Follow-ups vorhanden.</div>'; bindMiniActions()}
@@ -7250,26 +7407,21 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
   function importData(file){if(!file)return;window.KK_STORE.importFile(file,{mode:'merge'},function(result){if(result.ok){renderAll();toast('CRM-Backup importiert: '+result.imported+' Datenbereiche')}else if(!result.cancelled)toast(result.error||'Import fehlgeschlagen')});}
   function showTab(name){$$('[data-kkcrmpro-tab]').forEach(function(b){b.classList.toggle('is-active',b.dataset.kkcrmproTab===name)}); $$('[data-kkcrmpro-panel]').forEach(function(p){p.classList.toggle('is-active',p.dataset.kkcrmproPanel===name)})}
   function renderAll(){renderStats();renderCockpit();renderContacts();renderPipeline();renderObjects();renderFollowups();renderRefs();renderQuality();renderROI();renderActivities();renderTarget()}
-  /* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 9: EIN Einstieg, 3
-     Typ-Karten. Da die drei Formulare (Bestand hier in CRM Pro, Markt/
-     Datensammlung im Marktmonitor-Tab) aus Kevins eigener "kein kompletter
-     Rewrite"-Vorgabe (siehe ADR-0007) bewusst nicht zu einer einzigen
-     Formularlogik verschmolzen wurden, routet dieser Launcher zum jeweils
-     richtigen, bereits auf die zentrale API umgestellten Formular - alle drei
-     schreiben in dieselbe zentrale Objektdatenbank (KK_OBJECTS). */
-  function openCentralObjectType(type){
-    if(type==='inventory'){newObjectForm(); return}
-    var targetForm=type==='market'?'kkv8MarketEntryForm':'kkv8ResearchEntryForm';
-    var focusField=type==='market'?'kkv8MarketObject':'kkv8ResearchTitle';
-    if(window.KK_APP_SHELL)window.KK_APP_SHELL.openTab('marktmonitor');
-    setTimeout(function(){
-      var f=document.getElementById(targetForm);
-      if(f)f.scrollIntoView({behavior:'smooth',block:'start'});
-      var t=document.getElementById(focusField);
-      if(t)t.focus();
-    },220);
+  /* Master-Auftrag "Zentrale Objekterfassung" (Korrekturauftrag) Abschnitt 8:
+     ALLE Einstiegspunkte oeffnen exakt denselben Dialog/dieselbe DOM-Struktur
+     (#kkCentralObjectEditorDialog) - kein Tab-Wechsel, keine Weiterleitung zu
+     einem anderen Formular. Der Launcher-Button oeffnet ihn ohne Typ-Vorwahl
+     (Schritt 1 = 3 Karten im Dialog selbst); Aufrufe mit recordType (aus dem
+     Marktmonitor-Tab, aus dem Kartenpopup) blenden Schritt 1 aus. */
+  function bindCentralEditorDialog(){
+    var dlg=$('#kkCentralObjectEditorDialog'); if(!dlg||dlg.__kkCentralBound)return; dlg.__kkCentralBound=true;
+    $$('#kkCentralObjectEditorDialog [data-kk-central-type]').forEach(function(b){b.onclick=function(){selectCentralType(b.getAttribute('data-kk-central-type'))}});
+    var closeBtn=$('#kkCentralEditorClose'); if(closeBtn)closeBtn.onclick=closeCentralEditor;
+    var cancelBtn=$('#kkCentralCancelBtn'); if(cancelBtn)cancelBtn.onclick=closeCentralEditor;
+    dlg.addEventListener('click',function(e){if(e.target===dlg)closeCentralEditor()});
+    var openBtn=document.getElementById('kkCentralOpenBtn'); if(openBtn)openBtn.onclick=function(){openCentralEditor({})};
   }
-  function bind(){ $$('[data-kkcrmpro-tab]').forEach(function(b){b.onclick=function(){showTab(b.dataset.kkcrmproTab)}}); $$('[data-kk-object-type]').forEach(function(b){b.onclick=function(){openCentralObjectType(b.getAttribute('data-kk-object-type'))}}); $('#kkcrmproLeadForm').onsubmit=saveLead; $('#kkcrmproLeadReset').onclick=resetLeadForm; $('#kkcrmproObjectForm').onsubmit=saveObject; var objArea=$('#kkcrmproObjectArea'); if(objArea)objArea.addEventListener('change',refreshObjectDistrictList); ['kkcrmproObjectKind','kkcrmproLivingArea','kkcrmproPlotArea','kkcrmproObjectDistrict','kkcrmproObjectArea'].forEach(function(id){var el=$('#'+id); if(el){el.addEventListener('input',scheduleLiveValuation); el.addEventListener('change',scheduleLiveValuation)}}); $('#kkcrmproFollowupForm').onsubmit=saveFollowupForm; $('#kkcrmproReferralForm').onsubmit=saveReferral; $('#kkcrmproActivityForm').onsubmit=saveActivity; ['kkcrmproContactSearch','kkcrmproContactAreaFilter','kkcrmproContactStatusFilter','kkcrmproPipeStageFilter','kkcrmproPipeAreaFilter','kkcrmproPipeSort'].forEach(function(id){var el=$('#'+id); if(el)el.oninput=el.onchange=renderAll}); $('#kkcrmproSyncBtn').onclick=syncExisting; $('#kkcrmproExportBtn').onclick=exportData; $('#kkcrmproImportInput').onchange=function(e){importData(e.target.files[0])}; var qfClear=$('#kkcrmproQuickFilterClear'); if(qfClear)qfClear.onclick=clearQuickFilter; var detailDlg=$('#kkcrmproContactDetailDialog'); var detailClose=$('#kkcrmproDetailClose'); if(detailClose&&detailDlg)detailClose.onclick=function(){detailDlg.close()}; if(detailDlg){detailDlg.addEventListener('click',function(e){if(e.target===detailDlg)detailDlg.close()}); detailDlg.addEventListener('close',function(){var t=lastDetailTrigger;setTimeout(function(){if(t&&typeof t.focus==='function')t.focus();},0);});} window.addEventListener('storage',function(){renderAll()})}
+  function bind(){ $$('[data-kkcrmpro-tab]').forEach(function(b){b.onclick=function(){showTab(b.dataset.kkcrmproTab)}}); bindCentralEditorDialog(); $('#kkcrmproLeadForm').onsubmit=saveLead; $('#kkcrmproLeadReset').onclick=resetLeadForm; $('#kkcrmproObjectForm').onsubmit=saveObject; var objArea=$('#kkcrmproObjectArea'); if(objArea)objArea.addEventListener('change',refreshObjectDistrictList); ['kkcrmproObjectKind','kkcrmproLivingArea','kkcrmproPlotArea','kkcrmproObjectDistrict','kkcrmproObjectArea'].forEach(function(id){var el=$('#'+id); if(el){el.addEventListener('input',scheduleLiveValuation); el.addEventListener('change',scheduleLiveValuation)}}); $('#kkcrmproFollowupForm').onsubmit=saveFollowupForm; $('#kkcrmproReferralForm').onsubmit=saveReferral; $('#kkcrmproActivityForm').onsubmit=saveActivity; ['kkcrmproContactSearch','kkcrmproContactAreaFilter','kkcrmproContactStatusFilter','kkcrmproPipeStageFilter','kkcrmproPipeAreaFilter','kkcrmproPipeSort'].forEach(function(id){var el=$('#'+id); if(el)el.oninput=el.onchange=renderAll}); $('#kkcrmproSyncBtn').onclick=syncExisting; $('#kkcrmproExportBtn').onclick=exportData; $('#kkcrmproImportInput').onchange=function(e){importData(e.target.files[0])}; var qfClear=$('#kkcrmproQuickFilterClear'); if(qfClear)qfClear.onclick=clearQuickFilter; var detailDlg=$('#kkcrmproContactDetailDialog'); var detailClose=$('#kkcrmproDetailClose'); if(detailClose&&detailDlg)detailClose.onclick=function(){detailDlg.close()}; if(detailDlg){detailDlg.addEventListener('click',function(e){if(e.target===detailDlg)detailDlg.close()}); detailDlg.addEventListener('close',function(){var t=lastDetailTrigger;setTimeout(function(){if(t&&typeof t.focus==='function')t.focus();},0);});} window.addEventListener('storage',function(){renderAll()}); window.addEventListener('kk:object-saved',function(){renderAll()}); window.addEventListener('kk:object-type-changed',function(){renderAll()}); window.addEventListener('kk:object-archived',function(){renderAll()})}
   function init(){initOptions(); bind(); renderAll();}
   window.KK_CRM_PRO=Object.assign(window.KK_CRM_PRO||{}, {
     version:'29.7',
@@ -7277,6 +7429,11 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
     editObject:function(id){editObject(String(id||''));},
     newContact:function(area){newContactForm(String(area||''));},
     newObject:function(area){newObjectForm(String(area||''));},
+    /* Master-Auftrag "Zentrale Objekterfassung" (Korrekturauftrag) Abschnitt 8:
+       oeffentlicher Einstiegspunkt fuer den EINEN zentralen Objekteditor -
+       von jedem Modul/Tab aus aufrufbar (Marktmonitor, Datensammlung,
+       Kartenpopup), damit niemand mehr ein eigenes/anderes Formular oeffnet. */
+    openCentralObjectEditor:function(options){openCentralEditor(options||{});},
     newFollowup:function(area){newFollowupForm(String(area||''));},
     showTab:function(name){showTab(String(name||'cockpit'));},
     render:function(){renderAll();},
@@ -12552,7 +12709,82 @@ Wenn du eine Immobilie im Main-Kinzig-Kreis besitzt und nicht sicher bist, ob od
 <button class="kkh-btn light" id="kkImportPreviewCancelBtn" type="button">Abbrechen</button>
 <button class="kkh-btn" id="kkImportPreviewConfirmBtn" type="button">Übernehmen</button>
 </div>
-</dialog></div></main>
+</dialog>
+</div>
+<!-- Vorstehendes </div> schliesst #kk-app-panel-backup (das Backup-Tab-Panel,
+     in dem kkImportPreviewDialog liegt und dort auch nur von dort aus
+     geoeffnet wird). Der folgende zentrale Objekteditor MUSS ausserhalb jedes
+     Tab-Panels liegen (echter direkter Kindknoten von <main>), sonst laesst
+     sich <dialog>.showModal() nicht anzeigen, wenn ein ANDERER Tab aktiv ist
+     (display:none auf einem Vorfahren verhindert die Top-Layer-Darstellung
+     von <dialog> vollstaendig - kein reines showModal()-Problem, sondern ein
+     CSS-Rendering-Problem). Master-Auftrag "Zentrale Objekterfassung"
+     (Korrekturauftrag): der EINE zentrale Objekteditor fuer
+     inventory/market/research. Ein <form>, ein Speichern-Button, eine
+     Validierung/Speicherfunktion in JS (kk-central-object-editor-v1). -->
+<dialog class="kkcp-detail-dialog kk-central-editor-dialog" id="kkCentralObjectEditorDialog" aria-labelledby="kkCentralEditorTitle">
+<div class="kkcp-detail-head">
+<div><h3 id="kkCentralEditorTitle">Objekt erfassen</h3><div class="kkcp-detail-meta" id="kkCentralEditorSubtitle"></div></div>
+<button type="button" class="kkcp-detail-close" id="kkCentralEditorClose" aria-label="Schließen">✕</button>
+</div>
+<form id="kkcrmproObjectForm" class="kk-central-editor-form">
+<input id="kkcrmproObjectId" type="hidden"/>
+<input id="kkCentralRecordType" type="hidden" value=""/>
+<div class="kkcp-detail-section" id="kkCentralTypeStep">
+<h4>Was für ein Objekt möchtest du erfassen?</h4>
+<div class="kkcp-type-cards">
+<button type="button" class="kkcp-type-card" data-kk-central-type="inventory"><strong>In meinem Bestand</strong><small>Eigenes Vermarktungsobjekt – erscheint auf Karte, in Pipeline, Follow-ups</small></button>
+<button type="button" class="kkcp-type-card" data-kk-central-type="market"><strong>Auf dem Markt</strong><small>Fremdangebot / Marktbeobachtung – nur Analyse, nie auf der Karte, keine Aufgaben</small></button>
+<button type="button" class="kkcp-type-card" data-kk-central-type="research"><strong>Nur Datensammlung</strong><small>Vergleichs-/Recherchedaten – nur Analyse, nie auf der Karte, keine Aufgaben</small></button>
+</div>
+</div>
+<div id="kkCentralFormBody" hidden="">
+<div class="kkcp-detail-section">
+<div class="kkcp-type-cards kkcp-type-cards-compact" id="kkCentralTypeSwitch">
+<button type="button" class="kkcp-type-card" data-kk-central-type="inventory"><strong>In meinem Bestand</strong></button>
+<button type="button" class="kkcp-type-card" data-kk-central-type="market"><strong>Auf dem Markt</strong></button>
+<button type="button" class="kkcp-type-card" data-kk-central-type="research"><strong>Nur Datensammlung</strong></button>
+</div>
+</div>
+<details class="kkcp-detail-section" open="">
+<summary><h4>Grunddaten</h4></summary>
+<div class="kkcp-row two"><div class="kkcp-field"><label>Eigentümer / Kontakt</label><input aria-label="kkcrmproObjectOwner" id="kkcrmproObjectOwner"/></div><div class="kkcp-field"><label>Objektadresse *</label><input aria-label="kkcrmproObjectAddress" id="kkcrmproObjectAddress" required=""/></div></div>
+<div class="kkcp-row four"><div class="kkcp-field"><label>Straße</label><input aria-label="kkcrmproObjectStreet" id="kkcrmproObjectStreet" placeholder="optional, für genaue Kartenposition"/></div><div class="kkcp-field"><label>Hausnummer</label><input aria-label="kkcrmproObjectHouseNo" id="kkcrmproObjectHouseNo"/></div><div class="kkcp-field"><label>PLZ</label><input aria-label="kkcrmproObjectPostal" id="kkcrmproObjectPostal" inputmode="numeric" maxlength="5"/></div><div class="kkcp-field"><label>Standort-Sichtbarkeit</label><select aria-label="kkcrmproObjectVisibility" id="kkcrmproObjectVisibility"><option value="exact">Exakt</option><option value="street">Straßengenau</option><option value="district">Nur Ortsteil</option><option value="city">Nur Ort</option><option value="hidden">Auf Karte ausblenden</option></select></div></div>
+<div class="kkcp-row four"><div class="kkcp-field"><label>Gemarkung</label><input aria-label="kkcrmproObjectGemarkung" id="kkcrmproObjectGemarkung" placeholder="optional"/></div><div class="kkcp-field"><label>Flur</label><input aria-label="kkcrmproObjectFlur" id="kkcrmproObjectFlur" placeholder="optional"/></div><div class="kkcp-field"><label>Flurstücksnummer</label><input aria-label="kkcrmproObjectFlurstueck" id="kkcrmproObjectFlurstueck" placeholder="optional"/></div><div class="kkcp-field"><label>Interne Standortnotiz</label><input aria-label="kkcrmproObjectAddrNote" id="kkcrmproObjectAddrNote" placeholder="z. B. Zufahrt über Hof"/></div></div>
+<div class="kkcp-row four"><div class="kkcp-field"><label>Gebiet / Ort</label><select aria-label="kkcrmproObjectArea" id="kkcrmproObjectArea"></select></div><div class="kkcp-field"><label>Ortsteil</label><input aria-label="kkcrmproObjectDistrict" id="kkcrmproObjectDistrict" list="kkcrmproObjectDistrictList"/><datalist id="kkcrmproObjectDistrictList"></datalist></div><div class="kkcp-field"><label>Objektart</label><select aria-label="kkcrmproObjectKind" id="kkcrmproObjectKind"></select></div><div class="kkcp-field"><label>Status</label><select aria-label="kkcrmproObjectStatus" id="kkcrmproObjectStatus"></select></div></div>
+<div class="kkcp-row four"><div class="kkcp-field"><label>Preis / Kaufpreis</label><input aria-label="kkCentralPrice" id="kkCentralPrice" type="number"/></div><div class="kkcp-field"><label>Baujahr</label><input aria-label="kkcrmproBuildYear" id="kkcrmproBuildYear"/></div><div class="kkcp-field"><label>Wohnfläche m²</label><input aria-label="kkcrmproLivingArea" id="kkcrmproLivingArea" type="number"/></div><div class="kkcp-field"><label>Grundstück m²</label><input aria-label="kkcrmproPlotArea" id="kkcrmproPlotArea" type="number"/></div></div>
+<div class="kkcp-row four"><div class="kkcp-field"><label>Nutzfläche m²</label><input aria-label="kkCentralUsableArea" id="kkCentralUsableArea" type="number"/></div><div class="kkcp-field"><label>Zimmer</label><input aria-label="kkcrmproRooms" id="kkcrmproRooms"/></div><div class="kkcp-field"><label>Zustand</label><input aria-label="kkcrmproCondition" id="kkcrmproCondition"/></div><div class="kkcp-field"><label>Quelle</label><input aria-label="kkCentralSource" id="kkCentralSource" placeholder="z. B. ImmoScout24, eigene Recherche"/></div></div>
+<div class="kkcp-row two"><div class="kkcp-field"><label>Link</label><input aria-label="kkCentralLink" id="kkCentralLink" type="url" placeholder="https://…"/></div><div class="kkcp-field"><label>Sanierungsbedarf / Notizen</label><textarea aria-label="kkcrmproObjectNotes" id="kkcrmproObjectNotes"></textarea></div></div>
+</details>
+<details class="kkcp-detail-section" id="kkCentralSectionInventory" open="">
+<summary><h4>Bestand</h4></summary>
+<div class="kkcp-field" id="kkcrmproValuationBox" aria-live="polite"><b>Automatische Marktwertindikation</b><div id="kkcrmproValuationContent" class="kkcp-empty">Fläche, Objektart und Ortsteil/Gebiet eingeben, um eine unverbindliche, datenbasierte Preiseinschätzung aus den eigenen Marktbeobachtungen zu erhalten.</div></div>
+<div class="kkcp-row four"><div class="kkcp-field"><label>Marktwert</label><input aria-label="kkcrmproMarketValue" id="kkcrmproMarketValue" type="number"/></div><div class="kkcp-field"><label>Wunschpreis</label><input aria-label="kkcrmproWantedPrice" id="kkcrmproWantedPrice" type="number"/></div><div class="kkcp-field"><label>realistische Spanne</label><input aria-label="kkcrmproPriceRange" id="kkcrmproPriceRange"/></div><div class="kkcp-field"><label>Preisrisiko</label><select aria-label="kkcrmproPriceRisk" id="kkcrmproPriceRisk"><option>unklar</option><option>niedrig</option><option>mittel</option><option>hoch</option></select></div></div>
+<div class="kkcp-row four"><div class="kkcp-field"><label>Strategiepreis</label><input aria-label="kkcrmproStrategyPrice" id="kkcrmproStrategyPrice" type="number"/></div><div class="kkcp-field"><label>Bewertung erstellt am</label><input aria-label="kkcrmproValuationDate" id="kkcrmproValuationDate" type="date"/></div><div class="kkcp-field"><label>Vermarktungsstart</label><input aria-label="kkCentralMarketingStart" id="kkCentralMarketingStart" type="date"/></div><div class="kkcp-field"><label>Nächster Schritt</label><input aria-label="kkCentralNextStep" id="kkCentralNextStep"/></div></div>
+<div class="kkcp-row four"><div class="kkcp-field"><label>Energieklasse</label><input aria-label="kkcrmproEnergy" id="kkcrmproEnergy"/></div><div class="kkcp-field"><label>Heizung</label><input aria-label="kkcrmproHeating" id="kkcrmproHeating"/></div><div class="kkcp-field"><label>Modernisierungen</label><input aria-label="kkcrmproModernizations" id="kkcrmproModernizations"/></div><div class="kkcp-field"><label>Mandatsstatus</label><select aria-label="kkCentralMandateStatus" id="kkCentralMandateStatus"><option value="">–</option><option>Erstkontakt</option><option>Alleinauftrag</option><option>Einfacher Auftrag</option><option>kein Auftrag</option></select></div></div>
+<div class="kkcp-field"><label>Unterlagen vorhanden</label><div class="kkcp-checks" id="kkcrmproDocChecks"></div></div>
+</details>
+<details class="kkcp-detail-section" id="kkCentralSectionMarket" hidden="">
+<summary><h4>Markt</h4></summary>
+<div class="kkcp-row four"><div class="kkcp-field"><label>Plattform</label><input aria-label="kkCentralPlatform" id="kkCentralPlatform" placeholder="z. B. ImmoScout24, Immowelt"/></div><div class="kkcp-field"><label>Angebotsstatus</label><select aria-label="kkCentralListingStatus" id="kkCentralListingStatus"><option value="">–</option><option>Aktiv</option><option>Reduziert</option><option>Entfernt</option><option>Vermutlich verkauft</option><option>Erneut inseriert</option></select></div><div class="kkcp-field"><label>Preis pro m²</label><input aria-label="kkCentralPricePerSqm" id="kkCentralPricePerSqm" type="number"/></div><div class="kkcp-field"><label>Preisänderung</label><input aria-label="kkCentralPriceChange" id="kkCentralPriceChange" placeholder="z. B. -15.000 € seit Erstinserat"/></div></div>
+<div class="kkcp-row four"><div class="kkcp-field"><label>Erstmals gesehen</label><input aria-label="kkCentralFirstSeen" id="kkCentralFirstSeen" type="date"/></div><div class="kkcp-field"><label>Zuletzt geprüft</label><input aria-label="kkCentralLastChecked" id="kkCentralLastChecked" type="date"/></div><div class="kkcp-field"><label>Vermarktungsdauer (Tage)</label><input aria-label="kkCentralDaysOnMarket" id="kkCentralDaysOnMarket" type="number"/></div><div class="kkcp-field"><label>Wettbewerbsrelevanz</label><select aria-label="kkCentralRelevance" id="kkCentralRelevance"><option value="">–</option><option>niedrig</option><option>mittel</option><option>hoch</option></select></div></div>
+<div class="kkcp-field"><label>Auffälligkeit / Beobachtungsgrund</label><input aria-label="kkCentralObservationReason" id="kkCentralObservationReason"/></div>
+</details>
+<details class="kkcp-detail-section" id="kkCentralSectionResearch" hidden="">
+<summary><h4>Datensammlung</h4></summary>
+<div class="kkcp-row four"><div class="kkcp-field"><label>Datenquelle</label><input aria-label="kkCentralDataSource" id="kkCentralDataSource" placeholder="z. B. Notar, Gutachterausschuss, Zeitungsarchiv"/></div><div class="kkcp-field"><label>Bezugsdatum</label><input aria-label="kkCentralReferenceDate" id="kkCentralReferenceDate" type="date"/></div><div class="kkcp-field"><label>Preis pro m²</label><input aria-label="kkCentralResearchPricePerSqm" id="kkCentralResearchPricePerSqm" type="number"/></div><div class="kkcp-field"><label>Datenqualität</label><select aria-label="kkCentralDataQuality" id="kkCentralDataQuality"><option value="">–</option><option>sehr hoch</option><option>hoch</option><option>mittel</option><option>niedrig</option><option>unzureichend</option></select></div></div>
+<div class="kkcp-row two"><div class="kkcp-field"><label>Vertrauensniveau</label><select aria-label="kkCentralConfidence" id="kkCentralConfidence"><option value="">–</option><option>gesichert</option><option>plausibel</option><option>unsicher</option></select></div><div class="kkcp-field"><label>Vergleichbarkeit</label><select aria-label="kkCentralComparability" id="kkCentralComparability"><option value="">–</option><option>sehr gut vergleichbar</option><option>bedingt vergleichbar</option><option>nur als grobe Orientierung</option></select></div></div>
+<div class="kkcp-row two"><div class="kkcp-field"><label>Verwendungszweck</label><input aria-label="kkCentralPurpose" id="kkCentralPurpose" placeholder="z. B. Preisvergleich, Marktwertermittlung"/></div><div class="kkcp-field"><label>Historischer Kontext</label><input aria-label="kkCentralHistoricalContext" id="kkCentralHistoricalContext" placeholder="z. B. Verkauf 2019 vor Sanierung"/></div></div>
+</details>
+<div class="kkcp-detail-section" id="kkCentralErrors" aria-live="polite"></div>
+<div class="kkcp-detail-actions">
+<button class="kkcp-btn" type="submit" id="kkCentralSaveBtn">Speichern</button>
+<button class="kkcp-btn light" type="button" id="kkCentralCancelBtn">Abbrechen</button>
+</div>
+</div>
+</form>
+</dialog>
+</main>
 <script>
 (function(){
   'use strict';
@@ -13678,18 +13910,14 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
     var box=$('#kk12ObjectList'); if(!box)return; var objects=getObjects();
     box.innerHTML=objects.length?objects.map(function(o){return '<div class="kk12-item"><strong>'+esc(o.address)+'</strong><small>'+esc(o.owner)+' · '+esc(o.area)+' · '+esc(o.type)+' · '+Number(o.value||0).toLocaleString('de-DE')+' €</small><span class="kk12-pill '+(o.status==='Abgeschlossen'?'green':o.status==='Notar'?'orange':'red')+'">'+esc(o.status)+'</span><p>'+esc(o.next||'Kein nächster Schritt')+'</p></div>';}).join(''):'<div class="kk12-empty">Noch keine Objektakten.</div>';
   }
+  /* Korrekturauftrag Abschnitt 7/8: kein eigenes Formular/Speicherpfad mehr -
+     der Button oeffnet den EINEN zentralen Objekteditor (recordType
+     inventory vorausgewaehlt), genau wie im CRM-Tab. Diese Ansicht hier
+     zeigt weiterhin die historischen, aus kk12_objects migrierten
+     Datensaetze (getObjects()), waechst aber nicht mehr eigenstaendig. */
   function installObjects(){
-    var f=$('#kk12ObjectForm'); if(!f||f.dataset.done)return; f.dataset.done='1';
-    f.onsubmit=function(e){e.preventDefault();
-      var idv=$('#kk12ObjectId').value||(window.KK_UTIL&&window.KK_UTIL.uid?window.KK_UTIL.uid('obj'):id());
-      var owner=$('#kk12ObjOwner').value,type=$('#kk12ObjType').value,value=num($('#kk12ObjValue').value),next=$('#kk12ObjNext').value;
-      var record={id:idv,recordType:'inventory',sourceForm:'kk12_legacy',
-        owner:owner,ownerName:owner,address:$('#kk12ObjAddress').value,area:$('#kk12ObjArea').value,
-        type:type,objectType:type,value:value,marketValue:value,status:$('#kk12ObjStatus').value,
-        next:next,nextStep:next};
-      if(window.KK_OBJECTS)window.KK_OBJECTS.saveCentralObject(record);
-      else{var list=getObjects();var old=list.find(function(o){return o.id===idv;})||{};var obj=Object.assign(old,record,{updatedAt:new Date().toISOString()});if(!old.id)list.push(obj);saveObjects(list);}
-      f.reset(); renderObjects(); renderStats(); toast('Objektakte gespeichert');};
+    var b=$('#kk12ObjectOpenCentralBtn'); if(!b||b.dataset.done)return; b.dataset.done='1';
+    b.onclick=function(){if(window.KK_CRM_PRO)window.KK_CRM_PRO.openCentralObjectEditor({recordType:'inventory'})};
   }
   function renderValuationChecklist(){
     var el=$('#kk12ValChecklist'); if(el&&!el.dataset.done){el.dataset.done='1'; el.innerHTML=valChecks.map(function(c,i){return '<label><input type="checkbox" data-valcheck="'+i+'"> '+esc(c)+'</label>';}).join('');}
@@ -14202,32 +14430,12 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
     var arr=read(MARKET_KEY,[]); return Array.isArray(arr)?arr:[];
   }
   function saveMarketEntries(arr){write(MARKET_KEY,arr)}
-  /* Kevin Abschnitt 9: Marktbeobachtungen brauchen ein optionales, strukturiertes
-     Adress-/Geo-Modell statt gar keins - keine zweite Geocoding-Logik, sondern
-     dasselbe zentrale window.KK_GEO/window.KK_GEOCODE-Paar wie CRM-Objekte.
-     "town" (Pflichtfeld, eines der festen TOWNS) liefert immer mindestens eine
-     ungefaehre Ortsposition (resolvePosition() faellt automatisch auf den
-     Orts-Anker zurueck, wenn keine Strasse geocodiert werden konnte) - "object"
-     bleibt bewusst ein reines Freitextfeld und wird NIE als Adresse interpretiert
-     (Kevin: "Das Feld object darf nicht pauschal als Adresse interpretiert werden").
-     Position wird weiterhin ermittelt (fuer spaetere Typumwandlung zu inventory
-     und fuer Distanz-/Vergleichsanalysen) - erscheint aber NIE als Kartenmarker,
-     solange recordType==='market' bleibt (Abschnitt 14, harte Kartenregel). */
-  function addMarketEntry(entry){
-    entry.id=entry.id||('market_'+Date.now()+'_'+Math.random().toString(16).slice(2));
-    entry.createdAt=entry.createdAt||new Date().toISOString();
-    entry.updatedAt=new Date().toISOString();
-    entry.done=!!entry.done;
-    entry.recordType='market';
-    if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(entry,{city:'town'});
-    var centralKey=window.KK_OBJECTS?window.KK_OBJECTS.CENTRAL_KEY:MARKET_KEY;
-    var saved=window.KK_OBJECTS?window.KK_OBJECTS.saveCentralObject(entry):(function(){var arr=marketEntries();arr.unshift(entry);saveMarketEntries(arr.slice(0,400));return entry})();
-    renderMarket();renderTodayExtension();
-    if(saved&&!saved.error&&entry.addr&&entry.addr.street&&window.KK_GEOCODE){
-      window.KK_GEOCODE.geocodeIfNeeded(centralKey,entry.id).then(function(){renderMarket()});
-    }
-    return saved;
-  }
+  /* Korrekturauftrag Abschnitt 12: "es gibt nur eine Speicherfunktion" -
+     addMarketEntry()/addResearchEntry() (Neuanlage per eigenem Formular)
+     wurden entfernt, seit Phase 7/Korrekturauftrag schreibt ausschliesslich
+     saveObject() im zentralen Objekteditor. updateMarketEntry() bleibt
+     bestehen (wird fuer die "Erledigt/Reaktivieren"-Statusaenderung in der
+     Liste weiterhin gebraucht, keine Neuanlage). */
   function updateMarketEntry(id,patch){
     if(window.KK_OBJECTS){
       var existing=window.KK_OBJECTS.getObject(id);
@@ -14255,20 +14463,13 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
      zentrale Objektdatenbank (recordType:'research'), kein eigener
      Speicher. Erscheint nie auf der Karte, nie in der Pipeline (Policy). */
   function researchEntries(){return window.KK_OBJECTS?window.KK_OBJECTS.listObjects({recordType:'research'}):[]}
-  function addResearchEntry(entry){
-    entry.recordType='research';
-    entry.title=entry.title||entry.town||'Datensammlung';
-    if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(entry,{city:'town'});
-    var saved=window.KK_OBJECTS?window.KK_OBJECTS.saveCentralObject(entry):null;
-    renderResearch();
-    return saved;
-  }
   function researchCard(e){
     return '<div class="kkv8-item" data-kkv8-research-entry="'+esc(e.id)+'">'+
       '<strong>'+esc(e.town||'Ort offen')+' · '+esc(e.title||'Datensammlung')+'</strong>'+
       '<span class="kkv8-pill">Datensammlung</span>'+
       '<small>Preis: '+esc(money(e.price))+' · erfasst: '+esc(fmtDate(e.createdAt))+'</small>'+
       (e.note?'<small><b>Notiz:</b> '+esc(e.note)+'</small>':'')+
+      '<div class="kkv8-item-actions"><button class="kkv8-btn light" data-kkv8-research-edit="'+esc(e.id)+'" type="button">Bearbeiten</button></div>'+
       '</div>';
   }
   function renderResearch(){
@@ -14284,7 +14485,7 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
       '<small>Preis: '+esc(money(e.price))+(e.sqm?' · '+esc(e.sqm)+' m²':'')+' · erfasst: '+esc(fmtDate(e.createdAt))+'</small>'+
       (e.note?'<small><b>Chance:</b> '+esc(e.note)+'</small>':'')+
       (e.link?'<small><a href="'+esc(e.link)+'" target="_blank" rel="noopener noreferrer">Inserat öffnen</a></small>':'')+
-      '<div class="kkv8-item-actions"><button class="kkv8-btn light" data-kkv8-market-done="'+esc(e.id)+'" type="button">'+(e.done?'Reaktivieren':'Erledigt')+'</button></div></div>';
+      '<div class="kkv8-item-actions"><button class="kkv8-btn light" data-kkv8-market-done="'+esc(e.id)+'" type="button">'+(e.done?'Reaktivieren':'Erledigt')+'</button><button class="kkv8-btn light" data-kkv8-market-edit="'+esc(e.id)+'" type="button">Bearbeiten</button></div></div>';
   }
   function renderMarket(){
     renderQuickLinks();
@@ -14311,13 +14512,14 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
     renderTodayExtension();
     toast('Heute-Aufgabe erzeugt.');
   }
+  /* Korrekturauftrag Abschnitt 7/8: keine eigenen Formulare/Speicherpfade mehr
+     hier - beide Buttons oeffnen den EINEN zentralen Objekteditor
+     (window.KK_CRM_PRO.openCentralObjectEditor) mit vorausgewaehltem Typ. */
   function bindMarket(){
-    var f=$('#kkv8MarketEntryForm');
-    if(f&&!f.__kkv8Bound){f.__kkv8Bound=true;f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f);var street=String(fd.get('street')||'').trim(),houseNo=String(fd.get('houseNo')||'').trim(),postal=String(fd.get('postal')||'').trim();var entry={town:fd.get('town'),platform:fd.get('platform'),type:fd.get('type'),object:fd.get('object'),price:fd.get('price'),sqm:fd.get('sqm'),link:fd.get('link'),status:fd.get('status'),note:fd.get('note')};if(street||postal)entry.addr={street:street,houseNumber:houseNo,postalCode:postal};addMarketEntry(entry);f.reset();toast('Marktbeobachtung gespeichert.');});}
-    var imp=$('#kkv8MarketImportForm');
-    if(imp&&!imp.__kkv8Bound){imp.__kkv8Bound=true;imp.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(imp);var txt=String(fd.get('text')||'').trim();if(!txt)return;var first=txt.split(/\n/).filter(Boolean)[0]||'Kopiertes Inserat';addMarketEntry({town:fd.get('town'),platform:'Import / Notiz',type:fd.get('type'),object:first.slice(0,120),status:'Neu prüfen',note:txt});imp.reset();toast('Import als Marktbeobachtung gespeichert.');});}
-    var res=$('#kkv8ResearchEntryForm');
-    if(res&&!res.__kkv8Bound){res.__kkv8Bound=true;res.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(res);addResearchEntry({town:fd.get('town'),title:fd.get('title'),price:fd.get('price'),note:fd.get('note')});res.reset();toast('Als Datensammlung gespeichert.');});}
+    var mb=$('#kkv8MarketOpenCentralBtn');
+    if(mb&&!mb.__kkv8Bound){mb.__kkv8Bound=true;mb.onclick=function(){if(window.KK_CRM_PRO)window.KK_CRM_PRO.openCentralObjectEditor({recordType:'market'})};}
+    var rb=$('#kkv8ResearchOpenCentralBtn');
+    if(rb&&!rb.__kkv8Bound){rb.__kkv8Bound=true;rb.onclick=function(){if(window.KK_CRM_PRO)window.KK_CRM_PRO.openCentralObjectEditor({recordType:'research'})};}
   }
 
   function flatten(obj,out){out=out||[]; if(Array.isArray(obj)){obj.forEach(function(x){flatten(x,out)})}else if(obj&&typeof obj==='object'){if(obj.name||obj.title||obj.vorname||obj.nachname||obj.nextStep||obj.nextAction||obj.followupDate||obj.status)out.push(obj); Object.keys(obj).forEach(function(k){var v=obj[k]; if(v&&typeof v==='object')flatten(v,out);});} return out;}
@@ -14348,11 +14550,16 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
   function bindGlobal(){
     DOC.body.classList.add('kkv8-operative-ready');
     DOC.addEventListener('click',function(e){
-      var b=e.target.closest&&e.target.closest('[data-kkv8-open-tab],[data-kkv8-scroll],[data-kkv8-market-done],[data-kkv8-reminder-done],[data-kkv8-export-market]');
+      var b=e.target.closest&&e.target.closest('[data-kkv8-open-tab],[data-kkv8-scroll],[data-kkv8-market-done],[data-kkv8-market-edit],[data-kkv8-research-edit],[data-kkv8-reminder-done],[data-kkv8-export-market]');
       if(!b)return;
       if(b.hasAttribute('data-kkv8-open-tab')){openTab(b.getAttribute('data-kkv8-open-tab'));}
       if(b.hasAttribute('data-kkv8-scroll')){var el=$(b.getAttribute('data-kkv8-scroll'));if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
       if(b.hasAttribute('data-kkv8-market-done')){var id3=b.getAttribute('data-kkv8-market-done');var cur=marketEntries().filter(function(x){return x.id===id3})[0];if(cur)updateMarketEntry(id3,{done:!cur.done,status:cur.done?'Neu prüfen':'Archiviert'});}
+      /* Korrekturauftrag Abschnitt 6/8: "Bearbeiten" oeffnet denselben
+         zentralen Objekteditor wie CRM/Kartenpopup - kein eigenes
+         Bearbeitungsformular fuer Markt-/Datensammlungseintraege. */
+      if(b.hasAttribute('data-kkv8-market-edit')&&window.KK_CRM_PRO)window.KK_CRM_PRO.openCentralObjectEditor({objectId:b.getAttribute('data-kkv8-market-edit'),mode:'edit'});
+      if(b.hasAttribute('data-kkv8-research-edit')&&window.KK_CRM_PRO)window.KK_CRM_PRO.openCentralObjectEditor({objectId:b.getAttribute('data-kkv8-research-edit'),mode:'edit'});
       if(b.hasAttribute('data-kkv8-reminder-done')){var arr=reminders().map(function(r){if(r.id===b.getAttribute('data-kkv8-reminder-done'))r.done=true;return r});saveReminders(arr);renderTodayExtension();}
       if(b.hasAttribute('data-kkv8-export-market')){window.KK_STORE.downloadJSON('kevin-keim-marktmonitor-'+todayISO()+'.json',marketEntries());}
     },true);
@@ -14361,6 +14568,12 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
   function init(){
     bindGlobal(); bindMarket(); renderMarket(); renderTodayExtension();
     setTimeout(renderTodayExtension,600);
+    /* Korrekturauftrag: neue/typumgewandelte/archivierte Objekte aus dem
+       zentralen Editor muessen die Marktmonitor-/Datensammlung-Listen hier
+       aktualisieren, auch wenn dieses Modul selbst nicht gespeichert hat. */
+    window.addEventListener('kk:object-saved',function(){renderMarket()});
+    window.addEventListener('kk:object-type-changed',function(){renderMarket()});
+    window.addEventListener('kk:object-archived',function(){renderMarket()});
   }
   window.KK_BOOT.register('operative-command-center',init,{priority:62});
 })();

@@ -16,6 +16,13 @@
 // this test protects (save BEFORE geocode) is unchanged and equally
 // critical in the new central-store code path.
 //
+// Updated AGAIN for the Korrekturauftrag: the former standalone
+// #kkv8MarketEntryForm quick-entry form was removed from the visible UI -
+// all entry now goes through the ONE central object editor dialog
+// (window.KK_CRM_PRO.openCentralObjectEditor({recordType:'market'})), which
+// calls the exact same saveObject()/readCentralObjectForm() code path that
+// contains this ordering fix (saveCentralObject() BEFORE geocodeIfNeeded()).
+//
 // Uses a real local HTTP server + page.route() network mocking (same pattern
 // as test-official-gis.js) instead of file:// - this sandbox's pinned
 // Chromium build has known file://+fetch() CSP quirks documented there that
@@ -78,17 +85,20 @@ function startStaticServer(filePath) {
     });
 
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 60000 });
-    await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_GEOCODE && window.KK_REALMAP && window.KK_OBJECTS), null, { timeout: 15000 });
-    await page.evaluate(() => { window.KK_APP_SHELL.setActiveTab('marktmonitor'); });
-    await page.waitForSelector('#kkv8MarketEntryForm', { state: 'visible', timeout: 15000 });
+    await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_GEOCODE && window.KK_REALMAP && window.KK_OBJECTS && window.KK_CRM_PRO), null, { timeout: 15000 });
+
+    // Erfassung ueber den EINEN zentralen Objekteditor (Korrekturauftrag) statt
+    // des fruehreren eigenstaendigen #kkv8MarketEntryForm.
+    await page.evaluate(() => { window.KK_CRM_PRO.openCentralObjectEditor({ recordType: 'market' }); });
+    await page.waitForSelector('#kkCentralObjectEditorDialog[open]', { timeout: 15000 });
 
     // Volle Adresse wie in Kevins zweitem Live-Test: Ort + Straße + Hausnummer + PLZ.
-    await page.fill('#kkv8MarketObject', 'Haus');
-    await page.selectOption('#kkv8MarketTown', 'Bruchköbel');
-    await page.fill('#kkv8MarketStreet', 'Im kleinen Feld');
-    await page.fill('#kkv8MarketHouseNo', '15');
-    await page.fill('#kkv8MarketPostal', '63486');
-    await page.click('#kkv8MarketEntryForm button[type="submit"]');
+    await page.fill('#kkcrmproObjectAddress', 'Haus');
+    await page.selectOption('#kkcrmproObjectArea', 'Bruchköbel');
+    await page.fill('#kkcrmproObjectStreet', 'Im kleinen Feld');
+    await page.fill('#kkcrmproObjectHouseNo', '15');
+    await page.fill('#kkcrmproObjectPostal', '63486');
+    await page.click('#kkCentralSaveBtn');
 
     await page.waitForFunction(() => {
       var arr = window.KK_OBJECTS.listObjects({ recordType: 'market' });

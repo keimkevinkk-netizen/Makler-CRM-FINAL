@@ -2,18 +2,19 @@
 // testing (Fehler B: Marktbeobachtung fehlt auf der Karte; geo data being
 // silently wiped on every CRM-object edit; the map not distinguishing
 // "no data" from "data without a position") PLUS the subsequent, binding
-// "Zentrale Objekterfassung" master task, which explicitly REVERSES the
-// Fehler-B map layer: market observations must now NEVER appear on the map,
-// under any circumstance, even with a valid position (hard map policy,
-// Abschnitt 14). This file was rewritten accordingly - the old
-// "market_observations is a map layer" assertions are gone; new assertions
-// prove the opposite (market data is saved centrally, geocodable for future
-// type-conversion, but categorically invisible on the map). BORIS (Fehler A)
-// is covered separately in test-official-gis.js. Runs against the local
-// file:// copy - no real network/Leaflet needed, since all assertions read
-// the underlying data layer (window.KK_REALMAP/KK_OBJECTS/KK_GEO/
-// localStorage), not rendered map pixels (Leaflet/CDN unavailable in this
-// sandbox, see ADR-0002).
+// "Zentrale Objekterfassung" master task (hard map policy: market/research
+// NEVER on the map) PLUS the Korrekturauftrag that replaced the three
+// separate type-specific forms with ONE central object editor dialog
+// (#kkCentralObjectEditorDialog / #kkcrmproObjectForm). All form interactions
+// below go through window.KK_CRM_PRO.openCentralObjectEditor() instead of the
+// old, now-removed #kkv8MarketEntryForm/#kkv8ResearchEntryForm. BORIS
+// (Fehler A) is covered separately in test-official-gis.js; the "exactly one
+// form" UI requirement is covered in detail in
+// test-central-object-editor-single-form.js. Runs against the local file://
+// copy - no real network/Leaflet needed, since all assertions read the
+// underlying data layer (window.KK_REALMAP/KK_OBJECTS/KK_GEO/localStorage),
+// not rendered map pixels (Leaflet/CDN unavailable in this sandbox, see
+// ADR-0002).
 const { chromium } = require('playwright');
 const path = require('path');
 
@@ -36,19 +37,20 @@ function check(name, cond, results) {
     page.on('dialog', async (dialog) => { await dialog.accept(); });
 
     await page.goto(fileUrl, { waitUntil: 'load' });
-    await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_REALMAP && window.KK_GEO && window.KK_GEOCODE && window.KK_OBJECTS), null, { timeout: 15000 });
-    await page.evaluate(() => { window.KK_APP_SHELL.openTab('marktmonitor'); });
+    await page.waitForFunction(() => !!(window.KK_APP_SHELL && window.KK_REALMAP && window.KK_GEO && window.KK_GEOCODE && window.KK_OBJECTS && window.KK_CRM_PRO), null, { timeout: 15000 });
 
     // --- Master-Auftrag Abschnitt 14 (harte Kartenregel): KEINE eigene Kartenebene mehr ---
     const hasLayer = await page.evaluate(() => window.KK_REALMAP.getLayerDefs().some((d) => d.key === 'market_observations'));
     check('Die Kartenebene "market_observations" aus PR #9 wurde vollständig entfernt (kein Toggle, kein versteckter Layer)', !hasLayer, results);
 
-    // Eine Marktbeobachtung mit NUR einem Ort (kein Straße/PLZ) anlegen - genau
-    // Kevins realer Fall ("Bruchköbel · Im kleinen Feld 15" als freies "object"-
-    // Textfeld, ohne strukturierte Adresse).
-    await page.fill('#kkv8MarketObject', 'Im kleinen Feld 15');
-    await page.selectOption('#kkv8MarketTown', 'Bruchköbel');
-    await page.click('#kkv8MarketEntryForm button[type="submit"]');
+    // --- Marktbeobachtung ueber den EINEN zentralen Objekteditor erfassen ---
+    // (Korrekturauftrag: kein eigenes #kkv8MarketEntryForm mehr - derselbe
+    // Dialog wie fuer Bestand/Datensammlung, nur recordType='market' vorausgewaehlt.)
+    await page.evaluate(() => { window.KK_CRM_PRO.openCentralObjectEditor({ recordType: 'market' }); });
+    await page.waitForSelector('#kkCentralObjectEditorDialog[open]', { timeout: 8000 });
+    await page.fill('#kkcrmproObjectAddress', 'Im kleinen Feld 15');
+    await page.selectOption('#kkcrmproObjectArea', 'Bruchköbel');
+    await page.click('#kkCentralSaveBtn');
     await page.waitForFunction(() => window.KK_OBJECTS.listObjects({ recordType: 'market' }).length >= 1, null, { timeout: 10000 });
 
     const entryAddr = await page.evaluate(() => window.KK_OBJECTS.listObjects({ recordType: 'market' })[0]);
@@ -83,16 +85,15 @@ function check(name, cond, results) {
     check('Nach der Umwandlung zu inventory darf der Datensatz (mit gültiger Position) auf der Karte erscheinen', mayAppearAfterAdopt === true, results);
 
     // --- Geo-Preserve-on-Edit-Fix: Position darf beim Bearbeiten nicht verschwinden ---
-    await page.evaluate(() => { window.KK_APP_SHELL.setActiveTab('crm'); });
-    await page.waitForSelector('[data-kkcrmpro-tab="objects"]', { state: 'visible', timeout: 10000 });
-    await page.click('[data-kkcrmpro-tab="objects"]');
-    await page.waitForSelector('#kkcrmproObjectForm', { state: 'visible', timeout: 10000 });
+    // (ueber denselben zentralen Editor, jetzt als Dialog statt Inline-Formular)
+    await page.evaluate(() => { window.KK_CRM_PRO.openCentralObjectEditor({ recordType: 'inventory' }); });
+    await page.waitForSelector('#kkCentralObjectEditorDialog[open]', { timeout: 8000 });
     await page.fill('#kkcrmproObjectAddress', 'Musterstraße 1, 63456 Hanau');
     await page.fill('#kkcrmproObjectStreet', 'Musterstraße');
     await page.fill('#kkcrmproObjectHouseNo', '1');
     await page.fill('#kkcrmproObjectPostal', '63456');
     await page.fill('#kkcrmproObjectOwner', 'Geo-Test-Eigentümer');
-    await page.click('#kkcrmproObjectForm button[type="submit"]');
+    await page.click('#kkCentralSaveBtn');
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('kk_crm_objects') || '[]').some((o) => o.ownerName === 'Geo-Test-Eigentümer'), null, { timeout: 10000 });
 
     // Geocoding in dieser Sandbox nicht live erreichbar (kein Netlify-Function-
@@ -111,15 +112,12 @@ function check(name, cond, results) {
 
     // Jetzt NUR ein unabhaengiges Feld aendern (Notiz) und erneut speichern -
     // das ist Kevins Abschnitt 11 Kernfall: die Position darf NICHT verschwinden.
-    await page.evaluate((id) => {
-      document.getElementById('kkcrmproObjectId').value = id;
-      document.getElementById('kkcrmproObjectAddress').value = 'Musterstraße 1, 63456 Hanau';
-      document.getElementById('kkcrmproObjectStreet').value = 'Musterstraße';
-      document.getElementById('kkcrmproObjectHouseNo').value = '1';
-      document.getElementById('kkcrmproObjectPostal').value = '63456';
-      document.getElementById('kkcrmproObjectNotes').value = 'Nur eine Notiz geändert, Adresse unverändert.';
-    }, objectId);
-    await page.click('#kkcrmproObjectForm button[type="submit"]');
+    // openCentralObjectEditor im edit-Modus oeffnet denselben Dialog und
+    // befuellt ihn mit dem bestehenden Datensatz (populateCentralObjectFields).
+    await page.evaluate((id) => { window.KK_CRM_PRO.openCentralObjectEditor({ objectId: id, mode: 'edit' }); }, objectId);
+    await page.waitForSelector('#kkCentralObjectEditorDialog[open]', { timeout: 8000 });
+    await page.fill('#kkcrmproObjectNotes', 'Nur eine Notiz geändert, Adresse unverändert.');
+    await page.click('#kkCentralSaveBtn');
     await page.waitForFunction((id) => {
       var o = JSON.parse(localStorage.getItem('kk_crm_objects')).find((x) => x.id === id);
       return o && o.notes === 'Nur eine Notiz geändert, Adresse unverändert.';
@@ -130,14 +128,13 @@ function check(name, cond, results) {
 
     // Jetzt die Adresse WIRKLICH aendern - Position MUSS invalidiert werden
     // (Kevin Abschnitt 11B: "bisherige automatische Koordinaten invalidieren").
-    await page.evaluate((id) => {
-      document.getElementById('kkcrmproObjectId').value = id;
-      document.getElementById('kkcrmproObjectAddress').value = 'Ganz andere Straße 99, 63450 Hanau';
-      document.getElementById('kkcrmproObjectStreet').value = 'Ganz andere Straße';
-      document.getElementById('kkcrmproObjectHouseNo').value = '99';
-      document.getElementById('kkcrmproObjectPostal').value = '63450';
-    }, objectId);
-    await page.click('#kkcrmproObjectForm button[type="submit"]');
+    await page.evaluate((id) => { window.KK_CRM_PRO.openCentralObjectEditor({ objectId: id, mode: 'edit' }); }, objectId);
+    await page.waitForSelector('#kkCentralObjectEditorDialog[open]', { timeout: 8000 });
+    await page.fill('#kkcrmproObjectAddress', 'Ganz andere Straße 99, 63450 Hanau');
+    await page.fill('#kkcrmproObjectStreet', 'Ganz andere Straße');
+    await page.fill('#kkcrmproObjectHouseNo', '99');
+    await page.fill('#kkcrmproObjectPostal', '63450');
+    await page.click('#kkCentralSaveBtn');
     await page.waitForFunction((id) => {
       var o = JSON.parse(localStorage.getItem('kk_crm_objects')).find((x) => x.id === id);
       return o && o.address === 'Ganz andere Straße 99, 63450 Hanau';
@@ -147,6 +144,7 @@ function check(name, cond, results) {
     check('Geo-Preserve-Fix (Kevin Abschnitt 11B): eine TATSÄCHLICHE Adressänderung invalidiert die alte Position (status zurückgesetzt, kein stiller 50.1/8.9-Rest)', geoAfterAddressChange.status !== 'exact', results);
 
     // --- Zähler: "vorhanden/sichtbar/ohne Position" statt nur "0 sichtbar" ---
+    await page.evaluate(() => { window.KK_APP_SHELL.openTab('marktmonitor'); });
     const layerGridHtml = await page.evaluate(() => document.getElementById('kkgeo-layer-grid') ? document.getElementById('kkgeo-layer-grid').innerHTML : '');
     check('Layer-Panel-HTML wurde gerendert (Grundlage für die Zähler-Prüfung)', layerGridHtml.length > 0, results);
 
