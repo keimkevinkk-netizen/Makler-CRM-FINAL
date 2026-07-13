@@ -88,3 +88,6 @@ jobs:
 
       - name: E2E - test-central-object-editor-single-form.js
         run: node tests/e2e/test-central-object-editor-single-form.js
+
+      - name: E2E - test-sales-execution-core.js
+        run: node tests/e2e/test-sales-execution-core.js

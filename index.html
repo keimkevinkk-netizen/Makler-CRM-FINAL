@@ -1824,6 +1824,7 @@ var BLOCKED_IMPORT_KEYS = {'__proto__':1,'prototype':1,'constructor':1};
 /* Aktuelle produktive Speicherbereiche. Breite Legacy-Präfixe bleiben nur für Import-Kompatibilität zugelassen. */
 var ACTIVE_STORAGE_KEYS = [
   'kk_app_active_tab','kk_crm_contacts','kk_crm_activities','kk_crm_objects','kk_crm_owner_pipeline',
+  'kk_action_feedback_v1','kk_call_session_v1','kk_entity_link_queue_v1','kk_sales_events_v1','kk_sales_event_archive_v1',
   'kk_crm_referrals','kk_crm_duplicates','kk_crm_source_roi','kk_followups','kk_followups_deleted_auto_keys',
   'kk_sales_pipeline','kk_valuation_pipeline','kk_referral_pipeline','kk_call_queue','kk_kpi_targets',
   'kk_conversion_metrics','kk_heute_notes','kk_heute_ziele_v27','kk_heute_focus_v29','kk_calls_log_v27','kk_market_analysis_v1','kk_mkk_market_reference_v29_4','kk_mkk_map_state_v29_7','kk_mkk_area_plans_v29_10',
@@ -1852,6 +1853,7 @@ var MODULE_KEY_RULES = {
   referrals:[/referral/i,/tippgeber/i],
   market:[/market/i,/offer/i,/angebot/i,/region_market/i],
   prompts:[/ai_prompt/i,/scripts_module/i],
+  salesExecution:[/^kk_(action_feedback|call_session|entity_link_queue|sales_events|sales_event_archive)_v1$/],
   settings:[/kpi/i,/conversion/i,/app_active_tab/i,/focus_mode/i,/settings/i,/^kk_check_/]
 };
 
@@ -2108,6 +2110,7 @@ var IMPORT_KEY_LABELS={
   kk_crm_objects:'Objekte',kk12_objects:'Objekte',
   kk_referrals:'Tippgeber',kk_crm_referrals:'Tippgeber',kk_tippgeber:'Tippgeber',kk_referral_partners_os:'Tippgeber-Partner',kk_referral_network_v1:'Tippgeber-Netzwerk',
   kk12_tasks:'Aufgaben',kk_call_queue:'Anruf-Warteschlange',
+  kk_action_feedback_v1:'Empfehlungsentscheidungen',kk_call_session_v1:'Laufende Anrufsitzung',kk_entity_link_queue_v1:'Verknüpfungsprüfung',kk_sales_events_v1:'Aktives Vertriebsereignis-Log',kk_sales_event_archive_v1:'Archivierte Vertriebsereignisse',
   kk_market_monitor_entries_v1:'Marktmonitor',kk_offer_monitor_entries_v1:'Angebotsmonitor',kk_angebot_monitor_entries_v1:'Angebotsmonitor',kk_region_market_cockpit_v10:'Markt-Cockpit',kk_mkk_market_reference_v29_4:'Marktreferenz (Karte)',kk_mkk_area_plans_v29_10:'Gebietspläne (Karte)',
   kk_kpi_targets:'KPI-Ziele',kk_conversion_metrics:'Kennzahlen',kk_data_quality_queue:'Datenqualitäts-Warteschlange',kk_ai_prompt_assistant_v1:'KI-Prompts'
 };
@@ -2161,7 +2164,15 @@ function importBackupFileCentral(file,options,callback){
   };
   reader.onerror=function(){if(callback)callback({ok:false,error:'Datei konnte nicht gelesen werden.'});};reader.readAsText(file);
 }
+function ensureAutomaticMigrationSnapshot(key,reason){
+  if(!LS||getRaw(key)!=null)return;
+  var data={};listStorageKeys().forEach(function(storageKey){
+    if(isExportableStorageKey(storageKey))data[storageKey]=getRaw(storageKey);
+  });
+  setRaw(key,JSON.stringify({createdAt:new Date().toISOString(),reason:reason,data:data}));
+}
 function migrateStorageV28(){
+  ensureAutomaticMigrationSnapshot('kk_pre_import_storage_migrations_v28','Automatische Sicherung vor Storage-Migration V28');
   var cleaned=[];
   ['kk_makler_os_v1','kk_makler_os_v2'].forEach(function(key){
     var old=readJSONCentral(key,null);if(!isPlainObject(old))return;var changed=false;
@@ -2244,6 +2255,7 @@ function migrateIdsAndDedup(){
 }
 function runMigration(){
   if (!LS) return null;
+  ensureAutomaticMigrationSnapshot('kk_pre_import_storage_migrations_v28','Automatische Sicherung vor ID-, Deduplizierungs- und Storage-Migrationen');
   var meta = readJSON(META_KEY, {});
   if (meta.version >= 26) { stripNestedBackups(); return meta; } /* Nested-Cleanup bleibt idempotent aktiv */
   var report = {
@@ -3649,6 +3661,46 @@ body.kk-v30-shell-ready #kk-heute-v27 .kkh-shell{max-width:1540px!important;padd
       </section>
     </div>
 
+    <style>
+      #kkSalesCoreCC{background:var(--card-bg,#fff);border:1px solid var(--line,#e2e2e2);border-radius:16px;padding:20px 22px;margin:0 0 22px;}
+      #kkSalesCoreCC .kksec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+      #kkSalesCoreCC h2{margin:0;font-size:19px;color:var(--primary);}
+      #kkSalesCoreCC .kksec-counts{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);}
+      #kkSalesCoreCC .kksec-counts b{color:var(--text,#1a1a1a);font-size:15px;}
+      #kkSalesCoreCC .kksec-counts .is-alert b{color:#b42318;}
+      #kkSalesCoreCC .kksec-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+      #kkSalesCoreCC .kksec-btn-primary{background:var(--accent,#0a5);color:#fff;border:none;border-radius:10px;padding:12px 20px;font-weight:700;font-size:15px;cursor:pointer;min-height:44px;}
+      #kkSalesCoreCC .kksec-btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+      #kkSalesCoreCC .kksec-btn-secondary{background:transparent;border:1px solid var(--line,#ddd);border-radius:10px;padding:12px 16px;font-size:14px;cursor:pointer;min-height:44px;}
+      #kkSalesCoreCC .kksec-queue{display:flex;flex-direction:column;gap:10px;}
+      #kkSalesCoreCC .kksec-card{border:1px solid var(--line,#e5e5e5);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;}
+      #kkSalesCoreCC .kksec-card.is-band-1{border-left:4px solid #b42318;}
+      #kkSalesCoreCC .kksec-card.is-band-2{border-left:4px solid #b45309;}
+      #kkSalesCoreCC .kksec-card.is-band-3{border-left:4px solid #6b7280;}
+      #kkSalesCoreCC .kksec-card-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+      #kkSalesCoreCC .kksec-card-top h4{margin:0;font-size:15px;}
+      #kkSalesCoreCC .kksec-why{font-size:13px;color:var(--muted);}
+      #kkSalesCoreCC .kksec-goal{font-size:13px;}
+      #kkSalesCoreCC .kksec-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+      #kkSalesCoreCC .kksec-card-actions button{min-height:38px;padding:6px 12px;border-radius:8px;font-size:13px;border:1px solid var(--line,#ddd);background:#fff;cursor:pointer;}
+      #kkSalesCoreCC .kksec-card-actions button.kksec-start{background:var(--accent,#0a5);color:#fff;border:none;}
+      #kkSalesCoreCC .kksec-empty{color:var(--muted);font-size:14px;padding:8px 0;}
+      #kkSalesCoreCC .kksec-policy-tag{font-size:11px;background:#f3f4f6;border-radius:6px;padding:2px 6px;color:#555;}
+      @media (max-width:620px){#kkSalesCoreCC{padding:16px;}#kkSalesCoreCC .kksec-actions{flex-direction:column;}#kkSalesCoreCC .kksec-btn-primary,#kkSalesCoreCC .kksec-btn-secondary{width:100%;}}
+    </style>
+    <section id="kkSalesCoreCC" aria-label="Daily Command Center">
+      <div class="kksec-head">
+        <h2>Heute zählt</h2>
+        <div class="kksec-counts" id="kksecCounts"></div>
+      </div>
+      <div class="kksec-actions">
+        <button type="button" class="kksec-btn-primary" id="kksecStartSeriesBtn">Anrufserie starten</button>
+        <button type="button" class="kksec-btn-secondary" id="kksecCommitmentsBtn">Zusagen erledigen</button>
+      </div>
+      <div class="kksec-queue" id="kksecQueue" role="list" aria-live="polite"></div>
+      <p class="kksec-empty" id="kksecEmpty" hidden>Keine priorisierten Aktionen — alle Zusagen erfüllt, keine überfälligen Follow-ups, keine Pipeline-Chance ohne nächsten Schritt.</p>
+    </section>
+
     <section class="kkh-summary" aria-label="Tagesübersicht">
       <div class="kkh-summary-card" id="kkhSummaryTasks"><b id="kkhSummaryTasksValue">0</b><span>Aufgaben offen</span></div>
       <div class="kkh-summary-card" id="kkhSummaryFollowups"><b id="kkhSummaryFollowupsValue">0</b><span>Follow-ups fällig</span></div>
@@ -4208,6 +4260,393 @@ if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.re
 })();
 </script>
 
+<script id="kk-sales-execution-core-js">
+(function(){
+  'use strict';
+  if(window.KK_SALES_CORE)return;
+  var U=window.KK_UTIL;
+  var esc=U.esc,uid=U.uid,todayISO=U.todayISO,readArr=U.readArray,writeJSON=U.writeJSON;
+
+  var CONTACTS_KEY='kk_crm_contacts';
+  var FOLLOWUPS_KEY='kk_followups';
+  var ACTIVITIES_KEY='kk_crm_activities';
+  var OBJECTS_KEY='kk_crm_objects';
+  var COMMITMENTS_KEY='kk_commitments_v1';
+  var SALES_KEY='kk_sales_pipeline';
+  var EVENTS_KEY='kk12_calendar_events';
+  var LINK_QUEUE_KEY='kk_entity_link_queue_v1';
+  var FEEDBACK_KEY='kk_action_feedback_v1';
+  var EVENTS_LOG_KEY='kk_sales_events_v1';
+  var EVENTS_ARCHIVE_KEY='kk_sales_event_archive_v1';
+  var CALL_SESSION_KEY='kk_call_session_v1';
+  var PRE_MIGRATION_KEY='kk_pre_import_sales_core_v2';
+  var MAX_ACTIVE_EVENTS=2000;
+  var ACTIVE_EVENTS_AFTER_ARCHIVE=1500;
+  var MAX_ARCHIVE_MONTHS=24;
+
+  var OBJECTIONS=[
+    {id:'preis_zu_hoch',text:'Der Preis ist zu hoch angesetzt.',response:'Verständnis zeigen, dann mit realistischen Vergleichswerten der Region argumentieren statt direkt zu widersprechen.'},
+    {id:'selbst_verkaufen',text:'Wir möchten erst einmal selbst verkaufen.',response:'Anerkennen, zwei Diagnosefragen stellen, unverbindlichen Marktvergleich anbieten statt Gegenargumentation.'},
+    {id:'kein_interesse_jetzt',text:'Aktuell kein Interesse an einem Verkauf.',response:'Zeitpunkt akzeptieren, Tür für späteren Kontakt offen halten, konkretes Wiedervorlage-Datum vereinbaren.'},
+    {id:'schon_makler',text:'Wir haben bereits einen Makler beauftragt.',response:'Respektieren, nach Zufriedenheit fragen, unverbindliches Zweitangebot für später anbieten.'},
+    {id:'zeitpunkt_unklar',text:'Der Zeitpunkt für einen Verkauf ist noch unklar.',response:'Nicht drängen, Informationsbedarf klären, in sinnvollem Abstand nachfassen.'},
+    {id:'bewertung_zu_niedrig',text:'Die Bewertung erscheint zu niedrig.',response:'Bewertungsgrundlage transparent erklären, Vergleichsobjekte zeigen.'},
+    {id:'keine_zeit',text:'Aktuell keine Zeit für Termine.',response:'Kurzformat anbieten (Telefon/Video), flexible Terminfenster vorschlagen.'},
+    {id:'sonstiges',text:'Sonstiger/nicht kategorisierter Einwand.',response:'Aktiv zuhören, konkrete Sorge notieren, individuelle Antwort vorbereiten.'}
+  ];
+
+  function rawArray(key){var value=readArr(key);return Array.isArray(value)?value:[]}
+  function safeRecords(key){return rawArray(key).filter(function(x){return x&&typeof x==='object'&&!Array.isArray(x)})}
+  function contacts(){return safeRecords(CONTACTS_KEY)}
+  function followups(){return safeRecords(FOLLOWUPS_KEY)}
+  function activities(){return safeRecords(ACTIVITIES_KEY)}
+  function objects(){return safeRecords(OBJECTS_KEY)}
+  function commitments(){return safeRecords(COMMITMENTS_KEY)}
+  function salesDeals(){return safeRecords(SALES_KEY)}
+  function calEvents(){return safeRecords(EVENTS_KEY)}
+  function linkQueue(){return safeRecords(LINK_QUEUE_KEY)}
+  function feedbackList(){return safeRecords(FEEDBACK_KEY)}
+  function eventLog(){return safeRecords(EVENTS_LOG_KEY)}
+  function eventArchive(){return safeRecords(EVENTS_ARCHIVE_KEY)}
+  function saveRawArray(key,list){return writeJSON(key,Array.isArray(list)?list:[])}
+  function saveContacts(list){return saveRawArray(CONTACTS_KEY,list)}
+  function saveFollowups(list){return saveRawArray(FOLLOWUPS_KEY,list)}
+  function saveActivities(list){return saveRawArray(ACTIVITIES_KEY,list)}
+  function saveCommitments(list){return saveRawArray(COMMITMENTS_KEY,list)}
+  function saveSalesDeals(list){return saveRawArray(SALES_KEY,list)}
+  function saveLinkQueue(list){return saveRawArray(LINK_QUEUE_KEY,list)}
+  function saveFeedback(list){return saveRawArray(FEEDBACK_KEY,list)}
+
+  function normName(n){return String(n||'').trim().toLowerCase().replace(/\s+/g,' ')}
+  function today(){return todayISO()}
+  function dateValue(value){var s=String(value||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(s)?s:''}
+  function daysUntil(dateStr){var clean=dateValue(dateStr);if(!clean)return null;var d=new Date(clean+'T00:00:00');if(isNaN(d))return null;var t=new Date(today()+'T00:00:00');return Math.round((d-t)/86400000)}
+  function recordId(record){return record&&String(record.id||record._id||'').trim()}
+  function contactIdOf(contact){return recordId(contact)}
+  function clone(value){try{return JSON.parse(JSON.stringify(value))}catch(e){return value}}
+  function upsertById(list,item){var id=recordId(item),idx=id?list.findIndex(function(x){return x&&typeof x==='object'&&recordId(x)===id}):-1;if(idx>=0)list[idx]=Object.assign({},list[idx],item);else list.unshift(item);return list}
+
+  function makePreMigrationBackup(targets){
+    if(window.KK_STORE&&window.KK_STORE.getRaw&&window.KK_STORE.getRaw(PRE_MIGRATION_KEY)!=null)return;
+    var data={};targets.forEach(function(t){data[t.key]=clone(rawArray(t.key))});
+    var payload={createdAt:new Date().toISOString(),reason:'Sales Execution Core V2: additive stable-ID migration before first write',data:data};
+    if(window.KK_STORE&&window.KK_STORE.setRaw)window.KK_STORE.setRaw(PRE_MIGRATION_KEY,JSON.stringify(payload));
+    else writeJSON(PRE_MIGRATION_KEY,payload);
+  }
+
+  function ensureStableIds(){
+    var targets=[
+      {key:CONTACTS_KEY,prefix:'ct'},{key:FOLLOWUPS_KEY,prefix:'fu'},{key:ACTIVITIES_KEY,prefix:'act'},
+      {key:OBJECTS_KEY,prefix:'obj'},{key:COMMITMENTS_KEY,prefix:'commit'},{key:SALES_KEY,prefix:'opp'},
+      {key:EVENTS_KEY,prefix:'event'},{key:LINK_QUEUE_KEY,prefix:'link'},{key:FEEDBACK_KEY,prefix:'feedback'}
+    ];
+    var changes=[];
+    targets.forEach(function(target){
+      var source=rawArray(target.key),changed=false;
+      var next=source.map(function(item){
+        if(!item||typeof item!=='object'||Array.isArray(item)||recordId(item))return item;
+        changed=true;return Object.assign({},item,{id:item._id||uid(target.prefix)});
+      });
+      if(changed)changes.push({key:target.key,next:next});
+    });
+    if(!changes.length)return {changed:false,collections:0};
+    makePreMigrationBackup(targets);
+    changes.forEach(function(change){saveRawArray(change.key,change.next)});
+    return {changed:true,collections:changes.length};
+  }
+
+  function archiveOldEvents(log){
+    if(log.length<=MAX_ACTIVE_EVENTS)return log;
+    var moveCount=log.length-ACTIVE_EVENTS_AFTER_ARCHIVE;
+    var moved=log.slice(0,moveCount),remaining=log.slice(moveCount),archive=eventArchive(),byMonth={};
+    archive.forEach(function(row){if(row&&row.month)byMonth[row.month]=Object.assign({},row,{eventCount:Number(row.eventCount)||0,counts:Object.assign({},row.counts||{}),firstAt:row.firstAt||null,lastAt:row.lastAt||null,archivedAt:row.archivedAt||new Date().toISOString()})});
+    moved.forEach(function(evt){
+      var month=String(evt.at||'').slice(0,7)||'unknown';
+      var row=byMonth[month]||(byMonth[month]={id:'sales-event-archive:'+month,month:month,eventCount:0,counts:{},firstAt:null,lastAt:null,archivedAt:new Date().toISOString()});
+      row.eventCount++;row.counts[evt.type]=(row.counts[evt.type]||0)+1;
+      if(!row.firstAt||String(evt.at)<row.firstAt)row.firstAt=evt.at||null;
+      if(!row.lastAt||String(evt.at)>row.lastAt)row.lastAt=evt.at||null;
+    });
+    archive=Object.keys(byMonth).sort().slice(-MAX_ARCHIVE_MONTHS).map(function(month){return byMonth[month]});
+    saveRawArray(EVENTS_ARCHIVE_KEY,archive);
+    return remaining;
+  }
+
+  function pushEvent(type,data,eventKey){
+    var log=eventLog();
+    if(eventKey){var existing=log.find(function(e){return e.eventKey===eventKey});if(existing)return existing}
+    var evt=Object.assign({id:uid('evt'),eventKey:eventKey||null,type:type,at:new Date().toISOString()},data||{});
+    log.push(evt);log=archiveOldEvents(log);saveRawArray(EVENTS_LOG_KEY,log);return evt;
+  }
+
+  var EntityLinks=(function(){
+    var index=null,contactMap=null,objectIndex=null,objectMap=null;
+    function buildIndex(){
+      var idx={},map={},objIdx={},objMap={};
+      contacts().forEach(function(c){
+        var id=contactIdOf(c),key=normName(c.name);if(!id)return;map[id]=c;if(key)(idx[key]=idx[key]||[]).push(id);
+      });
+      objects().forEach(function(o){
+        var id=recordId(o);if(!id)return;objMap[id]=o;
+        [o.address,o.objectLabel,o.title,o.location,[o.street,o.houseNumber].filter(Boolean).join(' ')].forEach(function(label){var key=normName(label);if(key)(objIdx[key]=objIdx[key]||[]).push(id)});
+      });
+      index=idx;contactMap=map;objectIndex=objIdx;objectMap=objMap;return idx;
+    }
+    function getContact(contactId){if(!contactMap)buildIndex();return contactMap[contactId]||null}
+    function candidates(name){if(!index)buildIndex();return (index[normName(name)]||[]).slice()}
+    function setQueueState(sourceKey,sourceRecordId,name,candidateIds,status,resolvedContactId,entityType){
+      if(!sourceRecordId)return;entityType=entityType||'contact';
+      var q=linkQueue(),idx=q.findIndex(function(x){return x.sourceKey===sourceKey&&x.sourceRecordId===sourceRecordId&&String(x.entityType||'contact')===entityType});
+      /* Eindeutige Verknüpfungen benötigen keinen neuen Queue-Eintrag. Ein bereits
+         vorhandener Problemfall wird nur dann aktualisiert, wenn sich sein fachlicher
+         Zustand tatsächlich geändert hat. Damit bleibt compute() schreibfrei. */
+      if(status==='resolved'&&idx<0)return;
+      var previous=idx>=0?q[idx]:null,nextCandidates=(candidateIds||[]).slice().sort();
+      var unchanged=previous&&previous.status===status&&String(previous.resolvedEntityId||previous.resolvedContactId||previous.resolvedPropertyId||'')===String(resolvedContactId||'')&&String(previous.freeTextName||'')===String(name||'')&&JSON.stringify((previous.candidateEntityIds||previous.candidateContactIds||[]).slice().sort())===JSON.stringify(nextCandidates);
+      if(unchanged)return;
+      var now=new Date().toISOString(),entry={id:previous?recordId(previous):uid('link'),entityType:entityType,sourceKey:sourceKey,sourceRecordId:sourceRecordId,freeTextName:String(name||''),candidateEntityIds:nextCandidates,candidateContactIds:entityType==='contact'?nextCandidates:[],status:status,resolvedEntityId:resolvedContactId||null,resolvedContactId:entityType==='contact'?(resolvedContactId||null):null,resolvedPropertyId:entityType==='property'?(resolvedContactId||null):null,updatedAt:now};
+      if(previous)q[idx]=Object.assign({},previous,entry);else{entry.createdAt=now;q.push(entry)}
+      saveLinkQueue(q);
+    }
+    function resolveRecord(sourceKey,record,name){
+      if(!record||typeof record!=='object')return null;
+      if(!contactMap)buildIndex();
+      var sid=recordId(record),explicit=String(record.contactId||'').trim();
+      if(explicit&&contactMap[explicit]){setQueueState(sourceKey,sid,name,[], 'resolved',explicit);return explicit}
+      var ids=candidates(name);
+      if(ids.length===1){setQueueState(sourceKey,sid,name,ids,'resolved',ids[0]);return ids[0]}
+      setQueueState(sourceKey,sid,name,ids,ids.length>1?'ambiguous':'unresolved',null);
+      return null;
+    }
+    function resolveProperty(sourceKey,record){
+      if(!record||typeof record!=='object')return '';
+      if(!objectMap)buildIndex();
+      var sid=recordId(record),explicit=String(record.propertyId||record.objectId||'').trim();
+      if(explicit&&objectMap[explicit]){setQueueState(sourceKey,sid,record.objectLabel||record.address,[],'resolved',explicit,'property');return explicit}
+      var label=record.objectLabel||record.propertyLabel||record.address||record.location||'',ids=label?(objectIndex[normName(label)]||[]):[];
+      if(ids.length===1){setQueueState(sourceKey,sid,label,ids,'resolved',ids[0],'property');return ids[0]}
+      if(explicit||label)setQueueState(sourceKey,sid,label||explicit,ids,ids.length>1?'ambiguous':'unresolved',null,'property');
+      return '';
+    }
+    function scan(){
+      buildIndex();
+      commitments().forEach(function(x){resolveRecord(COMMITMENTS_KEY,x,x.contact)});
+      followups().forEach(function(x){resolveRecord(FOLLOWUPS_KEY,x,x.name||x.contact)});
+      salesDeals().forEach(function(x){resolveRecord(SALES_KEY,x,x.name||x.contact);resolveProperty(SALES_KEY,x)});
+      calEvents().forEach(function(x){if(x.contact||x.contactId)resolveRecord(EVENTS_KEY,x,x.contact)});
+      activities().forEach(function(x){if(x.contact||x.contactId)resolveRecord(ACTIVITIES_KEY,x,x.contact)});
+    }
+    function invalidate(){index=null;contactMap=null;objectIndex=null;objectMap=null}
+    return {buildIndex:buildIndex,getContact:getContact,resolveRecord:resolveRecord,resolveProperty:resolveProperty,scan:scan,invalidate:invalidate,candidates:candidates};
+  })();
+
+  var ContactPolicy=(function(){
+    var ALLOWED_TYPES={explicit_consent:1,callback_request:1,existing_relationship:1};
+    function get(contactId){var c=EntityLinks.getContact(contactId);return c&&c.contactPolicy&&typeof c.contactPolicy==='object'?c.contactPolicy:null}
+    function normalize(policy){
+      policy=policy&&typeof policy==='object'?policy:{};
+      var basisType=String(policy.basisType||'').trim();
+      var basis=String(policy.basis||policy.basisEvidence||'').trim();
+      if(!basisType&&basis){
+        if(/einwill|zustimm|freigab/i.test(basis))basisType='explicit_consent';
+        else if(/rückruf|rueckruf|zurückrufen|zurueckrufen/i.test(basis))basisType='callback_request';
+        else if(/beziehung|kunde|partner|tippgeber|geschäft|geschaeft/i.test(basis))basisType='existing_relationship';
+        else basisType='manual_reason';
+      }
+      return Object.assign({},policy,{basisType:basisType||null,basis:basis||null});
+    }
+    function evaluate(contactId,contextBasis){
+      var contact=EntityLinks.getContact(contactId);
+      if(!contact)return {status:'blocked',allowed:false,blocked:true,basis:null,reasons:['kontakt_nicht_verknuepft'],warnings:[]};
+      var p=normalize(get(contactId)),reasons=[],warnings=[];
+      var hard=[];
+      if(p.doNotContact)hard.push('sperrvermerk');
+      if(p.optOut)hard.push('opt_out');
+      if(p.phoneAllowed===false)hard.push('telefonkontakt_untersagt');
+      if(p.consentRevokedAt)hard.push('einwilligung_widerrufen');
+      if(p.noContactUntil&&dateValue(p.noContactUntil)>today())hard.push('kontaktsperre_bis_'+dateValue(p.noContactUntil));
+      var documentedPolicy=!!(ALLOWED_TYPES[p.basisType]&&(p.basis||p.basisEvidence||p.consentRecordedAt||p.callbackRequestedAt||p.relationshipEvidence));
+      if(hard.length&&documentedPolicy)warnings.push('widerspruechliche_kontaktinformationen');
+      if(hard.length)return {status:'blocked',allowed:false,blocked:true,basis:null,reasons:hard,warnings:warnings,policy:p};
+      if(documentedPolicy){
+        return {status:'allowed',allowed:true,blocked:false,basis:{type:p.basisType,label:basisLabel(p.basisType),evidence:p.basis||p.basisEvidence||'im Kontakt dokumentiert',source:'contactPolicy'},reasons:['dokumentierte_kontaktgrundlage'],warnings:warnings,policy:p};
+      }
+      if(contextBasis&&ALLOWED_TYPES[contextBasis.type]&&contextBasis.evidence){
+        return {status:'allowed',allowed:true,blocked:false,basis:{type:contextBasis.type,label:basisLabel(contextBasis.type),evidence:contextBasis.evidence,source:contextBasis.source||'sourceRecord'},reasons:['kontaktgrundlage_aus_vorgang'],warnings:warnings,policy:p};
+      }
+      reasons.push('kontaktgrundlage_unbekannt');
+      if(p.phoneAllowed===true)warnings.push('telefonfreigabe_ohne_zulaessige_grundlage');
+      return {status:'unknown',allowed:false,blocked:false,basis:null,reasons:reasons,warnings:warnings,policy:p};
+    }
+    function basisLabel(type){return {explicit_consent:'Ausdrückliche Einwilligung',callback_request:'Dokumentierter Rückrufwunsch',existing_relationship:'Bestehende Beziehung',manual_reason:'Manuell bestätigte Begründung'}[type]||'Unbekannt'}
+    function save(contactId,policy){
+      var list=rawArray(CONTACTS_KEY),idx=list.findIndex(function(x){return x&&typeof x==='object'&&contactIdOf(x)===contactId});if(idx<0)return false;
+      list[idx]=Object.assign({},list[idx],{id:contactId,contactPolicy:normalize(policy),updatedAt:new Date().toISOString()});
+      saveContacts(list);EntityLinks.invalidate();EntityLinks.buildIndex();return true;
+    }
+    function isBlocked(contactId){return evaluate(contactId).blocked}
+    function isUnknown(contactId){return evaluate(contactId).status==='unknown'}
+    return {get:get,save:save,evaluate:evaluate,isBlocked:isBlocked,isUnknown:isUnknown,basisLabel:basisLabel};
+  })();
+
+  var ActionEngine=(function(){
+    var lastAudit=[];
+    function contextBasis(ruleId,source,contact){
+      var rid=recordId(source);
+      if(ruleId==='callback_due')return {type:'callback_request',evidence:'Telefon-Follow-up '+rid+' ist für '+dateValue(source.dueDate||source.date)+' dokumentiert.',source:FOLLOWUPS_KEY};
+      if(ruleId==='appointment_unprepared')return {type:'existing_relationship',evidence:'Termin '+rid+' ist im Kalender dokumentiert.',source:EVENTS_KEY};
+      if(ruleId==='commitment_overdue')return {type:'existing_relationship',evidence:'Offene Zusage '+rid+' ist für diesen Kontakt dokumentiert.',source:COMMITMENTS_KEY};
+      if(ruleId==='cooling_owner_interest'&&contact&&contact.lastContact)return {type:'existing_relationship',evidence:'Letzter Kontakt am '+contact.lastContact+' und Status '+String(contact.status||'')+'.',source:CONTACTS_KEY};
+      if(ruleId==='relationship_care'&&contact&&contact.lastContact)return {type:'existing_relationship',evidence:'Beziehung als '+String(contact.category||'Partner')+' und letzter Kontakt am '+contact.lastContact+'.',source:CONTACTS_KEY};
+      if((ruleId==='opportunity_no_next_step'||ruleId==='opportunity_overdue_step')&&!/^(rohkontakt|neu|unqualifiziert)$/i.test(String(source.stage||source.status||'')))return {type:'existing_relationship',evidence:'Verkaufschance '+rid+' in Stufe '+String(source.stage||source.status||'aktiv')+' ist dokumentiert.',source:SALES_KEY};
+      return null;
+    }
+    function sourceContact(sourceKey,source,name,ruleId,directContact){
+      var contactId=directContact?contactIdOf(directContact):EntityLinks.resolveRecord(sourceKey,source,name);
+      if(!contactId){lastAudit.push({sourceKey:sourceKey,sourceRecordId:recordId(source),ruleId:ruleId,decision:'excluded',reasons:['keine_eindeutige_stabile_kontaktverknuepfung']});return null}
+      var contact=directContact||EntityLinks.getContact(contactId),evaluation=ContactPolicy.evaluate(contactId,contextBasis(ruleId,source,contact));
+      if(!evaluation.allowed){lastAudit.push({sourceKey:sourceKey,sourceRecordId:recordId(source),contactId:contactId,ruleId:ruleId,decision:'excluded',reasons:evaluation.reasons,warnings:evaluation.warnings});return null}
+      return {contactId:contactId,contact:contact,evaluation:evaluation};
+    }
+    function compute(){
+      EntityLinks.buildIndex();lastAudit=[];
+      var f={contacts:contacts(),followups:followups().filter(function(x){return String(x.status||'offen').toLowerCase()==='offen'}),commitments:commitments().filter(function(x){return String(x.status||'offen').toLowerCase()==='offen'}),sales:salesDeals().filter(function(x){return !/(verkauft|auftrag verloren|abgeschlossen|geschlossen)/i.test(String(x.stage||x.status||''))}),events:calEvents()};
+      var recs=[],seen={};
+      function addRec(rec,link){
+        var dedupeKey=rec.dedupeKey;if(dedupeKey&&seen[dedupeKey])return;if(dedupeKey)seen[dedupeKey]=true;
+        var basis=link.evaluation.basis,warnings=(link.evaluation.warnings||[]).slice().concat(rec.preWarnings||[]);
+        rec.action=rec.recommendedAction;rec.reason=rec.whyNow;rec.priority={band:rec.priorityBand,label:rec.priorityBand<=1?'Sofort':rec.priorityBand<=3?'Heute':'Geplant'};
+        rec.dataBasis=clone(rec.sourceFacts||{});rec.contactReference={contactId:link.contactId,contactName:rec.entityReferences.contactName};rec.contactBasis=basis;
+        rec.warnings=warnings;rec.exclusionNotes=[];recs.push(rec);
+      }
+      f.commitments.forEach(function(c){
+        var due=dateValue(c.due);if(!due||due>=today())return;var link=sourceContact(COMMITMENTS_KEY,c,c.contact,'commitment_overdue');if(!link)return;
+        addRec({id:'commitment_overdue:'+recordId(c),ruleId:'commitment_overdue',priorityBand:1,entityReferences:{contactId:link.contactId,contactName:c.contact||link.contact.name,commitmentId:recordId(c)},reasonCodes:['zusage_ueberfaellig'],sourceFacts:{sourceKey:COMMITMENTS_KEY,sourceRecordId:recordId(c),text:c.text,due:due},whyNow:'Zusage "'+String(c.text||'')+'" war fällig am '+due+' und ist noch offen.',goal:'Zusage einhalten oder aktiv neu terminieren.',recommendedAction:'anrufen',minimumCommitment:'Zusage erfüllen oder neues Datum nennen.',dueAt:due,generatedAt:new Date().toISOString(),dedupeKey:link.contactId},link);
+      });
+      f.followups.forEach(function(fu){
+        var due=dateValue(fu.dueDate||fu.date);if((fu.channel||'Telefon')!=='Telefon'||!due||due>today())return;var link=sourceContact(FOLLOWUPS_KEY,fu,fu.name||fu.contact,'callback_due');if(!link)return;var overdue=due<today();
+        addRec({id:'callback_due:'+recordId(fu),ruleId:'callback_due',priorityBand:2,entityReferences:{contactId:link.contactId,contactName:fu.name||fu.contact||link.contact.name,followupId:recordId(fu)},reasonCodes:[overdue?'rueckruf_ueberfaellig':'rueckruf_heute_faellig'],sourceFacts:{sourceKey:FOLLOWUPS_KEY,sourceRecordId:recordId(fu),goal:fu.goal,dueDate:due,channel:fu.channel},whyNow:'Vereinbarter Rückruf ist '+(overdue?'seit '+due+' überfällig':'heute fällig')+'.',goal:fu.goal||'Vereinbarten Rückruf durchführen.',recommendedAction:'anrufen',minimumCommitment:'Kontakt erreichen oder neuen Rückruftermin setzen.',dueAt:due,generatedAt:new Date().toISOString(),dedupeKey:link.contactId},link);
+      });
+      f.events.forEach(function(ev){
+        var d=daysUntil(ev.date);if(d==null||d<0||d>1||ev.goal)return;var link=sourceContact(EVENTS_KEY,ev,ev.contact,'appointment_unprepared');if(!link)return;
+        addRec({id:'appointment_unprepared:'+recordId(ev),ruleId:'appointment_unprepared',priorityBand:3,entityReferences:{contactId:link.contactId,contactName:ev.contact||link.contact.name,eventId:recordId(ev)},reasonCodes:['termin_ohne_vorbereitung'],sourceFacts:{sourceKey:EVENTS_KEY,sourceRecordId:recordId(ev),title:ev.title,date:dateValue(ev.date)},whyNow:'Termin "'+String(ev.title||'')+'" ist innerhalb der nächsten 24 Stunden, es ist kein Gesprächsziel hinterlegt.',goal:'Termin vorbereiten (Ziel, Unterlagen, Marktdaten).',recommendedAction:'termin_vorbereiten',minimumCommitment:'Gesprächsziel für den Termin festlegen.',dueAt:dateValue(ev.date),generatedAt:new Date().toISOString(),dedupeKey:link.contactId},link);
+      });
+      f.sales.forEach(function(d){
+        if(String(d.nextStep||'').trim())return;var link=sourceContact(SALES_KEY,d,d.name||d.contact,'opportunity_no_next_step');if(!link)return;var propertyId=EntityLinks.resolveProperty(SALES_KEY,d),propertyWarning=(d.propertyId||d.objectId||d.objectLabel||d.address)&&!propertyId?'objektbezug_nicht_eindeutig_verknuepft':null;
+        addRec({id:'opportunity_no_next_step:'+recordId(d),ruleId:'opportunity_no_next_step',priorityBand:4,entityReferences:{contactId:link.contactId,contactName:d.name||d.contact||link.contact.name,opportunityId:recordId(d),propertyId:propertyId,propertyLabel:d.objectLabel||''},preWarnings:propertyWarning?[propertyWarning]:[],reasonCodes:['pipeline_ohne_naechsten_schritt'],sourceFacts:{sourceKey:SALES_KEY,sourceRecordId:recordId(d),stage:d.stage,objectLabel:d.objectLabel},whyNow:'Pipeline-Chance "'+String(d.objectLabel||d.name||'')+'" ist in Stufe "'+String(d.stage||'')+'", aber ohne hinterlegten nächsten Schritt.',goal:'Nächsten Schritt festlegen und Chance vorantreiben.',recommendedAction:'anrufen',minimumCommitment:'Konkreten nächsten Schritt mit Datum festlegen.',dueAt:null,generatedAt:new Date().toISOString(),dedupeKey:link.contactId},link);
+      });
+      f.contacts.forEach(function(c){
+        if(!(c.category==='Eigentümer'||c.contactType==='Eigentümerchance')||['Gespräch','Termin'].indexOf(c.status)<0)return;var d=daysUntil(c.lastContact);if(d==null||d>-14)return;var link=sourceContact(CONTACTS_KEY,c,c.name,'cooling_owner_interest',c);if(!link)return;
+        addRec({id:'cooling_owner_interest:'+contactIdOf(c),ruleId:'cooling_owner_interest',priorityBand:5,entityReferences:{contactId:link.contactId,contactName:c.name},reasonCodes:['abkuehlung_droht'],sourceFacts:{sourceKey:CONTACTS_KEY,sourceRecordId:contactIdOf(c),status:c.status,lastContact:c.lastContact},whyNow:'Dokumentiertes Verkaufsinteresse (Status "'+String(c.status||'')+'"), aber seit '+String(c.lastContact||'')+' kein Kontakt mehr.',goal:'Kontakt reaktivieren, bevor Interesse abkühlt.',recommendedAction:'anrufen',minimumCommitment:'Kurzen Kontaktimpuls setzen.',dueAt:null,generatedAt:new Date().toISOString(),dedupeKey:link.contactId},link);
+      });
+      f.sales.forEach(function(d){
+        var due=dateValue(d.deadline||d.followUpDate);if(!due||due>=today()||!String(d.nextStep||'').trim())return;var link=sourceContact(SALES_KEY,d,d.name||d.contact,'opportunity_overdue_step');if(!link)return;var propertyId=EntityLinks.resolveProperty(SALES_KEY,d),propertyWarning=(d.propertyId||d.objectId||d.objectLabel||d.address)&&!propertyId?'objektbezug_nicht_eindeutig_verknuepft':null;
+        addRec({id:'opportunity_overdue_step:'+recordId(d),ruleId:'opportunity_overdue_step',priorityBand:6,entityReferences:{contactId:link.contactId,contactName:d.name||d.contact||link.contact.name,opportunityId:recordId(d),propertyId:propertyId},preWarnings:propertyWarning?[propertyWarning]:[],reasonCodes:['pipeline_naechster_schritt_ueberfaellig'],sourceFacts:{sourceKey:SALES_KEY,sourceRecordId:recordId(d),nextStep:d.nextStep,due:due},whyNow:'Nächster Schritt "'+String(d.nextStep||'')+'" war fällig am '+due+'.',goal:'Zugesagten nächsten Schritt nachholen.',recommendedAction:'anrufen',minimumCommitment:'Nächsten Schritt nachholen oder neu terminieren.',dueAt:due,generatedAt:new Date().toISOString(),dedupeKey:link.contactId},link);
+      });
+      f.contacts.forEach(function(c){
+        if(['Tippgeber','Partner'].indexOf(c.category)<0)return;var d=daysUntil(c.lastContact);if(d==null||d>-30)return;var link=sourceContact(CONTACTS_KEY,c,c.name,'relationship_care',c);if(!link)return;
+        addRec({id:'relationship_care:'+contactIdOf(c),ruleId:'relationship_care',priorityBand:7,entityReferences:{contactId:link.contactId,contactName:c.name},reasonCodes:['beziehungspflege_faellig'],sourceFacts:{sourceKey:CONTACTS_KEY,sourceRecordId:contactIdOf(c),category:c.category,lastContact:c.lastContact},whyNow:'Seit '+String(c.lastContact||'')+' kein Kontakt zu diesem '+String(c.category||'Kontakt')+'.',goal:'Beziehung pflegen, ggf. Empfehlungsmoment ansprechen.',recommendedAction:'anrufen',minimumCommitment:'Kurzen persönlichen Kontakt herstellen.',dueAt:null,generatedAt:new Date().toISOString(),dedupeKey:link.contactId},link);
+      });
+      var fbMap={};feedbackList().forEach(function(x){fbMap[x.recommendationId]=x});
+      recs=recs.filter(function(r){var x=fbMap[r.id];if(!x)return true;if(x.decision==='dismissed'||x.decision==='executed')return false;if(x.decision==='snoozed'&&dateValue(x.snoozedUntil)>today())return false;return true});
+      recs.sort(function(a,b){return a.priorityBand-b.priorityBand||String(a.dueAt||'9999').localeCompare(String(b.dueAt||'9999'))||a.id.localeCompare(b.id)});return recs;
+    }
+    return {compute:compute,getAudit:function(){return clone(lastAudit)}};
+  })();
+
+  var callQueue=[],callQueueIndex=-1,currentRec=null,session=null,dlg=null,opening=false,saving=false,manualPending=null;
+  var REASON_LABELS={zusage_ueberfaellig:'Zusage überfällig',rueckruf_ueberfaellig:'Rückruf überfällig',rueckruf_heute_faellig:'Rückruf heute fällig',termin_ohne_vorbereitung:'Termin ohne Vorbereitung',pipeline_ohne_naechsten_schritt:'Pipeline ohne nächsten Schritt',abkuehlung_droht:'Abkühlung droht',pipeline_naechster_schritt_ueberfaellig:'Nächster Schritt überfällig',beziehungspflege_faellig:'Beziehungspflege fällig'};
+  function q(id){return document.getElementById(id)}
+
+  function renderCommandCenter(){
+    var recs=ActionEngine.compute(),audit=ActionEngine.getAudit(),countsEl=q('kksecCounts'),queueEl=q('kksecQueue'),emptyEl=q('kksecEmpty'),startBtn=q('kksecStartSeriesBtn');if(!countsEl||!queueEl)return;
+    var overdueCommitments=recs.filter(function(r){return r.ruleId==='commitment_overdue'}).length,callable=recs.filter(function(r){return r.recommendedAction==='anrufen'}).length,appointmentsToPrep=recs.filter(function(r){return r.ruleId==='appointment_unprepared'}).length;
+    countsEl.innerHTML=['<span class="'+(overdueCommitments?'is-alert':'')+'"><b>'+overdueCommitments+'</b> überfällige Zusagen</span>','<span><b>'+callable+'</b> priorisierte Kontakte</span>','<span><b>'+appointmentsToPrep+'</b> Termine vorzubereiten</span>','<span title="Nicht eindeutig verknüpft, gesperrt oder ohne dokumentierte Kontaktgrundlage"><b>'+audit.length+'</b> sicher ausgeschlossen</span>'].join('');
+    callQueue=recs;if(startBtn)startBtn.disabled=!recs.some(function(r){return r.recommendedAction==='anrufen'});
+    if(!recs.length){queueEl.innerHTML='';if(emptyEl)emptyEl.hidden=false;return}if(emptyEl)emptyEl.hidden=true;
+    queueEl.innerHTML=recs.slice(0,8).map(function(r){
+      var reasons=r.reasonCodes.map(function(c){return '<span class="kksec-policy-tag">'+esc(REASON_LABELS[c]||c)+'</span>'}).join(' '),basis=r.contactBasis?('<span class="kksec-policy-tag">Grundlage: '+esc(r.contactBasis.label)+'</span>'):'';
+      return '<article class="kksec-card is-band-'+(r.priorityBand<=1?1:r.priorityBand<=3?2:3)+'" role="listitem" data-rec-id="'+esc(r.id)+'"><div class="kksec-card-top"><h4>'+esc(r.entityReferences.contactName||'Unbekannt')+'</h4><div>'+reasons+' '+basis+'</div></div><p class="kksec-why">'+esc(r.whyNow)+'</p><p class="kksec-goal"><b>Ziel:</b> '+esc(r.goal)+'</p><p class="kksec-why"><b>Datenbasis:</b> '+esc(r.sourceFacts.sourceKey||'')+' · '+esc(r.sourceFacts.sourceRecordId||'')+(r.dueAt?' · fällig '+esc(r.dueAt):'')+'</p><div class="kksec-card-actions"><button type="button" class="kksec-start" data-act="start" data-rec-id="'+esc(r.id)+'">'+(r.recommendedAction==='anrufen'?'Anruf starten':'Vorbereitung öffnen')+'</button><button type="button" data-act="snooze" data-rec-id="'+esc(r.id)+'">Zurückstellen</button><button type="button" data-act="dismiss" data-rec-id="'+esc(r.id)+'">Unpassend</button></div></article>';
+    }).join('');
+  }
+
+  function recommendationById(id){return callQueue.find(function(r){return r.id===id})||ActionEngine.compute().find(function(r){return r.id===id})}
+  function recordFeedback(recId,decision,extra){var list=rawArray(FEEDBACK_KEY),idx=list.findIndex(function(x){return x&&typeof x==='object'&&x.recommendationId===recId}),entry=Object.assign({id:idx>=0?recordId(list[idx]):uid('feedback'),recommendationId:recId,decision:decision,updatedAt:new Date().toISOString()},extra||{});if(idx>=0)list[idx]=Object.assign({},list[idx],entry);else list.push(entry);saveFeedback(list)}
+  function snoozeRecommendation(recId){var until=new Date();until.setDate(until.getDate()+1);recordFeedback(recId,'snoozed',{snoozedUntil:todayISO(until)});pushEvent('recommendation_snoozed',{recommendationId:recId},'recommendation_snoozed:'+recId+':'+today());renderCommandCenter()}
+  function dismissRecommendation(recId){recordFeedback(recId,'dismissed',{dismissReason:'als unpassend markiert'});pushEvent('recommendation_dismissed',{recommendationId:recId},'recommendation_dismissed:'+recId);renderCommandCenter()}
+
+  document.addEventListener('click',function(e){var btn=e.target.closest('#kksecQueue button[data-act]');if(!btn)return;var recId=btn.getAttribute('data-rec-id'),act=btn.getAttribute('data-act');if(act==='start'){var r=recommendationById(recId);if(r)openCallFor(r)}if(act==='snooze')snoozeRecommendation(recId);if(act==='dismiss')dismissRecommendation(recId)});
+  var reachedVal='';document.addEventListener('click',function(e){var b=e.target.closest('#kksecOutcomeReached button');if(!b)return;reachedVal=b.getAttribute('data-val');Array.prototype.forEach.call(b.parentElement.querySelectorAll('button'),function(x){x.classList.toggle('is-selected',x===b)})});
+  function setPhase(name){if(!dlg)return;Array.prototype.forEach.call(dlg.querySelectorAll('.kksc-phase'),function(el){el.classList.toggle('is-active',el.getAttribute('data-phase')===name)});q('kksecPostcallSaveBtn').hidden=name!=='postcall';q('kksecSnoozeBtn').hidden=name!=='prep';q('kksecDismissBtn').hidden=name!=='prep'}
+  function contactHistory(contactId,name){return activities().filter(function(a){return a.contactId===contactId||(!a.contactId&&normName(a.contact)===normName(name))}).sort(function(a,b){return String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||''))}).slice(0,3)}
+  function startSeries(){var callable=ActionEngine.compute().filter(function(r){return r.recommendedAction==='anrufen'});if(!callable.length)return;callQueue=callable;callQueueIndex=0;openCallFor(callQueue[0])}
+
+  function existingCompletion(recId){return activities().find(function(a){return a.source==='sales-execution-core'&&a.recommendationId===recId})||null}
+  function finalizeRecoveredCompletion(recId,activity){recordFeedback(recId,'executed',{executedAt:activity.createdAt||new Date().toISOString(),resultInteractionId:recordId(activity),recovered:true});writeJSON(CALL_SESSION_KEY,null)}
+  function recoverInterruptedSession(){var saved=window.KK_STORE&&window.KK_STORE.readJSON?window.KK_STORE.readJSON(CALL_SESSION_KEY,null):null;if(!saved||typeof saved!=='object')return;var done=existingCompletion(saved.recommendationId);if(done){finalizeRecoveredCompletion(saved.recommendationId,done);return}pushEvent('call_interrupted',{recommendationId:saved.recommendationId,contactId:saved.contactId,sessionId:saved.id},'call_interrupted:'+saved.id);writeJSON(CALL_SESSION_KEY,null)}
+
+  function openCallFor(rec){
+    if(!rec||opening)return;var recomputed=recommendationById(rec.id),fresh=recomputed||rec;
+    if(rec.ruleId!=='manual_contact'&&!recomputed)return;
+    var completion=existingCompletion(fresh.id);if(completion){finalizeRecoveredCompletion(fresh.id,completion);renderCommandCenter();return}
+    if(dlg&&dlg.open&&currentRec&&currentRec.id===fresh.id)return;opening=true;setTimeout(function(){opening=false},250);
+    currentRec=fresh;dlg=q('kkSalesCoreCallDialog');var saved=window.KK_STORE.readJSON(CALL_SESSION_KEY,null);
+    if(saved&&saved.recommendationId===fresh.id&&!existingCompletion(fresh.id))session=saved;else session={id:uid('callsession'),recommendationId:fresh.id,contactId:fresh.entityReferences.contactId,contactName:fresh.entityReferences.contactName,contactBasis:clone(fresh.contactBasis),activityId:uid('act'),followupId:uid('fu'),commitmentId:uid('commit'),startedAt:new Date().toISOString(),phase:'prep',status:'open'};
+    writeJSON(CALL_SESSION_KEY,session);pushEvent('call_started',{recommendationId:fresh.id,contactId:session.contactId,sessionId:session.id},'call_started:'+session.id);
+    q('kksecCallTitle').textContent='Anruf: '+(fresh.entityReferences.contactName||'');q('kksecPrepGoal').textContent='Ziel: '+fresh.goal;q('kksecPrepWhy').textContent=fresh.whyNow;
+    q('kksecPrepObject').textContent=fresh.entityReferences.propertyLabel||fresh.entityReferences.opportunityId?(fresh.entityReferences.propertyLabel||'Pipeline-Chance verknüpft'):'kein Objektbezug hinterlegt';
+    var hist=contactHistory(session.contactId,session.contactName);q('kksecPrepHistory').innerHTML=hist.length?hist.map(function(a){return esc((a.date||a.createdAt||'').slice(0,10)+': '+(a.result||a.type||'Kontakt')+(a.note?' – '+a.note:''))}).join('<br/>'):'Keine erfassten Interaktionen gefunden.';
+    q('kksecPrepOpener').textContent='Bezug auf: "'+fresh.whyNow+'" – dann Ziel offen nennen: '+fresh.goal;q('kksecPrepObjections').innerHTML=OBJECTIONS.slice(0,3).map(function(o){return '<div class="kksec-objection"><b>'+esc(o.text)+'</b><br/>'+esc(o.response)+'</div>'}).join('');q('kksecPrepMinCommit').textContent=fresh.minimumCommitment;
+    var warn=q('kksecPrepPolicyWarning');warn.hidden=false;warn.textContent='Kontaktgrundlage: '+(fresh.contactBasis?fresh.contactBasis.label+' – '+fresh.contactBasis.evidence:'nicht dokumentiert');
+    var contact=EntityLinks.getContact(session.contactId),tel=contact&&contact.phone?contact.phone:'',telLink=q('kksecPrepTelLink');if(tel){telLink.href='tel:'+tel;telLink.textContent='📞 '+tel+' anrufen';telLink.hidden=false}else{telLink.removeAttribute('href');telLink.textContent='Keine Telefonnummer hinterlegt';telLink.hidden=false}
+    q('kksecOutcomeObjection').innerHTML='<option value="">–</option>'+OBJECTIONS.map(function(o){return '<option value="'+esc(o.id)+'">'+esc(o.text)+'</option>'}).join('');q('kksecCallGoal').textContent='Ziel: '+fresh.goal;q('kksecCallObjections').innerHTML=q('kksecPrepObjections').innerHTML;q('kksecCallNote').value='';Array.prototype.forEach.call(q('kksecOutcomeReached').querySelectorAll('button'),function(b){b.classList.remove('is-selected')});reachedVal='';['kksecOutcomeInterest','kksecOutcomeObjection','kksecOutcomeNextStep','kksecOutcomeDate','kksecOutcomeCommitment','kksecOutcomeLearning'].forEach(function(id){q(id).value=''});q('kksecPipelineConfirm').hidden=!fresh.entityReferences.opportunityId;q('kksecPipelineConfirmCheck').checked=false;q('kksecCallNextBtn').hidden=true;q('kksecPostcallSaveBtn').hidden=true;q('kksecPostcallSaveBtn').disabled=false;setPhase('prep');if(typeof dlg.showModal==='function'&&!dlg.open)dlg.showModal();
+  }
+
+  function endCallPhase(){if(!session)return;session.phase='postcall';session.note=q('kksecCallNote').value;writeJSON(CALL_SESSION_KEY,session);setPhase('postcall')}
+  function savePostcall(){
+    if(!currentRec||!session||saving)return;var saveBtn=q('kksecPostcallSaveBtn');
+    if(!reachedVal){window.alert('Bitte dokumentiere zuerst, ob der Kontakt erreicht wurde.');return}
+    saving=true;saveBtn.disabled=true;
+    try{
+      session.status='saving';session.phase='postcall';writeJSON(CALL_SESSION_KEY,session);
+      var contactId=session.contactId,contactName=session.contactName,nextStep=q('kksecOutcomeNextStep').value.trim(),fuDate=dateValue(q('kksecOutcomeDate').value),commitmentText=q('kksecOutcomeCommitment').value.trim(),learning=q('kksecOutcomeLearning').value.trim(),objectionId=q('kksecOutcomeObjection').value,interest=q('kksecOutcomeInterest').value;
+      var newAct={id:session.activityId,date:today(),contactId:contactId,contact:contactName,type:'Anruf',channel:'Telefon',direction:'outbound',opportunityId:currentRec.entityReferences.opportunityId||'',propertyId:currentRec.entityReferences.propertyId||'',result:reachedVal==='ja'?'erreicht':'nicht erreicht',interestState:interest||'',nextStep:nextStep,followUpDate:fuDate||'',note:(q('kksecCallNote').value||'')+(learning?' | Lernnotiz: '+learning:''),recommendationId:currentRec.id,sessionId:session.id,contactBasis:clone(session.contactBasis),source:'sales-execution-core',createdAt:new Date().toISOString()};
+      var acts=rawArray(ACTIVITIES_KEY);upsertById(acts,newAct);saveActivities(acts);
+      if(fuDate||nextStep){var fus=rawArray(FOLLOWUPS_KEY);upsertById(fus,{id:session.followupId,contactId:contactId,name:contactName,area:'',channel:'Telefon',date:fuDate||today(),dueDate:fuDate||today(),status:'offen',goal:nextStep||'Nachfassen',type:'Nachfassgespräch',opportunityId:currentRec.entityReferences.opportunityId||'',propertyId:currentRec.entityReferences.propertyId||'',recommendationId:currentRec.id,sessionId:session.id,source:'sales-execution-core',createdAt:new Date().toISOString()});saveFollowups(fus)}
+      if(commitmentText){var cs=rawArray(COMMITMENTS_KEY);upsertById(cs,{id:session.commitmentId,contactId:contactId,contact:contactName,text:commitmentText,due:fuDate||today(),status:'offen',opportunityId:currentRec.entityReferences.opportunityId||'',propertyId:currentRec.entityReferences.propertyId||'',recommendationId:currentRec.id,sessionId:session.id,createdAt:new Date().toISOString(),source:'sales-execution-core'});saveCommitments(cs)}
+      if(objectionId)pushEvent('objection_occurred',{recommendationId:currentRec.id,contactId:contactId,objectionId:objectionId,interactionId:newAct.id,sessionId:session.id},'objection_occurred:'+session.id+':'+objectionId);
+      if(currentRec.ruleId==='commitment_overdue'&&reachedVal==='ja'&&currentRec.entityReferences.commitmentId){var csAll=rawArray(COMMITMENTS_KEY),ci=csAll.findIndex(function(x){return x&&typeof x==='object'&&recordId(x)===currentRec.entityReferences.commitmentId});if(ci>=0){csAll[ci]=Object.assign({},csAll[ci],{status:'erfuellt',fulfilledAt:new Date().toISOString(),fulfillmentNote:'Über Sales Execution Core erledigt.'});saveCommitments(csAll)}}
+      if(currentRec.entityReferences.opportunityId&&q('kksecPipelineConfirmCheck').checked){var deals=rawArray(SALES_KEY),di=deals.findIndex(function(x){return x&&typeof x==='object'&&recordId(x)===currentRec.entityReferences.opportunityId});if(di>=0){deals[di]=Object.assign({},deals[di],{nextStep:nextStep||deals[di].nextStep,followUpDate:fuDate||deals[di].followUpDate,lastContact:today(),lastActivity:today(),updatedAt:new Date().toISOString()});saveSalesDeals(deals)}}
+      recordFeedback(currentRec.id,'executed',{executedAt:new Date().toISOString(),resultInteractionId:newAct.id,sessionId:session.id});pushEvent(reachedVal==='ja'?'call_reached':'call_not_reached',{recommendationId:currentRec.id,contactId:contactId,interactionId:newAct.id,sessionId:session.id},'call_result:'+session.id);if(commitmentText)pushEvent('commitment_created',{recommendationId:currentRec.id,contactId:contactId,commitmentId:session.commitmentId,sessionId:session.id},'commitment_created:'+session.id);if(fuDate||nextStep)pushEvent('followup_created',{recommendationId:currentRec.id,contactId:contactId,followupId:session.followupId,sessionId:session.id},'followup_created:'+session.id);
+      q('kksecDoneSummary').textContent=nextStep?(' und nächster Schritt "'+nextStep+'" gespeichert'):'';setPhase('done');session.status='completed';writeJSON(CALL_SESSION_KEY,session);writeJSON(CALL_SESSION_KEY,null);renderCommandCenter();callQueueIndex++;var next=callQueue[callQueueIndex],nextBtn=q('kksecCallNextBtn');nextBtn.hidden=!next;saveBtn.hidden=true;if(next)nextBtn.onclick=function(){openCallFor(next)};session=null;
+    }finally{saving=false;saveBtn.disabled=false}
+  }
+  function closeCallDialog(){if(dlg&&typeof dlg.close==='function'&&dlg.open)dlg.close();if(session)pushEvent('call_aborted',{recommendationId:session.recommendationId,contactId:session.contactId,sessionId:session.id},'call_aborted:'+session.id);session=null;currentRec=null;writeJSON(CALL_SESSION_KEY,null)}
+
+  function openContactPolicy(contactId){var c=EntityLinks.getContact(contactId);if(!c)return;var pdlg=q('kkSalesCorePolicyDialog'),p=c.contactPolicy||{};q('kksecPolicyContactId').value=contactId;q('kksecPolicyDoNotContact').checked=!!p.doNotContact;q('kksecPolicyOptOut').checked=!!p.optOut;q('kksecPolicyPhoneAllowed').value=p.phoneAllowed===true?'true':p.phoneAllowed===false?'false':'';q('kksecPolicyBasisType').value=p.basisType||'';q('kksecPolicyBasis').value=p.basis||p.basisEvidence||'';q('kksecPolicyNoContactUntil').value=dateValue(p.noContactUntil);q('kksecPolicyRevokedAt').value=dateValue(p.consentRevokedAt);q('kksecPolicyReason').value=p.restrictionReason||'';q('kksecPolicyTitle').textContent='Kontaktfreigabe: '+String(c.name||'');if(typeof pdlg.showModal==='function')pdlg.showModal()}
+  function savePolicy(){var contactId=q('kksecPolicyContactId').value,phoneVal=q('kksecPolicyPhoneAllowed').value,basisType=q('kksecPolicyBasisType').value,basis=q('kksecPolicyBasis').value.trim(),old=ContactPolicy.get(contactId)||{},policy=Object.assign({},old,{phoneAllowed:phoneVal===''?null:phoneVal==='true',basisType:basisType||null,basis:basis||null,basisEvidence:basis||null,noContactUntil:dateValue(q('kksecPolicyNoContactUntil').value)||null,doNotContact:q('kksecPolicyDoNotContact').checked,optOut:q('kksecPolicyOptOut').checked,consentRevokedAt:dateValue(q('kksecPolicyRevokedAt').value)||null,restrictionReason:q('kksecPolicyReason').value.trim()||null,updatedAt:new Date().toISOString()});if(basisType==='explicit_consent'&&basis&&!policy.consentRecordedAt)policy.consentRecordedAt=new Date().toISOString();if(basisType==='callback_request'&&basis)policy.callbackRequestedAt=policy.callbackRequestedAt||new Date().toISOString();if(basisType==='existing_relationship'&&basis)policy.relationshipEvidence=basis;ContactPolicy.save(contactId,policy);q('kkSalesCorePolicyDialog').close();renderCommandCenter()}
+
+  function manualRecommendation(contact,basis){return {id:'manual_contact:'+contactIdOf(contact)+':'+Date.now(),ruleId:'manual_contact',priorityBand:9,entityReferences:{contactId:contactIdOf(contact),contactName:contact.name},reasonCodes:['manueller_kontaktversuch'],sourceFacts:{sourceKey:CONTACTS_KEY,sourceRecordId:contactIdOf(contact),manual:true},whyNow:'Manueller Kontaktversuch wurde bewusst gestartet.',goal:'Anlass transparent klären und nächsten Schritt dokumentieren.',recommendedAction:'anrufen',minimumCommitment:'Kontaktgrundlage und Ergebnis sauber dokumentieren.',dueAt:null,generatedAt:new Date().toISOString(),dedupeKey:null,action:'anrufen',reason:'Manueller Kontaktversuch wurde bewusst gestartet.',priority:{band:9,label:'Manuell'},dataBasis:{sourceKey:CONTACTS_KEY,sourceRecordId:contactIdOf(contact),manual:true},contactReference:{contactId:contactIdOf(contact),contactName:contact.name},contactBasis:basis,warnings:basis.type==='manual_reason'?['einmalige_manuelle_warnbestaetigung']:[],exclusionNotes:[]}}
+  function openManualConfirm(contactId){var c=EntityLinks.getContact(contactId);if(!c)return false;manualPending={contactId:contactId};q('kksecManualContactName').textContent=c.name||'';q('kksecManualBasisType').value='';q('kksecManualReason').value='';q('kksecManualConfirmCheck').checked=false;var d=q('kkSalesCoreManualConfirmDialog');if(d&&typeof d.showModal==='function')d.showModal();return true}
+  function confirmManualContact(){if(!manualPending)return {ok:false,status:'missing'};var type=q('kksecManualBasisType').value,reason=q('kksecManualReason').value.trim(),confirmed=q('kksecManualConfirmCheck').checked;if(!type||!reason||!confirmed){q('kksecManualError').hidden=false;return {ok:false,status:'validation'}}q('kksecManualError').hidden=true;var contact=EntityLinks.getContact(manualPending.contactId),basis={type:type,label:ContactPolicy.basisLabel(type),evidence:reason,source:'manual-confirmation'};if(type!=='manual_reason'){var old=ContactPolicy.get(manualPending.contactId)||{};ContactPolicy.save(manualPending.contactId,Object.assign({},old,{phoneAllowed:true,basisType:type,basis:reason,basisEvidence:reason,consentRecordedAt:type==='explicit_consent'?new Date().toISOString():old.consentRecordedAt,callbackRequestedAt:type==='callback_request'?new Date().toISOString():old.callbackRequestedAt,relationshipEvidence:type==='existing_relationship'?reason:old.relationshipEvidence,updatedAt:new Date().toISOString()}))}pushEvent('manual_contact_confirmed',{contactId:manualPending.contactId,basisType:type,reason:reason},'manual_contact_confirmed:'+manualPending.contactId+':'+Date.now());q('kkSalesCoreManualConfirmDialog').close();manualPending=null;openCallFor(manualRecommendation(contact,basis));return {ok:true,status:'confirmed'}}
+  function requestManualContact(contactId){var c=EntityLinks.getContact(contactId);if(!c)return {ok:false,status:'missing_contact'};var evaluation=ContactPolicy.evaluate(contactId);if(evaluation.blocked){if(window.alert)window.alert('Kontaktversuch blockiert: '+evaluation.reasons.join(', '));return {ok:false,status:'blocked',evaluation:evaluation}}if(evaluation.allowed){openCallFor(manualRecommendation(c,evaluation.basis));return {ok:true,status:'allowed'}}openManualConfirm(contactId);return {ok:false,status:'confirmation_required'}}
+
+  function bind(){
+    var startBtn=q('kksecStartSeriesBtn');if(startBtn)startBtn.onclick=startSeries;var commitBtn=q('kksecCommitmentsBtn');if(commitBtn)commitBtn.onclick=function(){try{if(window.KK_APP_SHELL&&typeof KK_APP_SHELL.openAnchor==='function')KK_APP_SHELL.openAnchor('p0funktionen');else if(window.KK_APP_SHELL&&typeof KK_APP_SHELL.setActiveTab==='function'){KK_APP_SHELL.setActiveTab('backup');location.hash='#p0funktionen'}}catch(e){}};
+    var callDlg=q('kkSalesCoreCallDialog');if(callDlg){q('kksecCallCloseBtn').onclick=closeCallDialog;q('kksecPrepTelLink').addEventListener('click',function(){if(session){session.phase='incall';writeJSON(CALL_SESSION_KEY,session)}setPhase('incall')});q('kksecCallEndBtn').onclick=endCallPhase;q('kksecPostcallSaveBtn').onclick=savePostcall;q('kksecSnoozeBtn').onclick=function(){if(currentRec)snoozeRecommendation(currentRec.id);closeCallDialog()};q('kksecDismissBtn').onclick=function(){if(currentRec)dismissRecommendation(currentRec.id);closeCallDialog()};callDlg.addEventListener('click',function(e){if(e.target===callDlg)closeCallDialog()});callDlg.addEventListener('cancel',function(e){e.preventDefault();closeCallDialog()})}
+    var polDlg=q('kkSalesCorePolicyDialog');if(polDlg){q('kksecPolicyCloseBtn').onclick=function(){polDlg.close()};q('kksecPolicyCancelBtn').onclick=function(){polDlg.close()};q('kksecPolicySaveBtn').onclick=savePolicy;polDlg.addEventListener('click',function(e){if(e.target===polDlg)polDlg.close()})}
+    var manDlg=q('kkSalesCoreManualConfirmDialog');if(manDlg){q('kksecManualCloseBtn').onclick=function(){manDlg.close();manualPending=null};q('kksecManualCancelBtn').onclick=function(){manDlg.close();manualPending=null};q('kksecManualConfirmBtn').onclick=confirmManualContact;manDlg.addEventListener('click',function(e){if(e.target===manDlg){manDlg.close();manualPending=null}})}
+    document.addEventListener('click',function(e){var link=e.target.closest('a[data-kk-sales-contact-id]');if(!link)return;e.preventDefault();requestManualContact(link.getAttribute('data-kk-sales-contact-id'))});
+    window.addEventListener('kk:object-saved',renderCommandCenter);window.addEventListener('kk:object-type-changed',renderCommandCenter);window.addEventListener('kk:storage-changed',function(ev){var key=ev&&ev.detail&&ev.detail.key;if([CONTACTS_KEY,FOLLOWUPS_KEY,COMMITMENTS_KEY,SALES_KEY,EVENTS_KEY].indexOf(key)>-1){EntityLinks.invalidate();renderCommandCenter()}});document.addEventListener('kk-app-tab-changed',function(ev){if(ev&&ev.detail&&ev.detail.tab==='heute')renderCommandCenter()});
+  }
+
+  function init(){ensureStableIds();EntityLinks.invalidate();EntityLinks.scan();recoverInterruptedSession();renderCommandCenter();bind()}
+  window.KK_SALES_CORE=Object.freeze({
+    computeRecommendations:function(){return ActionEngine.compute()},getDecisionAudit:ActionEngine.getAudit,openContactPolicy:openContactPolicy,setContactPolicy:ContactPolicy.save,getContactPolicy:ContactPolicy.get,evaluateContactPolicy:ContactPolicy.evaluate,isContactBlocked:ContactPolicy.isBlocked,resolveContactId:function(name){EntityLinks.buildIndex();var ids=EntityLinks.candidates(name);return ids.length===1?ids[0]:null},requestManualContact:requestManualContact,confirmManualContact:confirmManualContact,startCallFor:function(recId){var r=recommendationById(recId);if(r)openCallFor(r)},startSeries:startSeries,renderCommandCenter:renderCommandCenter,getEventLog:eventLog,getEventArchive:eventArchive,archiveEventLogNow:function(){var log=eventLog();saveRawArray(EVENTS_LOG_KEY,archiveOldEvents(log));return {active:eventLog(),archive:eventArchive()}},getLinkQueue:linkQueue,getFeedback:feedbackList,ensureStableIds:ensureStableIds,recoverInterruptedSession:recoverInterruptedSession
+  });
+  window.KK_BOOT.register('sales-execution-core',init,{priority:50});
+})();
+</script>
 
 <details class="kk-heute-legacy-wrap" id="kk-heute-operative-module" data-kk-v11-secondary="true">
 <summary>Weitere Werkzeuge · Aufgabenverwaltung, Kalender und Anrufliste</summary>
@@ -7670,7 +8109,7 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
       function getFiltered(){var c=loadContacts();return c.filter(function(x){var sOk=!els.filterStatus.value||x.status===els.filterStatus.value;var aOk=!els.filterArea.value||x.area===els.filterArea.value;var catOk=!els.filterCategory.value||x.category===els.filterCategory.value;var ownerOk=!els.filterOwnerChance||!els.filterOwnerChance.value||(els.filterOwnerChance.value==='owner'&&(x.contactType==='Eigentümerchance'||x.category==='Eigentümer'))||(els.filterOwnerChance.value==='multiplier'&&(x.contactType==='Multiplikator'||x.category==='Tippgeber'));var dOk=!els.filterDue.checked||isDue(x);return sOk&&aOk&&catOk&&ownerOk&&dOk;});}
       
       function renderStats(){var c=loadContacts();els.statTotal.textContent=c.length;els.statDue.textContent=c.filter(isDue).length;els.statActive.textContent=c.filter(isActive).length;}
-      function renderList(){var contacts=getFiltered();els.resultCount.textContent=contacts.length===1?'1 Kontakt':contacts.length+' Kontakte';if(!contacts.length){els.list.innerHTML='<div class="kk-crm-empty">Keine Kontakte gefunden. Lege links einen neuen Kontakt an oder ändere die Filter.</div>';return;}els.list.innerHTML=contacts.sort(function(a,b){return String(a.followUpDate||'9999').localeCompare(String(b.followUpDate||'9999'))||String(a.name||'').localeCompare(String(b.name||''),'de')}).map(function(c){var due=isDue(c);var ph=c.phone?'<a href="tel:'+esc(c.phone)+'">'+esc(c.phone)+'</a>':'—';var em=c.email?'<a href="mailto:'+esc(c.email)+'">'+esc(c.email)+'</a>':'—';return'<article class="kk-crm-contact'+(due?' kk-crm-due':'')+'" data-id="'+esc(c.id)+'"><div class="kk-crm-contact-top"><div><h4>'+esc(c.name)+'</h4><div class="kk-crm-contact-meta"><span class="kk-crm-pill kk-crm-pill-status">'+esc(c.status||'Neu')+'</span><span class="kk-crm-pill">'+esc(c.category||'—')+'</span><span class="kk-crm-pill">'+esc(c.area||'—')+'</span>'+(c.microArea?'<span class="kk-crm-pill">'+esc(c.microArea)+'</span>':'')+'<span class="kk-crm-pill">'+esc(c.contactType||'—')+'</span>'+(due?'<span class="kk-crm-pill kk-crm-pill-due">Heute fällig</span>':'')+'</div></div></div><div class="kk-crm-contact-body"><div class="kk-crm-info-box"><b>Telefon</b><span>'+ph+'</span></div><div class="kk-crm-info-box"><b>E-Mail</b><span>'+em+'</span></div><div class="kk-crm-info-box"><b>Quelle</b><span>'+esc(c.source||'—')+'</span></div><div class="kk-crm-info-box"><b>Bekanntheitsquelle</b><span>'+esc(c.awarenessSource||'—')+'</span></div><div class="kk-crm-info-box"><b>Empfehlung</b><span>'+esc(c.referralProbability||'—')+'</span></div><div class="kk-crm-info-box"><b>Lokale Sichtbarkeit</b><span>'+esc(c.localVisibility||'—')+'</span></div><div class="kk-crm-info-box"><b>Letzte Begegnung</b><span>'+fmtDate(c.lastPersonalMeeting)+'</span></div><div class="kk-crm-info-box"><b>Nächster lokaler Kontaktpunkt</b><span>'+esc(c.nextLocalTouchpoint||'—')+'</span></div><div class="kk-crm-info-box"><b>Letzter Kontakt</b><span>'+fmtDate(c.lastContact)+'</span></div><div class="kk-crm-info-box"><b>Nächste Aktion</b><span>'+esc(c.nextAction||'—')+'</span></div><div class="kk-crm-info-box"><b>Wiedervorlage</b><span>'+fmtDate(c.followUpDate)+'</span></div><div class="kk-crm-info-box kk-crm-notes"><b>Notizen</b><span>'+esc(c.notes||'—')+'</span></div></div><div class="kk-crm-contact-actions"><button type="button" class="kk-crm-btn kk-crm-btn-light" data-action="edit" data-id="'+esc(c.id)+'">Bearbeiten</button><button type="button" class="kk-crm-btn kk-crm-btn-danger" data-action="delete" data-id="'+esc(c.id)+'">Löschen</button></div></article>';}).join('');}
+      function renderList(){var contacts=getFiltered();els.resultCount.textContent=contacts.length===1?'1 Kontakt':contacts.length+' Kontakte';if(!contacts.length){els.list.innerHTML='<div class="kk-crm-empty">Keine Kontakte gefunden. Lege links einen neuen Kontakt an oder ändere die Filter.</div>';return;}els.list.innerHTML=contacts.sort(function(a,b){return String(a.followUpDate||'9999').localeCompare(String(b.followUpDate||'9999'))||String(a.name||'').localeCompare(String(b.name||''),'de')}).map(function(c){var due=isDue(c);var ph=c.phone?'<a href="tel:'+esc(c.phone)+'" data-kk-sales-contact-id="'+esc(c.id||c._id||'')+'">'+esc(c.phone)+'</a>':'—';var em=c.email?'<a href="mailto:'+esc(c.email)+'">'+esc(c.email)+'</a>':'—';return'<article class="kk-crm-contact'+(due?' kk-crm-due':'')+'" data-id="'+esc(c.id)+'"><div class="kk-crm-contact-top"><div><h4>'+esc(c.name)+'</h4><div class="kk-crm-contact-meta"><span class="kk-crm-pill kk-crm-pill-status">'+esc(c.status||'Neu')+'</span><span class="kk-crm-pill">'+esc(c.category||'—')+'</span><span class="kk-crm-pill">'+esc(c.area||'—')+'</span>'+(c.microArea?'<span class="kk-crm-pill">'+esc(c.microArea)+'</span>':'')+'<span class="kk-crm-pill">'+esc(c.contactType||'—')+'</span>'+(due?'<span class="kk-crm-pill kk-crm-pill-due">Heute fällig</span>':'')+'</div></div></div><div class="kk-crm-contact-body"><div class="kk-crm-info-box"><b>Telefon</b><span>'+ph+'</span></div><div class="kk-crm-info-box"><b>E-Mail</b><span>'+em+'</span></div><div class="kk-crm-info-box"><b>Quelle</b><span>'+esc(c.source||'—')+'</span></div><div class="kk-crm-info-box"><b>Bekanntheitsquelle</b><span>'+esc(c.awarenessSource||'—')+'</span></div><div class="kk-crm-info-box"><b>Empfehlung</b><span>'+esc(c.referralProbability||'—')+'</span></div><div class="kk-crm-info-box"><b>Lokale Sichtbarkeit</b><span>'+esc(c.localVisibility||'—')+'</span></div><div class="kk-crm-info-box"><b>Letzte Begegnung</b><span>'+fmtDate(c.lastPersonalMeeting)+'</span></div><div class="kk-crm-info-box"><b>Nächster lokaler Kontaktpunkt</b><span>'+esc(c.nextLocalTouchpoint||'—')+'</span></div><div class="kk-crm-info-box"><b>Letzter Kontakt</b><span>'+fmtDate(c.lastContact)+'</span></div><div class="kk-crm-info-box"><b>Nächste Aktion</b><span>'+esc(c.nextAction||'—')+'</span></div><div class="kk-crm-info-box"><b>Wiedervorlage</b><span>'+fmtDate(c.followUpDate)+'</span></div><div class="kk-crm-info-box kk-crm-notes"><b>Notizen</b><span>'+esc(c.notes||'—')+'</span></div></div><div class="kk-crm-contact-actions"><button type="button" class="kk-crm-btn kk-crm-btn-light" data-action="policy" data-id="'+esc(c.id)+'">Kontaktfreigabe</button><button type="button" class="kk-crm-btn kk-crm-btn-light" data-action="edit" data-id="'+esc(c.id)+'">Bearbeiten</button><button type="button" class="kk-crm-btn kk-crm-btn-danger" data-action="delete" data-id="'+esc(c.id)+'">Löschen</button></div></article>';}).join('');}
       function render(){renderStats();renderList();}
       function exportJSON(){var c=loadContacts();window.KK_STORE.downloadJSON('kevin-keim-crm-export-'+todayISO()+'.json',{exportedAt:new Date().toISOString(),storageKey:STORAGE_KEY,totalContacts:c.length,contacts:c});showToast('JSON exportiert');}
       function init(){
@@ -7679,7 +8118,7 @@ body.kk-v30-shell-ready [data-app-panel] .kkgeo-layer-check input{width:16px!imp
         els.exportBtn.addEventListener('click',exportJSON);
         els.showAllBtn.addEventListener('click',function(){els.filterStatus.value='';els.filterArea.value='';els.filterCategory.value='';els.filterDue.checked=false;render();});
         [els.filterStatus,els.filterArea,els.filterCategory,els.filterDue].filter(Boolean).forEach(function(el){el.addEventListener('change',render);});
-        els.list.addEventListener('click',function(e){var btn=e.target.closest('button[data-action]');if(!btn)return;var id=btn.getAttribute('data-id');var action=btn.getAttribute('data-action');if(action==='edit')editContact(id);if(action==='delete')deleteContact(id);});
+        els.list.addEventListener('click',function(e){var btn=e.target.closest('button[data-action]');if(!btn)return;var id=btn.getAttribute('data-id');var action=btn.getAttribute('data-action');if(action==='edit')editContact(id);if(action==='delete')deleteContact(id);if(action==='policy'&&window.KK_SALES_CORE&&typeof window.KK_SALES_CORE.openContactPolicy==='function')window.KK_SALES_CORE.openContactPolicy(id);});
         render();
       }
       window.KK_BOOT.register('crm-kontakte',init,{priority:23});
@@ -12783,6 +13222,106 @@ Wenn du eine Immobilie im Main-Kinzig-Kreis besitzt und nicht sicher bist, ob od
 </div>
 </div>
 </form>
+</dialog>
+
+<style>
+  #kkSalesCoreCallDialog,#kkSalesCorePolicyDialog,#kkSalesCoreManualConfirmDialog{border:none;border-radius:16px;padding:0;max-width:560px;width:min(94vw,560px);max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+  #kkSalesCoreCallDialog::backdrop,#kkSalesCorePolicyDialog::backdrop,#kkSalesCoreManualConfirmDialog::backdrop{background:rgba(15,23,42,.55);}
+  #kkSalesCoreCallDialog .kksc-head,#kkSalesCorePolicyDialog .kksc-head,#kkSalesCoreManualConfirmDialog .kksc-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line,#eee);position:sticky;top:0;background:var(--card-bg,#fff);z-index:1;}
+  #kkSalesCoreCallDialog .kksc-head h3,#kkSalesCorePolicyDialog .kksc-head h3,#kkSalesCoreManualConfirmDialog .kksc-head h3{margin:0;font-size:17px;}
+  #kkSalesCoreCallDialog .kksc-body,#kkSalesCorePolicyDialog .kksc-body,#kkSalesCoreManualConfirmDialog .kksc-body{padding:18px 20px;}
+  #kkSalesCoreCallDialog .kksc-phase{display:none;}
+  #kkSalesCoreCallDialog .kksc-phase.is-active{display:block;}
+  #kkSalesCoreCallDialog .kksc-fact{margin:0 0 10px;font-size:14px;line-height:1.5;}
+  #kkSalesCoreCallDialog .kksc-fact b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px;}
+  #kkSalesCoreCallDialog .kksc-objections{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
+  #kkSalesCoreCallDialog .kksc-objection{border:1px solid var(--line,#eee);border-radius:10px;padding:8px 10px;font-size:13px;}
+  #kkSalesCoreCallDialog .kksc-goal-banner{background:#eef7ff;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:600;margin-bottom:12px;}
+  #kkSalesCoreCallDialog textarea{width:100%;min-height:70px;border:1px solid var(--line,#ddd);border-radius:8px;padding:8px;font:inherit;}
+  #kkSalesCoreCallDialog .kksc-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;}
+  #kkSalesCoreCallDialog .kksc-row label{flex:1 1 160px;font-size:13px;}
+  #kkSalesCoreCallDialog select,#kkSalesCoreCallDialog input[type="date"]{width:100%;min-height:40px;border:1px solid var(--line,#ddd);border-radius:8px;padding:6px 8px;font:inherit;}
+  #kkSalesCoreCallDialog .kksc-outcome-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;}
+  #kkSalesCoreCallDialog .kksc-outcome-grid button{min-height:44px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;cursor:pointer;font-size:13px;}
+  #kkSalesCoreCallDialog .kksc-outcome-grid button.is-selected{background:var(--accent,#0a5);color:#fff;border-color:transparent;}
+  #kkSalesCoreCallDialog .kksc-actions,#kkSalesCorePolicyDialog .kksc-actions,#kkSalesCoreManualConfirmDialog .kksc-actions{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--line,#eee);position:sticky;bottom:0;background:var(--card-bg,#fff);}
+  #kkSalesCoreCallDialog .kksc-actions button,#kkSalesCorePolicyDialog .kksc-actions button,#kkSalesCoreManualConfirmDialog .kksc-actions button{min-height:44px;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;}
+  #kkSalesCoreCallDialog .kksc-btn-primary,#kkSalesCorePolicyDialog .kksc-btn-primary,#kkSalesCoreManualConfirmDialog .kksc-btn-primary{background:var(--accent,#0a5);color:#fff;border:none;}
+  #kkSalesCoreCallDialog .kksc-btn-light,#kkSalesCorePolicyDialog .kksc-btn-light,#kkSalesCoreManualConfirmDialog .kksc-btn-light{background:#fff;border:1px solid var(--line,#ddd);}
+  #kkSalesCoreCallDialog .kksc-tel{display:inline-block;margin:8px 0;font-size:16px;font-weight:700;color:var(--accent,#0a5);text-decoration:none;}
+  #kkSalesCorePolicyDialog select,#kkSalesCorePolicyDialog input[type="date"],#kkSalesCorePolicyDialog input[type="text"],#kkSalesCoreManualConfirmDialog select,#kkSalesCoreManualConfirmDialog input[type="text"]{width:100%;min-height:40px;border:1px solid var(--line,#ddd);border-radius:8px;padding:6px 8px;font:inherit;margin-bottom:10px;}
+  #kkSalesCorePolicyDialog label,#kkSalesCoreManualConfirmDialog label{display:block;font-size:13px;font-weight:600;margin-bottom:4px;}
+  #kkSalesCorePolicyDialog .kksc-check,#kkSalesCoreManualConfirmDialog .kksc-check{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;font-weight:400;}
+  #kkSalesCoreManualConfirmDialog .kksc-warning{border-left:4px solid #b45309;background:#fff7ed;padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:12px;}
+  #kkSalesCoreManualConfirmDialog .kksc-error{color:#b42318;font-size:13px;font-weight:600;}
+  @media (max-width:620px){#kkSalesCoreCallDialog,#kkSalesCorePolicyDialog,#kkSalesCoreManualConfirmDialog{width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0;}}
+</style>
+
+<dialog id="kkSalesCoreCallDialog" aria-labelledby="kksecCallTitle">
+  <div class="kksc-head"><h3 id="kksecCallTitle">Anrufvorbereitung</h3><button type="button" class="kksc-btn-light" id="kksecCallCloseBtn" aria-label="Schließen">✕</button></div>
+  <div class="kksc-body">
+    <div class="kksc-phase is-active" data-phase="prep">
+      <div class="kksc-goal-banner" id="kksecPrepGoal"></div>
+      <p class="kksc-fact"><b>Warum jetzt</b><span id="kksecPrepWhy"></span></p>
+      <p class="kksc-fact"><b>Objekt-/Ortsbezug</b><span id="kksecPrepObject"></span></p>
+      <p class="kksc-fact"><b>Letzte Interaktionen</b><span id="kksecPrepHistory"></span></p>
+      <p class="kksc-fact"><b>Empfohlener Einstieg</b><span id="kksecPrepOpener"></span></p>
+      <div class="kksc-objections" id="kksecPrepObjections"></div>
+      <p class="kksc-fact"><b>Minimaler nächster Schritt</b><span id="kksecPrepMinCommit"></span></p>
+      <p class="kksc-fact" id="kksecPrepPolicyWarning" hidden style="color:#8a3b12;"></p>
+      <a class="kksc-tel" id="kksecPrepTelLink" href="#">Telefonanruf starten</a>
+    </div>
+    <div class="kksc-phase" data-phase="incall">
+      <div class="kksc-goal-banner" id="kksecCallGoal"></div>
+      <p class="kksc-fact"><b>Notiz</b></p>
+      <textarea id="kksecCallNote" placeholder="Kurze Stichpunkte während des Gesprächs…"></textarea>
+      <details><summary>Einwandhilfe</summary><div class="kksc-objections" id="kksecCallObjections"></div></details>
+      <div class="kksc-actions" style="border:none;padding:14px 0 0;"><button type="button" class="kksc-btn-primary" id="kksecCallEndBtn">Gespräch beenden</button></div>
+    </div>
+    <div class="kksc-phase" data-phase="postcall">
+      <div class="kksc-row"><label>Erreicht?</label></div>
+      <div class="kksc-outcome-grid" id="kksecOutcomeReached"><button type="button" data-val="ja">Erreicht</button><button type="button" data-val="nein">Nicht erreicht</button></div>
+      <div class="kksc-row"><label>Interesse<select id="kksecOutcomeInterest"><option value="">–</option><option value="hoch">Hoch</option><option value="mittel">Mittel</option><option value="niedrig">Niedrig</option><option value="kein">Kein Interesse</option></select></label></div>
+      <div class="kksc-row"><label>Einwand (falls vorhanden)<select id="kksecOutcomeObjection"><option value="">–</option></select></label></div>
+      <div class="kksc-row"><label>Nächster Schritt<input type="text" id="kksecOutcomeNextStep" placeholder="z. B. Marktbericht senden, in 2 Wochen erneut anrufen"/></label></div>
+      <div class="kksc-row"><label>Follow-up-/Rückrufdatum<input type="date" id="kksecOutcomeDate"/></label></div>
+      <div class="kksc-row"><label>Zusage (falls gegeben)<input type="text" id="kksecOutcomeCommitment" placeholder="z. B. Ich sende bis Freitag den Marktbericht"/></label></div>
+      <div class="kksc-row"><label>Lernnotiz (optional)<input type="text" id="kksecOutcomeLearning" placeholder="Was hat funktioniert, was nicht?"/></label></div>
+      <p class="kksc-fact" id="kksecPipelineConfirm" hidden><label class="kksc-check"><input type="checkbox" id="kksecPipelineConfirmCheck"/> Pipeline-Chance ebenfalls aktualisieren (nächster Schritt/Datum übernehmen)</label></p>
+    </div>
+    <div class="kksc-phase" data-phase="done"><p class="kksc-fact">Gespeichert. Aktivität angelegt<span id="kksecDoneSummary"></span>.</p></div>
+  </div>
+  <div class="kksc-actions"><button type="button" class="kksc-btn-light" id="kksecSnoozeBtn">Zurückstellen</button><button type="button" class="kksc-btn-light" id="kksecDismissBtn">Unpassend</button><button type="button" class="kksc-btn-primary" id="kksecPostcallSaveBtn" hidden>Speichern &amp; nächster Anruf</button><button type="button" class="kksc-btn-light" id="kksecCallNextBtn" hidden>Weiter</button></div>
+</dialog>
+
+<dialog id="kkSalesCorePolicyDialog" aria-labelledby="kksecPolicyTitle">
+  <div class="kksc-head"><h3 id="kksecPolicyTitle">Kontaktgrundlage</h3><button type="button" class="kksc-btn-light" id="kksecPolicyCloseBtn" aria-label="Schließen">✕</button></div>
+  <div class="kksc-body">
+    <input type="hidden" id="kksecPolicyContactId"/>
+    <label class="kksc-check"><input type="checkbox" id="kksecPolicyDoNotContact"/> Sperrvermerk/Widerspruch: nicht kontaktieren</label>
+    <label class="kksc-check"><input type="checkbox" id="kksecPolicyOptOut"/> Opt-out dokumentiert</label>
+    <label for="kksecPolicyPhoneAllowed">Telefonisch kontaktierbar</label><select id="kksecPolicyPhoneAllowed"><option value="">unbekannt / nicht dokumentiert</option><option value="true">ja</option><option value="false">nein</option></select>
+    <label for="kksecPolicyBasisType">Art der dokumentierten Kontaktgrundlage</label><select id="kksecPolicyBasisType"><option value="">keine</option><option value="explicit_consent">Ausdrückliche Einwilligung</option><option value="callback_request">Dokumentierter Rückrufwunsch / konkrete Anfrage</option><option value="existing_relationship">Nachvollziehbare bestehende Beziehung</option></select>
+    <label for="kksecPolicyBasis">Nachweis / konkrete Begründung</label><input type="text" id="kksecPolicyBasis" placeholder="z. B. Rückruf am 13.07.2026 um 14:20 Uhr erbeten"/>
+    <label for="kksecPolicyNoContactUntil">Nicht kontaktieren bis (optional)</label><input type="date" id="kksecPolicyNoContactUntil"/>
+    <label for="kksecPolicyRevokedAt">Einwilligung widerrufen am (optional)</label><input type="date" id="kksecPolicyRevokedAt"/>
+    <label for="kksecPolicyReason">Begründung der Sperre/Einschränkung (optional)</label><input type="text" id="kksecPolicyReason"/>
+    <p style="font-size:12px;color:var(--muted);">Diese Regeln sind eine technische Sicherheitslogik und keine individuelle Rechtsberatung.</p>
+  </div>
+  <div class="kksc-actions"><button type="button" class="kksc-btn-light" id="kksecPolicyCancelBtn">Abbrechen</button><button type="button" class="kksc-btn-primary" id="kksecPolicySaveBtn">Speichern</button></div>
+</dialog>
+
+<dialog id="kkSalesCoreManualConfirmDialog" aria-labelledby="kksecManualTitle">
+  <div class="kksc-head"><h3 id="kksecManualTitle">Manuellen Kontaktversuch bestätigen</h3><button type="button" class="kksc-btn-light" id="kksecManualCloseBtn" aria-label="Schließen">✕</button></div>
+  <div class="kksc-body">
+    <p class="kksc-warning">Für <b id="kksecManualContactName"></b> ist keine ausreichende Kontaktgrundlage dokumentiert. Der Kontakt erscheint deshalb nicht automatisch in der Tagespriorisierung.</p>
+    <label for="kksecManualBasisType">Kontaktgrundlage / Grund</label><select id="kksecManualBasisType"><option value="">Bitte auswählen</option><option value="explicit_consent">Ausdrückliche Einwilligung</option><option value="callback_request">Rückrufwunsch / konkrete Anfrage</option><option value="existing_relationship">Bestehende Beziehung</option><option value="manual_reason">Einmalige manuelle Begründung</option></select>
+    <label for="kksecManualReason">Konkrete Dokumentation</label><input type="text" id="kksecManualReason" placeholder="Was rechtfertigt diesen manuellen Kontaktversuch?"/>
+    <label class="kksc-check"><input type="checkbox" id="kksecManualConfirmCheck"/> Ich habe die Warnung geprüft und dokumentiere diesen manuellen Kontaktversuch bewusst.</label>
+    <p class="kksc-error" id="kksecManualError" hidden>Grundlage, konkrete Begründung und Bestätigung sind erforderlich.</p>
+    <p style="font-size:12px;color:var(--muted);">Technische Sicherheitslogik, keine individuelle Rechtsberatung.</p>
+  </div>
+  <div class="kksc-actions"><button type="button" class="kksc-btn-light" id="kksecManualCancelBtn">Abbrechen</button><button type="button" class="kksc-btn-primary" id="kksecManualConfirmBtn">Bewusst fortfahren</button></div>
 </dialog>
 </main>
 <script>
