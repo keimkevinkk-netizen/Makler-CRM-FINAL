@@ -18,7 +18,7 @@ export interface WorkspaceRepository {
   save(state: AppState): void;
   clear(): void;
   exportSnapshot(state: AppState): WorkspaceSnapshot;
-  importSnapshot(payload: string | unknown): AppState;
+  importSnapshot(payload: string | unknown, expectedWorkspaceId?: string): AppState;
 }
 
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
@@ -117,8 +117,11 @@ export class LocalStorageWorkspaceRepository implements WorkspaceRepository {
     };
   }
 
-  importSnapshot(payload: string | unknown) {
+  importSnapshot(payload: string | unknown, expectedWorkspaceId?: string) {
     const imported = parseWorkspaceSnapshot(payload);
+    if (expectedWorkspaceId && imported.workspace.id !== expectedWorkspaceId) {
+      throw new Error('Die Sicherung gehört zu einem anderen VINCERE-Workspace und wurde nicht importiert.');
+    }
     this.save(imported);
     return imported;
   }
