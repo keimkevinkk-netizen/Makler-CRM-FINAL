@@ -13825,7 +13825,22 @@ window.KK11OS={version:VERSION,buildMasterIndex:buildMasterIndex,migrateStaticCo
      Orts-Anker zurueck, wenn keine Strasse geocodiert werden konnte) - "object"
      bleibt bewusst ein reines Freitextfeld und wird NIE als Adresse interpretiert
      (Kevin: "Das Feld object darf nicht pauschal als Adresse interpretiert werden"). */
-  function addMarketEntry(entry){var arr=marketEntries();entry.id=entry.id||('market_'+Date.now()+'_'+Math.random().toString(16).slice(2));entry.createdAt=entry.createdAt||new Date().toISOString();entry.updatedAt=new Date().toISOString();entry.done=!!entry.done;if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(entry,{city:'town'});if(entry.addr&&entry.addr.street&&window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded(MARKET_KEY,entry.id);arr.unshift(entry);saveMarketEntries(arr.slice(0,400));renderMarket();renderTodayExtension();
+  /* FIX (Kevin Live-Test, "wieder ganz wo anders, irgendwo im Feld", diesmal MIT
+     Strasse+Hausnummer+PLZ+Ort angegeben): der eigentliche Bug - geocodeIfNeeded()
+     wurde bisher aufgerufen, BEVOR der neue Eintrag ueberhaupt in
+     kk_market_monitor_entries_v1 geschrieben war (arr.unshift/saveMarketEntries
+     kamen danach). geocodeIfNeeded() liest das Storage-Array intern selbst neu
+     ein und sucht die uebergebene ID darin - die ID existierte zu diesem
+     Zeitpunkt noch gar nicht im Storage, der Aufruf gab also IMMER
+     {skipped:true,reason:'not_found'} zurueck und die echte Nominatim-
+     Geocodierung feuerte nie, selbst bei vollstaendiger Adresse. Die Position
+     blieb dadurch immer beim groben, bis zu 650m gestreuten Orts-Anker-
+     Fallback haengen - kann bei laendlichen Ortsankern durchaus "irgendwo im
+     Feld" statt an der echten Strasse landen. Fix: erst speichern, DANACH
+     geocodieren (exakt wie im bereits korrekten saveObject()-Pfad fuer
+     CRM-Objekte). */
+  function addMarketEntry(entry){var arr=marketEntries();entry.id=entry.id||('market_'+Date.now()+'_'+Math.random().toString(16).slice(2));entry.createdAt=entry.createdAt||new Date().toISOString();entry.updatedAt=new Date().toISOString();entry.done=!!entry.done;if(window.KK_GEO)window.KK_GEO.ensureRecordGeo(entry,{city:'town'});arr.unshift(entry);saveMarketEntries(arr.slice(0,400));renderMarket();renderTodayExtension();
+    if(entry.addr&&entry.addr.street&&window.KK_GEOCODE)window.KK_GEOCODE.geocodeIfNeeded(MARKET_KEY,entry.id).then(function(){renderMarket();if(window.KK_REALMAP){try{window.KK_REALMAP.focusRecordSoon(MARKET_KEY,entry.id)}catch(e){}}});
     /* Kevin Live-Test: neue Marktbeobachtung war "opt-in"-Ebene, unsichtbar bis
        manuell aktiviert - Nutzer sah stattdessen einen unabhaengigen, staendig
        sichtbaren Marker und hielt ihn faelschlich fuer seinen neuen Eintrag.
