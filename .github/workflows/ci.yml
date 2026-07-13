@@ -82,3 +82,9 @@ jobs:
 
       - name: E2E - test-market-geocode-order.js
         run: node tests/e2e/test-market-geocode-order.js
+
+      - name: E2E - test-central-objects-migration.js
+        run: node tests/e2e/test-central-objects-migration.js
+
+      - name: E2E - test-central-object-editor-single-form.js
+        run: node tests/e2e/test-central-object-editor-single-form.js
