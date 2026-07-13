@@ -1,0 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import './00-foundation.css';
+@import './01-shell.css';
+@import './02-components.css';
+@import './03-dashboard.css';
+@import './04-tables-flows.css';
+@import './05-features.css';

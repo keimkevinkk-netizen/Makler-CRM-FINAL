@@ -1,0 +1,8 @@
+import { ArrowUpRight, Calculator, MapPinned, Sparkles } from 'lucide-react';
+import { useAppStore } from '../../app/AppStore';
+import { Badge, Button, Card, SectionHeader } from '../../components/ui';
+
+export function ValuationsPage() {
+  const { properties } = useAppStore();
+  return <div className="page-stack"><Card className="hero-card"><div><span className="eyebrow">Marktintelligenz</span><h1>Bewertungen verbinden Daten mit vertrieblicher Klarheit.</h1><p>VINCERE bereitet Standort, Objektmerkmale, Marktdynamik und Verkaufsstrategie in einer nachvollziehbaren Einschätzung auf.</p></div><Button><Sparkles size={17} /> Neue Bewertung</Button></Card><div className="three-card-grid"><Card><Calculator /><strong>{properties.length}</strong><span>Aktive Bewertungen</span></Card><Card><MapPinned /><strong>12</strong><span>Kernregionen im MKK</span></Card><Card><ArrowUpRight /><strong>+6,4%</strong><span>Beobachtete Nachfrage</span></Card></div><Card><SectionHeader title="Bewertungsübersicht" subtitle="Unverbindliche Marktwertspannen und nächste Schritte" /><div className="data-table"><div className="table-head"><span>Objekt</span><span>Ort</span><span>Marktwert</span><span>Status</span><span>Potenzial</span></div>{properties.map((property, index) => <div className="table-row" key={property.id}><span><strong>{property.title}</strong><small>{property.type}</small></span><span>{property.city}</span><span>{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.estimatedValue)}</span><span><Badge tone="gold">{property.status}</Badge></span><span>{86 - index * 7}%</span></div>)}</div></Card></div>;
+}
