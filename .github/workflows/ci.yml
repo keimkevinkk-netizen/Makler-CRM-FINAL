@@ -41,25 +41,26 @@ jobs:
           digest = hashlib.sha256(patch).hexdigest()
           assert digest == '180f60cd6d27685da13229faa1537597cb5d26098c59e6ad1bfbd3400666e326', digest
           Path('/tmp/pr11-final.patch').write_bytes(patch)
-          followup = base64.b64decode((root / 'followup.patch.b64').read_text(encoding='utf-8').strip(), validate=True)
-          followup_digest = hashlib.sha256(followup).hexdigest()
-          assert followup_digest == 'c43f5285849ba1ecbd0421d53b9a259019a457c9dc6914def057a0db0c9abd68', followup_digest
-          Path('/tmp/pr11-followup.patch').write_bytes(followup)
-          diagnostic = base64.b64decode((root / 'diagnostic.patch.b64').read_text(encoding='utf-8').strip(), validate=True)
-          diagnostic_digest = hashlib.sha256(diagnostic).hexdigest()
-          assert diagnostic_digest == 'b3a390b653293e4e6aadaec053ec5a98a32b3901ff21549e3213a11c2da73955', diagnostic_digest
-          Path('/tmp/pr11-diagnostic.patch').write_bytes(diagnostic)
-          print(f'patches verified: {digest}, {followup_digest}, {diagnostic_digest}')
+
+          additions = [
+              ('followup.patch.b64', 'c43f5285849ba1ecbd0421d53b9a259019a457c9dc6914def057a0db0c9abd68', '/tmp/pr11-followup.patch'),
+              ('diagnostic.patch.b64', 'b3a390b653293e4e6aadaec053ec5a98a32b3901ff21549e3213a11c2da73955', '/tmp/pr11-diagnostic.patch'),
+              ('reloadfix.patch.b64', '66f3904cc7e1cb65b709ddc814b1f3cd0896d8a0c73ec817c1a216960d8094a7', '/tmp/pr11-reloadfix.patch'),
+          ]
+          for filename, expected, target in additions:
+              decoded = base64.b64decode((root / filename).read_text(encoding='utf-8').strip(), validate=True)
+              actual = hashlib.sha256(decoded).hexdigest()
+              assert actual == expected, f'{filename}: {actual}'
+              Path(target).write_bytes(decoded)
+          print('All reviewed patches reconstructed and checksum-verified.')
           PY
 
       - name: Apply reviewed patch cleanly
         run: |
-          git apply --check /tmp/pr11-final.patch
-          git apply /tmp/pr11-final.patch
-          git apply --check /tmp/pr11-followup.patch
-          git apply /tmp/pr11-followup.patch
-          git apply --check /tmp/pr11-diagnostic.patch
-          git apply /tmp/pr11-diagnostic.patch
+          for patch in /tmp/pr11-final.patch /tmp/pr11-followup.patch /tmp/pr11-diagnostic.patch /tmp/pr11-reloadfix.patch; do
+            git apply --check "$patch"
+            git apply "$patch"
+          done
           git diff --check
 
       - uses: actions/setup-node@v4
@@ -87,7 +88,7 @@ jobs:
           node tests/e2e/test-sales-execution-core.js > /tmp/sales-core-e2e.log 2>&1
           status=$?
           printf '%s\n' "$status" > /tmp/sales-core-e2e.status
-          tail -n 30 /tmp/sales-core-e2e.log
+          cat /tmp/sales-core-e2e.log
           exit "$status"
 
       - name: Upload Sales Core E2E diagnostic
@@ -100,16 +101,50 @@ jobs:
             /tmp/sales-core-e2e.status
           retention-days: 1
 
-      - name: E2E - existing regression suite
-        run: |
-          node tests/e2e/verify.js
-          for file in tests/e2e/test-*.js; do
-            if [ "$file" = "tests/e2e/test-sales-execution-core.js" ]; then
-              continue
-            fi
-            echo "--- $file ---"
-            node "$file"
-          done
+      - name: E2E - verify.js
+        run: node tests/e2e/verify.js
+
+      - name: E2E - accessibility focus restore
+        run: node tests/e2e/test-a11y-focus-restore.js
+
+      - name: E2E - datasource registry
+        run: node tests/e2e/test-datasource-registry.js
+
+      - name: E2E - official GIS
+        run: node tests/e2e/test-official-gis.js
+
+      - name: E2E - repository layer
+        run: node tests/e2e/test-repository-layer.js
+
+      - name: E2E - chart canvas reuse
+        run: node tests/e2e/test-chart-canvas-reuse.js
+
+      - name: E2E - data quality sentinel
+        run: node tests/e2e/test-data-quality-sentinel.js
+
+      - name: E2E - masterprompt P0
+        run: node tests/e2e/test-masterprompt-p0.js
+
+      - name: E2E - masterprompt P1
+        run: node tests/e2e/test-masterprompt-p1.js
+
+      - name: E2E - masterprompt P2
+        run: node tests/e2e/test-masterprompt-p2.js
+
+      - name: E2E - masterprompt P3
+        run: node tests/e2e/test-masterprompt-p3.js
+
+      - name: E2E - map fixes
+        run: node tests/e2e/test-map-fixes.js
+
+      - name: E2E - market geocode order
+        run: node tests/e2e/test-market-geocode-order.js
+
+      - name: E2E - central objects migration
+        run: node tests/e2e/test-central-objects-migration.js
+
+      - name: E2E - central object editor
+        run: node tests/e2e/test-central-object-editor-single-form.js
 
       - name: Restore permanent CI and remove staging chunks
         run: |
