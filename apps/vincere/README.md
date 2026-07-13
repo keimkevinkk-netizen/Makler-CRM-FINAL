@@ -7,12 +7,17 @@ VINCERE ist der modulare React-Neuaufbau des bestehenden MaklerCRM. Die Anwendun
 - Premium Command Center im VINCERE-Design
 - Next-Best-Action-Priorisierung
 - Heute- und Follow-up-Zentrale
-- Kontaktverwaltung mit lokaler Persistenz
+- Kontaktverwaltung mit stabilen IDs
 - Vertriebspipeline
 - geführter Telefon-Assistent mit Ergebnisprotokoll
 - Immobilien- und Bewertungsübersicht
 - Netzwerk, Kampagnen und Wissensbereich
-- JSON-Backup
+- versionierte Workspace-Sicherungen
+- lokale V1→V2-Datenmigration
+- Workspace-, Benutzer- und Rollenverträge
+- zentrale Berechtigungsprüfungen für Mutationen
+- lokales Audit-Protokoll
+- Repository-Schnittstelle für den späteren Cloud-Adapter
 - responsive Desktop- und Mobile-Oberfläche
 - TypeScript, ESLint, Vitest und Vite
 
@@ -34,4 +39,8 @@ npm run build
 
 ## Architekturstatus
 
-Diese Version ist eine **funktionale Frontend-Foundation mit LocalStorage**. Noch nicht enthalten sind zentrale Authentifizierung, Mandantentrennung, Cloud-Datenbank, produktive KI-Inferenz, echte Marktanbieter und die kontrollierte Migration der MaklerCRM-Bestandsdaten. Diese Bereiche werden in eigenen Arbeitspaketen ergänzt.
+Diese Version besitzt eine **versionierte lokale Daten- und Identitätsfoundation**. Die React-Oberfläche greift nicht mehr unmittelbar auf einzelne LocalStorage-Schlüssel zu, sondern arbeitet über zentrale Store-Kommandos und ein `WorkspaceRepository`.
+
+Noch nicht enthalten sind eine echte Authentifizierung, serverseitige Rollenprüfung, Cloud-Datenbank, produktive KI-Inferenz, echte Marktanbieter und die kontrollierte Migration der MaklerCRM-Bestandsdaten. Diese Bereiche werden in getrennten, prüfbaren Arbeitspaketen ergänzt.
+
+Die Details stehen in `docs/VINCERE_DATA_ARCHITECTURE.md`.
