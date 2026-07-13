@@ -8,7 +8,23 @@ const todayAt = (hours: number, minutes = 0) => {
 
 const offsetHours = (hours: number) => new Date(Date.now() + hours * 3_600_000).toISOString();
 
+const workspaceCreatedAt = '2026-07-13T00:00:00.000Z';
+
 export const seedState: AppState = {
+  schemaVersion: 2,
+  workspace: {
+    id: 'workspace-vincere-kevin',
+    name: 'VINCERE Immobilienvertrieb',
+    region: 'Main-Kinzig-Kreis',
+    createdAt: workspaceCreatedAt,
+  },
+  currentUser: {
+    id: 'user-kevin',
+    workspaceId: 'workspace-vincere-kevin',
+    name: 'Kevin Keim',
+    email: 'keim.kevin.kk@gmail.com',
+    role: 'owner',
+  },
   contacts: [
     {
       id: 'c-thomas', firstName: 'Thomas', lastName: 'Berger', phone: '+49 171 2345678',
@@ -56,4 +72,5 @@ export const seedState: AppState = {
     { id: 'a-5', contactId: 'c-markus', title: 'Nachfassen: Dr. Markus Huber', subtitle: 'Grundstücksanfrage · Schöneck', startsAt: todayAt(17), status: 'tomorrow' },
   ],
   callEvents: [],
+  auditEvents: [],
 };
