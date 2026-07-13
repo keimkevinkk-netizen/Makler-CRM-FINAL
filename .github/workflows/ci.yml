@@ -46,6 +46,7 @@ jobs:
               ('followup.patch.b64', 'c43f5285849ba1ecbd0421d53b9a259019a457c9dc6914def057a0db0c9abd68', '/tmp/pr11-followup.patch'),
               ('diagnostic.patch.b64', 'b3a390b653293e4e6aadaec053ec5a98a32b3901ff21549e3213a11c2da73955', '/tmp/pr11-diagnostic.patch'),
               ('reloadfix.patch.b64', '66f3904cc7e1cb65b709ddc814b1f3cd0896d8a0c73ec817c1a216960d8094a7', '/tmp/pr11-reloadfix.patch'),
+              ('lintfix.patch.b64', '73cc406b47b46c5aa7cafa8f44dede7cc111b66baa38f9349fee4eee1abfd891', '/tmp/pr11-lintfix.patch'),
           ]
           for filename, expected, target in additions:
               decoded = base64.b64decode((root / filename).read_text(encoding='utf-8').strip(), validate=True)
@@ -57,7 +58,7 @@ jobs:
 
       - name: Apply reviewed patch cleanly
         run: |
-          for patch in /tmp/pr11-final.patch /tmp/pr11-followup.patch /tmp/pr11-diagnostic.patch /tmp/pr11-reloadfix.patch; do
+          for patch in /tmp/pr11-final.patch /tmp/pr11-followup.patch /tmp/pr11-diagnostic.patch /tmp/pr11-reloadfix.patch /tmp/pr11-lintfix.patch; do
             git apply --check "$patch"
             git apply "$patch"
           done
