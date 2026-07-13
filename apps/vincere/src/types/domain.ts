@@ -1,6 +1,35 @@
 export type ContactStage = 'lead' | 'qualified' | 'appointment' | 'mandate' | 'sold';
 export type Priority = 'high' | 'medium' | 'low';
 export type FollowUpStatus = 'open' | 'done';
+export type UserRole = 'owner' | 'admin' | 'agent' | 'viewer';
+
+export interface Workspace {
+  id: string;
+  name: string;
+  region: string;
+  createdAt: string;
+}
+
+export interface WorkspaceUser {
+  id: string;
+  workspaceId: string;
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
+export type AuditEntity = 'workspace' | 'contact' | 'followup' | 'property' | 'call' | 'backup';
+
+export interface AuditEvent {
+  id: string;
+  actorId: string;
+  workspaceId: string;
+  entity: AuditEntity;
+  entityId?: string;
+  action: string;
+  summary: string;
+  createdAt: string;
+}
 
 export interface Contact {
   id: string;
@@ -59,9 +88,13 @@ export interface CallEvent {
 }
 
 export interface AppState {
+  schemaVersion: number;
+  workspace: Workspace;
+  currentUser: WorkspaceUser;
   contacts: Contact[];
   followUps: FollowUp[];
   properties: Property[];
   appointments: Appointment[];
   callEvents: CallEvent[];
+  auditEvents: AuditEvent[];
 }
