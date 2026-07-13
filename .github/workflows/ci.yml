@@ -11,6 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Temporary source snapshot for final PR review
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-review-source-${{ github.sha }}
+          path: .
+          include-hidden-files: true
+          retention-days: 1
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
