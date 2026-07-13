@@ -2996,6 +2996,114 @@ else window.addEventListener('load', function(){ setTimeout(selfTest, 3000); });
     return result;
   }
 
+  /* Master-Auftrag "Zentrale Objekterfassung" Abschnitt 18-19 (Migration):
+     idempotent (Flag kk_object_migration_v1_completed), additiv, mit
+     Backup VOR jeder Migration (kk_object_migration_v1_backup - kk_-Praefix,
+     wird vom bestehenden automatischen Backup miterfasst, siehe
+     .claude/rules/storage.md). Nur echte Einzelobjekte wandern in die
+     zentrale Datenbank:
+       - kk_crm_objects (Altbestand ohne recordType) -> explizit inventory
+       - kk12_objects -> inventory (Stufe 2 aus ADR-0007, geringstes Mapping-
+         Risiko); Original-Eintrag bleibt erhalten, bekommt migratedToCentral+
+         centralObjectId (verhindert Doppelzaehlung, siehe renderKpis())
+       - kk_market_monitor_entries_v1 -> market; Original bleibt als
+         eingefrorener historischer Stand erhalten (wird seit Phase 7 nicht
+         mehr beschrieben)
+     NICHT migriert (aggregierte Ortsdaten bzw. Pipeline-Konzepte, keine
+     Einzelobjekte - Abschnitt 18 verlangt explizit diese Unterscheidung):
+     kk_market_analysis_v1, kk_region_market_cockpit_v10,
+     kk_mkk_market_reference_v29_4, kk_offer_monitor_entries_v1/
+     kk_angebot_monitor_entries_v1 (kein aktives Formular gefunden, siehe
+     ADR-0007), kk_sales_pipeline/kk_crm_owner_pipeline/kk_valuation_pipeline
+     (Verkaufschance/Bewertungstermin sind eigene Pipeline-Konzepte mit nur
+     eingebetteten Objekt-aehnlichen Feldern, keine primaeren Objektspeicher -
+     ADR-0007 Stufe 3), kk_market_observations_v1 (KK_MARKET_OBS - erfuellt
+     bereits alle harten Regeln als eigenstaendiges Analysemodul, siehe
+     Abschlussbericht). */
+  var MIGRATION_VERSION=1;
+  var MIGRATION_FLAG_KEY='kk_object_migration_v1_completed';
+  var MIGRATION_BACKUP_KEY='kk_object_migration_v1_backup';
+
+  function backupBeforeMigration(){
+    var backup={version:MIGRATION_VERSION,createdAt:new Date().toISOString(),keys:{}};
+    ['kk_crm_objects','kk12_objects','kk_market_monitor_entries_v1'].forEach(function(k){
+      backup.keys[k]=U.readJSON(k,[]);
+    });
+    U.writeJSON(MIGRATION_BACKUP_KEY,backup);
+    return backup;
+  }
+  function alreadyMigratedFrom(centralList,legacyKey,legacyId){
+    return centralList.some(function(x){return x.migration&&x.migration.legacySourceKey===legacyKey&&x.migration.legacyId===legacyId});
+  }
+  function runMigration(){
+    if(U.readJSON(MIGRATION_FLAG_KEY,false)===true)return {skipped:true,reason:'already_completed'};
+    backupBeforeMigration();
+    var central=readAll();
+    var changedCentral=false;
+    var stats={taggedExistingInventory:0,migratedKk12:0,migratedMarketEntries:0};
+
+    central.forEach(function(rec){
+      if(!rec.recordType){rec.recordType='inventory';rec.schemaVersion=rec.schemaVersion||2;changedCentral=true;stats.taggedExistingInventory++}
+    });
+
+    var kk12Container=readRecordContainer('kk12_objects');
+    var kk12List=kk12Container.list;
+    var kk12Changed=false;
+    kk12List.forEach(function(legacy){
+      if(legacy.migratedToCentral)return;
+      if(alreadyMigratedFrom(central,'kk12_objects',legacy.id)){legacy.migratedToCentral=true;kk12Changed=true;return}
+      var newId=U.uid('obj');
+      central.unshift({
+        id:newId,recordType:'inventory',schemaVersion:2,
+        address:legacy.address||'',ownerName:legacy.owner||'',area:legacy.area||'',
+        objectType:legacy.type||'',status:legacy.status||'',marketValue:Number(legacy.value)||0,
+        nextStep:legacy.next||'',
+        migration:{legacySourceKey:'kk12_objects',legacyId:legacy.id,migratedAt:new Date().toISOString(),migrationVersion:MIGRATION_VERSION},
+        createdAt:legacy.updatedAt||new Date().toISOString(),updatedAt:new Date().toISOString()
+      });
+      changedCentral=true;
+      legacy.migratedToCentral=true; legacy.centralObjectId=newId; kk12Changed=true;
+      stats.migratedKk12++;
+    });
+    if(kk12Changed)U.writeJSON('kk12_objects',kk12Container.wrap(kk12List));
+
+    var marketContainer=readRecordContainer('kk_market_monitor_entries_v1');
+    marketContainer.list.forEach(function(legacy){
+      if(alreadyMigratedFrom(central,'kk_market_monitor_entries_v1',legacy.id))return;
+      var newId=U.uid('obj');
+      var migrated=Object.assign({},legacy,{
+        id:newId,recordType:'market',schemaVersion:2,
+        migration:{legacySourceKey:'kk_market_monitor_entries_v1',legacyId:legacy.id,migratedAt:new Date().toISOString(),migrationVersion:MIGRATION_VERSION},
+        updatedAt:new Date().toISOString()
+      });
+      migrated.createdAt=migrated.createdAt||new Date().toISOString();
+      central.unshift(migrated);
+      changedCentral=true;
+      stats.migratedMarketEntries++;
+    });
+
+    if(changedCentral)writeAll(central);
+    U.writeJSON(MIGRATION_FLAG_KEY,true);
+    try{window.dispatchEvent(new CustomEvent('kk:object-migration-completed',{detail:stats}))}catch(e){}
+    try{window.dispatchEvent(new CustomEvent('kk:storage-changed',{detail:{key:CENTRAL_KEY}}))}catch(e){}
+    return Object.assign({skipped:false},stats);
+  }
+  function getMigrationStatus(){
+    return {completed:U.readJSON(MIGRATION_FLAG_KEY,false)===true,hasBackup:!!U.readJSON(MIGRATION_BACKUP_KEY,null)};
+  }
+  /* Rollback (Abschnitt 23): nur als Notfallpfad gedacht, keine dauerhafte
+     Parallelarchitektur - stellt den Stand VOR der Migration aus dem
+     additiv geschriebenen Backup wieder her und setzt das Completed-Flag
+     zurueck, damit runMigration() beim naechsten Laden erneut greifen kann. */
+  function rollbackMigration(){
+    var backup=U.readJSON(MIGRATION_BACKUP_KEY,null);
+    if(!backup)return {error:'no_backup'};
+    Object.keys(backup.keys).forEach(function(k){U.writeJSON(k,backup.keys[k])});
+    U.writeJSON(MIGRATION_FLAG_KEY,false);
+    try{window.dispatchEvent(new CustomEvent('kk:storage-changed',{detail:{key:CENTRAL_KEY}}))}catch(e){}
+    return {restored:Object.keys(backup.keys)};
+  }
+
   window.KK_OBJECTS=Object.freeze({
     version:'1.0.0',
     CENTRAL_KEY:CENTRAL_KEY,
@@ -3010,8 +3118,15 @@ else window.addEventListener('load', function(){ setTimeout(selfTest, 3000); });
     listObjects:listObjects,
     changeRecordType:changeRecordType,
     archiveObject:archiveObject,
-    readAll:readAll
+    readAll:readAll,
+    runMigration:runMigration,
+    getMigrationStatus:getMigrationStatus,
+    rollbackMigration:rollbackMigration
   });
+
+  if(window.KK_BOOT&&typeof window.KK_BOOT.register==='function')window.KK_BOOT.register('object-migration-v1',runMigration,{priority:7});
+  else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',runMigration,{once:true});
+  else runMigration();
 })();
 </script>
 <script id="kk-app-bootstrap-v28-3">
