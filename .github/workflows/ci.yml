@@ -1,69 +1,93 @@
-name: Finalize Verified PR11 Review
+name: CI
 
 on:
-  pull_request:
+  push:
     branches: [main]
-
-permissions:
-  contents: write
+  pull_request:
 
 jobs:
-  finalize-reviewed-commit:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          ref: feat/sales-execution-core-v1
-          fetch-depth: 0
+          node-version-file: '.nvmrc'
+          cache: 'npm'
 
-      - name: Reconstruct checksum-verified changes
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Syntax-check Netlify Functions
+        run: npm run check:functions
+
+      - name: Lint (netlify/functions + tests)
+        run: npm run lint
+
+      - name: Dependency audit (fails on high/critical)
+        run: npm audit --audit-level=high
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright environment info
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import base64, gzip, hashlib
-          root = Path('.github/pr11-patch')
-          parts = [
-              root / 'chunk00', root / 'chunk01',
-              *(root / f'replacement02-{index:02d}' for index in range(4)),
-              root / 'chunk03', root / 'chunk04', root / 'chunk05',
-              root / 'chunk06', root / 'chunk07', root / 'chunk08',
-          ]
-          encoded = ''.join(path.read_text(encoding='utf-8').strip() for path in parts)
-          main_patch = gzip.decompress(base64.b64decode(encoded, validate=True))
-          assert hashlib.sha256(main_patch).hexdigest() == '180f60cd6d27685da13229faa1537597cb5d26098c59e6ad1bfbd3400666e326'
-          Path('/tmp/pr11-final.patch').write_bytes(main_patch)
-          additions = [
-              ('followup.patch.b64', 'c43f5285849ba1ecbd0421d53b9a259019a457c9dc6914def057a0db0c9abd68'),
-              ('diagnostic.patch.b64', 'b3a390b653293e4e6aadaec053ec5a98a32b3901ff21549e3213a11c2da73955'),
-              ('reloadfix.patch.b64', '66f3904cc7e1cb65b709ddc814b1f3cd0896d8a0c73ec817c1a216960d8094a7'),
-              ('lintfix.patch.b64', '73cc406b47b46c5aa7cafa8f44dede7cc111b66baa38f9349fee4eee1abfd891'),
-          ]
-          for filename, expected in additions:
-              decoded = base64.b64decode((root / filename).read_text(encoding='utf-8').strip(), validate=True)
-              assert hashlib.sha256(decoded).hexdigest() == expected
-              Path('/tmp/' + filename.removesuffix('.b64')).write_bytes(decoded)
-          PY
+          node --version
+          npx playwright --version
+          node -e "console.log('playwright-core:', require('playwright-core/package.json').version)"
 
-      - name: Apply exactly the previously verified patch set
-        run: |
-          for patch in /tmp/pr11-final.patch /tmp/followup.patch /tmp/diagnostic.patch /tmp/reloadfix.patch /tmp/lintfix.patch; do
-            git apply --check "$patch"
-            git apply "$patch"
-          done
-          git diff --check
+      - name: Run function-level tests (no browser, no network)
+        run: npm run test:functions
 
-      - name: Remove temporary review transport files
-        run: rm -rf .github/pr11-patch
+      # Split into one step per file (instead of one combined "test:e2e:full"
+      # step) so a failure's step name alone identifies which specific test
+      # crashed - this repo's CI runs in an environment we cannot get raw logs
+      # from interactively, so step-name granularity is the primary diagnostic.
+      - name: E2E - verify.js (full tab/XSS/overflow regression)
+        run: node tests/e2e/verify.js
 
-      - name: Commit product code, tests and documentation only
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html tests/e2e/test-sales-execution-core.js \
-            docs/adr/ADR-0008-sales-execution-core-v1.md \
-            docs/prd/schema-registry.json \
-            docs/releases/phase27-sales-execution-core-v1-abschlussbericht.md \
-            docs/releases/phase27-sales-execution-core-v1-bestandsaufnahme-plan.md
-          git add -A .github/pr11-patch
-          git commit -m 'fix(sales): finalize safe execution core review'
-          git push origin HEAD:feat/sales-execution-core-v1
+      - name: E2E - test-a11y-focus-restore.js
+        run: node tests/e2e/test-a11y-focus-restore.js
+
+      - name: E2E - test-datasource-registry.js
+        run: node tests/e2e/test-datasource-registry.js
+
+      - name: E2E - test-official-gis.js
+        run: node tests/e2e/test-official-gis.js
+
+      - name: E2E - test-repository-layer.js
+        run: node tests/e2e/test-repository-layer.js
+
+      - name: E2E - test-chart-canvas-reuse.js
+        run: node tests/e2e/test-chart-canvas-reuse.js
+
+      - name: E2E - test-data-quality-sentinel.js
+        run: node tests/e2e/test-data-quality-sentinel.js
+
+      - name: E2E - test-masterprompt-p0.js
+        run: node tests/e2e/test-masterprompt-p0.js
+
+      - name: E2E - test-masterprompt-p1.js
+        run: node tests/e2e/test-masterprompt-p1.js
+
+      - name: E2E - test-masterprompt-p2.js
+        run: node tests/e2e/test-masterprompt-p2.js
+
+      - name: E2E - test-masterprompt-p3.js
+        run: node tests/e2e/test-masterprompt-p3.js
+
+      - name: E2E - test-map-fixes.js
+        run: node tests/e2e/test-map-fixes.js
+
+      - name: E2E - test-market-geocode-order.js
+        run: node tests/e2e/test-market-geocode-order.js
+
+      - name: E2E - test-central-objects-migration.js
+        run: node tests/e2e/test-central-objects-migration.js
+
+      - name: E2E - test-central-object-editor-single-form.js
+        run: node tests/e2e/test-central-object-editor-single-form.js
+
+      - name: E2E - test-sales-execution-core.js
+        run: node tests/e2e/test-sales-execution-core.js
