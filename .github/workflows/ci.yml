@@ -1,8 +1,8 @@
 name: Apply PR11 Final Review
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches: [feat/sales-execution-core-v1]
 
 permissions:
   contents: write
