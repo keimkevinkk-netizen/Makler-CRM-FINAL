@@ -16,10 +16,18 @@ jobs:
           ref: feat/sales-execution-core-v1
           fetch-depth: 0
 
-      - name: Reconstruct and verify reviewed patch
+      - name: Reconstruct reviewed patch archive
         run: |
-          cat .github/pr11-patch/chunk* | base64 -d | gzip -d > /tmp/pr11-final.patch
-          echo '180f60cd6d27685da13229faa1537597cb5d26098c59e6ad1bfbd3400666e326  /tmp/pr11-final.patch' | sha256sum -c -
+          cat .github/pr11-patch/chunk* > /tmp/pr11-final.patch.b64
+          test "$(wc -c < /tmp/pr11-final.patch.b64)" -eq 64120
+          base64 --decode /tmp/pr11-final.patch.b64 > /tmp/pr11-final.patch.gz
+          gzip --decompress --stdout /tmp/pr11-final.patch.gz > /tmp/pr11-final.patch
+
+      - name: Verify reviewed patch checksum
+        run: echo '180f60cd6d27685da13229faa1537597cb5d26098c59e6ad1bfbd3400666e326  /tmp/pr11-final.patch' | sha256sum --check --strict
+
+      - name: Apply reviewed patch cleanly
+        run: |
           git apply --check /tmp/pr11-final.patch
           git apply /tmp/pr11-final.patch
           git diff --check
