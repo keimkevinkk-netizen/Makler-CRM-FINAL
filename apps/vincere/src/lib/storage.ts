@@ -1,22 +1,24 @@
 import type { AppState } from '../types/domain';
-import { seedState } from '../data/seed';
+import { LocalStorageWorkspaceRepository } from '../data/repository';
 
-const STORAGE_KEY = 'vincere_state_v1';
+export const appRepository = new LocalStorageWorkspaceRepository();
 
 export function loadState(): AppState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return seedState;
-    return { ...seedState, ...JSON.parse(raw) } as AppState;
-  } catch {
-    return seedState;
-  }
+  return appRepository.load();
 }
 
 export function saveState(state: AppState) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  appRepository.save(state);
 }
 
 export function resetState() {
-  localStorage.removeItem(STORAGE_KEY);
+  appRepository.clear();
+}
+
+export function exportState(state: AppState) {
+  return JSON.stringify(appRepository.exportSnapshot(state), null, 2);
+}
+
+export function importState(payload: string) {
+  return appRepository.importSnapshot(payload);
 }
