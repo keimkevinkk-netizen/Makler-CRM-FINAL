@@ -21,13 +21,21 @@ export interface WorkspaceRepository {
   importSnapshot(payload: string | unknown, expectedWorkspaceId?: string): AppState;
 }
 
+export interface LocalStorageWorkspaceRepositoryOptions {
+  storage?: Storage;
+  storageKey?: string;
+  legacyStorageKey?: string;
+  fallbackState?: AppState;
+  allowLegacyMigration?: boolean;
+}
+
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const asArray = <T,>(value: unknown, fallback: T[]): T[] => Array.isArray(value) ? value as T[] : fallback;
 
-function normalizeState(value: unknown): AppState {
+function normalizeState(value: unknown, fallbackState: AppState = seedState): AppState {
   const source = isRecord(value) ? value : {};
-  const fallback = clone(seedState);
+  const fallback = clone(fallbackState);
   const workspace = isRecord(source.workspace)
     ? { ...fallback.workspace, ...source.workspace } as Workspace
     : fallback.workspace;
@@ -60,12 +68,12 @@ function migrationAudit(state: AppState): AuditEvent {
   };
 }
 
-export function migrateLegacyState(value: unknown): AppState {
-  const migrated = normalizeState(value);
+export function migrateLegacyState(value: unknown, fallbackState: AppState = seedState): AppState {
+  const migrated = normalizeState(value, fallbackState);
   return { ...migrated, auditEvents: [migrationAudit(migrated), ...migrated.auditEvents] };
 }
 
-export function parseWorkspaceSnapshot(payload: string | unknown): AppState {
+export function parseWorkspaceSnapshot(payload: string | unknown, fallbackState: AppState = seedState): AppState {
   const decoded: unknown = typeof payload === 'string' ? JSON.parse(payload) : payload;
   if (!isRecord(decoded)) throw new Error('Die Sicherungsdatei enthält kein gültiges Objekt.');
 
@@ -76,35 +84,49 @@ export function parseWorkspaceSnapshot(payload: string | unknown): AppState {
     throw new Error(`Ungültige Sicherung: ${missing.join(', ')} fehlt oder ist beschädigt.`);
   }
 
-  return normalizeState(candidate);
+  return normalizeState(candidate, fallbackState);
 }
 
 export class LocalStorageWorkspaceRepository implements WorkspaceRepository {
+  private readonly storage: Storage;
+  private readonly storageKey: string;
+  private readonly legacyStorageKey: string;
+  private readonly fallbackState: AppState;
+  private readonly allowLegacyMigration: boolean;
+
+  constructor(options: LocalStorageWorkspaceRepositoryOptions = {}) {
+    this.storage = options.storage ?? localStorage;
+    this.storageKey = options.storageKey ?? WORKSPACE_STORAGE_KEY;
+    this.legacyStorageKey = options.legacyStorageKey ?? LEGACY_STORAGE_KEY;
+    this.fallbackState = options.fallbackState ?? seedState;
+    this.allowLegacyMigration = options.allowLegacyMigration ?? true;
+  }
+
   load(): AppState {
     try {
-      const current = localStorage.getItem(WORKSPACE_STORAGE_KEY);
-      if (current) return parseWorkspaceSnapshot(current);
+      const current = this.storage.getItem(this.storageKey);
+      if (current) return parseWorkspaceSnapshot(current, this.fallbackState);
 
-      const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+      const legacy = this.allowLegacyMigration ? this.storage.getItem(this.legacyStorageKey) : null;
       if (legacy) {
-        const migrated = migrateLegacyState(JSON.parse(legacy));
+        const migrated = migrateLegacyState(JSON.parse(legacy), this.fallbackState);
         this.save(migrated);
         return migrated;
       }
     } catch {
-      return clone(seedState);
+      return clone(this.fallbackState);
     }
 
-    return clone(seedState);
+    return clone(this.fallbackState);
   }
 
   save(state: AppState) {
-    localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(this.exportSnapshot(state)));
+    this.storage.setItem(this.storageKey, JSON.stringify(this.exportSnapshot(state)));
   }
 
   clear() {
-    localStorage.removeItem(WORKSPACE_STORAGE_KEY);
-    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    this.storage.removeItem(this.storageKey);
+    if (this.allowLegacyMigration) this.storage.removeItem(this.legacyStorageKey);
   }
 
   exportSnapshot(state: AppState): WorkspaceSnapshot {
@@ -118,7 +140,7 @@ export class LocalStorageWorkspaceRepository implements WorkspaceRepository {
   }
 
   importSnapshot(payload: string | unknown, expectedWorkspaceId?: string) {
-    const imported = parseWorkspaceSnapshot(payload);
+    const imported = parseWorkspaceSnapshot(payload, this.fallbackState);
     if (expectedWorkspaceId && imported.workspace.id !== expectedWorkspaceId) {
       throw new Error('Die Sicherung gehört zu einem anderen VINCERE-Workspace und wurde nicht importiert.');
     }
