@@ -57,7 +57,16 @@ export interface BuildCommunicationHubInput {
   now: string;
 }
 
-const isSameUtcDay = (left: string, right: string) => left.slice(0, 10) === right.slice(0, 10);
+const berlinDateKey = (value: string) => {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Berlin',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(value));
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((entry) => entry.type === type)?.value ?? '';
+  return `${part('year')}-${part('month')}-${part('day')}`;
+};
 
 const responseKey = (item: CommunicationTimelineItem) =>
   item.contactId ?? item.suggestedContactId ?? `${item.channel}:${item.contactLabel}`;
@@ -84,19 +93,23 @@ export function buildCommunicationHubSnapshot(input: BuildCommunicationHubInput)
     || provider.connectionState === 'degraded'
     || provider.rateLimit.status === 'limited');
   const providersByRecentSync = [...input.providerStatuses].sort((left, right) => {
+    if (!left.lastSyncedAt && !right.lastSyncedAt) return left.providerKey.localeCompare(right.providerKey);
     if (!left.lastSyncedAt) return 1;
     if (!right.lastSyncedAt) return -1;
-    return new Date(right.lastSyncedAt).getTime() - new Date(left.lastSyncedAt).getTime();
+    const byTime = new Date(right.lastSyncedAt).getTime() - new Date(left.lastSyncedAt).getTime();
+    return byTime || left.providerKey.localeCompare(right.providerKey);
   });
   const connected = input.providerStatuses.filter((provider) =>
     provider.connectionState === 'connected' || provider.connectionState === 'mock').length;
+  const currentDateKey = berlinDateKey(input.now);
 
   return {
     generatedAt: input.now,
     unreadMessages: input.timeline.filter((item) =>
       (item.channel === 'email' || item.channel === 'message') && item.unread),
     missedCalls: input.timeline.filter((item) => item.channel === 'phone' && item.status === 'missed'),
-    todayAppointments: input.timeline.filter((item) => item.channel === 'appointment' && isSameUtcDay(item.occurredAt, input.now)),
+    todayAppointments: input.timeline.filter((item) =>
+      item.channel === 'appointment' && berlinDateKey(item.occurredAt) === currentDateKey),
     awaitingResponse: awaitingResponseItems(input.timeline),
     unassignedCommunication: input.timeline.filter((item) =>
       item.contactMatchCategory === 'unknown' || item.contactMatchCategory === 'manual_review'),
