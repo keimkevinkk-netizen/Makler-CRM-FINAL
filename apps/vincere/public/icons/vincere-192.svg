@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="VINCERE">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12070b"/>
+      <stop offset="1" stop-color="#07090c"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e0c27f"/>
+      <stop offset="0.55" stop-color="#b58a42"/>
+      <stop offset="1" stop-color="#7f5a22"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="38" fill="url(#bg)"/>
+  <path d="M48 42h22l26 78 26-78h22l-39 108H87L48 42Z" fill="url(#gold)"/>
+  <path d="M61 43h16l19 57 19-57h16L101 129H91L61 43Z" fill="#7c1730" opacity="0.82"/>
+  <rect x="26" y="26" width="140" height="140" rx="27" fill="none" stroke="#b58a42" stroke-opacity="0.28" stroke-width="2"/>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="VINCERE">
+  <defs>
+    <radialGradient id="bg" cx="0.7" cy="0.1" r="1">
+      <stop offset="0" stop-color="#481326"/>
+      <stop offset="0.48" stop-color="#16080d"/>
+      <stop offset="1" stop-color="#07090c"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ead69f"/>
+      <stop offset="0.5" stop-color="#b58a42"/>
+      <stop offset="1" stop-color="#6f4a18"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="176" fill="#07090c" stroke="#b58a42" stroke-opacity="0.3" stroke-width="6"/>
+  <path d="M150 132h53l53 166 53-166h53L278 386h-44L150 132Z" fill="url(#gold)"/>
+  <path d="M183 134h38l35 111 35-111h38l-62 187h-22l-62-187Z" fill="#7c1730" opacity="0.86"/>
+</svg>
