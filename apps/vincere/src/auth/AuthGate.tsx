@@ -1,11 +1,13 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { LockKeyhole } from 'lucide-react';
+import { KeyRound, LockKeyhole, LogOut } from 'lucide-react';
 import { useAuth } from './AuthContext';
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [token, setToken] = useState('');
+  const [displayName, setDisplayName] = useState('');
 
   if (!auth.configured) return children;
 
@@ -13,7 +15,31 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return <div className="auth-screen"><div className="auth-loading"><span className="brand-mark">V</span><strong>VINCERE wird gesichert geladen …</strong></div></div>;
   }
 
-  if (!auth.session || !auth.membership) {
+  if (auth.session && !auth.membership) {
+    const accept = async (event: FormEvent) => {
+      event.preventDefault();
+      await auth.acceptInvitation(token, displayName).catch(() => undefined);
+    };
+    return (
+      <main className="auth-screen">
+        <section className="auth-card invitation-acceptance-card">
+          <div className="auth-brand"><span className="brand-mark">V</span><div><strong>VINCERE</strong><small>REAL ESTATE SALES OS</small></div></div>
+          <div className="auth-icon"><KeyRound /></div>
+          <h1>Workspace-Einladung aktivieren</h1>
+          <p>Sie sind als <strong>{auth.session.email}</strong> angemeldet. Das Token wird serverseitig geprüft, ist workspacegebunden und nur bis zum Ablaufdatum gültig.</p>
+          <form onSubmit={(event) => void accept(event)}>
+            <label>Anzeigename<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} required minLength={2} /></label>
+            <label>Einladungstoken<input value={token} onChange={(event) => setToken(event.target.value)} required minLength={32} autoComplete="one-time-code" /></label>
+            {auth.error && <div className="auth-error" role="alert">{auth.error}</div>}
+            <button className="button button-primary" disabled={auth.loading}>{auth.loading ? 'Einladung wird geprüft …' : 'Einladung annehmen'}</button>
+          </form>
+          <button className="button button-secondary auth-secondary-action" onClick={() => void auth.signOut()}><LogOut size={16} /> Andere Anmeldung verwenden</button>
+        </section>
+      </main>
+    );
+  }
+
+  if (!auth.session) {
     const submit = async (event: FormEvent) => {
       event.preventDefault();
       await auth.signIn(email, password).catch(() => undefined);
