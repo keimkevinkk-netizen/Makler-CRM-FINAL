@@ -23,11 +23,26 @@ jobs:
         working-directory: apps/vincere
     steps:
       - uses: actions/checkout@v4
+        with:
+          show-progress: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-audit --no-fund
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm test
-      - run: npm run build
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund --silent
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint -- --format json --output-file lint-report.json
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vincere-lint-report
+          path: apps/vincere/lint-report.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Tests
+        run: npm test
+      - name: Production build
+        run: npm run build
