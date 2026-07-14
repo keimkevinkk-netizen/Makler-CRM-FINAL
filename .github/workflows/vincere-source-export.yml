@@ -1,9 +1,9 @@
 name: VINCERE Source Export
 
 on:
-  push:
+  pull_request:
     branches:
-      - feat/vincere-beta-integration
+      - main
   workflow_dispatch:
 
 permissions:
@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   export:
+    if: startsWith(github.head_ref, 'feat/vincere-beta-integration') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
