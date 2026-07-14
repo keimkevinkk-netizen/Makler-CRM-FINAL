@@ -1,11 +1,19 @@
 import type { SupabaseRuntimeConfig } from '../config/runtime';
-import { seedState } from './seed';
-import type { AppState } from '../types/domain';
+import type {
+  AppState,
+  Appointment,
+  AuditEvent,
+  CallEvent,
+  Contact,
+  FollowUp,
+  Property,
+} from '../types/domain';
 import { parseWorkspaceSnapshot } from './repository';
+import { seedState } from './seed';
 
 type FetchLike = typeof fetch;
-
 type CollectionKey = 'contacts' | 'followUps' | 'properties' | 'appointments' | 'callEvents' | 'auditEvents';
+type CloudEntity = Contact | FollowUp | Property | Appointment | CallEvent | AuditEvent;
 
 interface CollectionDefinition {
   key: CollectionKey;
@@ -49,7 +57,7 @@ export interface RelationalMutation {
   operation: 'upsert' | 'delete';
   id: string;
   expectedVersion: number;
-  payload?: unknown;
+  payload?: CloudEntity;
   relatedContactId?: string;
 }
 
@@ -78,15 +86,25 @@ function emptyVersions(): EntityVersionMap {
   };
 }
 
-function collectionItems(state: AppState, key: CollectionKey): Array<{ id: string; [key: string]: unknown }> {
-  return state[key] as Array<{ id: string; [key: string]: unknown }>;
+function collectionItems(state: AppState, key: CollectionKey): CloudEntity[] {
+  switch (key) {
+    case 'contacts': return state.contacts;
+    case 'followUps': return state.followUps;
+    case 'properties': return state.properties;
+    case 'appointments': return state.appointments;
+    case 'callEvents': return state.callEvents;
+    case 'auditEvents': return state.auditEvents;
+  }
 }
 
-function relatedContactId(collection: CollectionKey, record: Record<string, unknown>) {
-  if (collection === 'followUps' || collection === 'callEvents') return record.contactId as string;
-  if (collection === 'properties') return record.ownerContactId as string | undefined;
-  if (collection === 'appointments') return record.contactId as string | undefined;
-  return undefined;
+function relatedContactId(collection: CollectionKey, record: CloudEntity) {
+  switch (collection) {
+    case 'followUps': return (record as FollowUp).contactId;
+    case 'callEvents': return (record as CallEvent).contactId;
+    case 'properties': return (record as Property).ownerContactId;
+    case 'appointments': return (record as Appointment).contactId;
+    default: return undefined;
+  }
 }
 
 export function buildRelationalMutations(
@@ -141,6 +159,10 @@ async function readError(response: Response) {
   }
 }
 
+function payloads<T extends CloudEntity>(rows: RelationalRow[]): T[] {
+  return rows.map((row) => row.payload as T);
+}
+
 export class SupabaseWorkspaceCloudRepository {
   private baseline: AppState | null = null;
   private versions: EntityVersionMap = emptyVersions();
@@ -177,7 +199,7 @@ export class SupabaseWorkspaceCloudRepository {
     const workspaceQuery = new URLSearchParams({ select: 'id,name,region,created_at', id: `eq.${workspaceId}`, limit: '1' });
     const revisionQuery = new URLSearchParams({ select: 'revision,updated_at', workspace_id: `eq.${workspaceId}`, limit: '1' });
 
-    const [workspaceResponse, revisionResponse, ...collectionRows] = await Promise.all([
+    const [workspaceResponse, revisionResponse, ...rows] = await Promise.all([
       this.fetcher(`${this.config.url}/rest/v1/workspaces?${workspaceQuery}`, { headers: this.headers(accessToken) }),
       this.fetcher(`${this.config.url}/rest/v1/workspace_sync_revisions?${revisionQuery}`, { headers: this.headers(accessToken) }),
       ...COLLECTIONS.map((definition) => this.readRows(definition.table, workspaceId, accessToken)),
@@ -186,20 +208,18 @@ export class SupabaseWorkspaceCloudRepository {
     if (!workspaceResponse.ok) throw new Error(await readError(workspaceResponse));
     if (!revisionResponse.ok) throw new Error(await readError(revisionResponse));
 
-    const workspaceRows = await workspaceResponse.json() as WorkspaceRow[];
-    const revisionRows = await revisionResponse.json() as RevisionRow[];
-    const revision = revisionRows[0];
-    const hasRemoteRecords = collectionRows.some((rows) => rows.length > 0);
-    if (!revision && !hasRemoteRecords) return null;
-
-    const workspace = workspaceRows[0];
-    const remoteCollections = Object.fromEntries(
-      COLLECTIONS.map((definition, index) => [definition.key, collectionRows[index].map((row) => row.payload)]),
-    ) as Pick<AppState, CollectionKey>;
+    const workspace = (await workspaceResponse.json() as WorkspaceRow[])[0];
+    const revision = (await revisionResponse.json() as RevisionRow[])[0];
+    if (!revision && !rows.some((collection) => collection.length > 0)) return null;
 
     const state = parseWorkspaceSnapshot({
       ...seedState,
-      ...remoteCollections,
+      contacts: payloads<Contact>(rows[0]),
+      followUps: payloads<FollowUp>(rows[1]),
+      properties: payloads<Property>(rows[2]),
+      appointments: payloads<Appointment>(rows[3]),
+      callEvents: payloads<CallEvent>(rows[4]),
+      auditEvents: payloads<AuditEvent>(rows[5]),
       workspace: {
         ...seedState.workspace,
         id: workspaceId,
@@ -212,12 +232,12 @@ export class SupabaseWorkspaceCloudRepository {
 
     this.versions = emptyVersions();
     COLLECTIONS.forEach((definition, index) => {
-      for (const row of collectionRows[index]) this.versions[definition.key][row.id] = row.version;
+      for (const row of rows[index]) this.versions[definition.key][row.id] = row.version;
     });
     this.baseline = clone(state);
 
     const updatedAt = revision?.updated_at
-      ?? collectionRows.flat().map((row) => row.updated_at).sort().at(-1)
+      ?? rows.flat().map((row) => row.updated_at).sort().at(-1)
       ?? new Date(0).toISOString();
 
     return { state, version: revision?.revision ?? 0, updatedAt };
@@ -232,9 +252,7 @@ export class SupabaseWorkspaceCloudRepository {
     if (!this.config.configured) throw new Error('Das VINCERE-Cloud-Backend ist nicht konfiguriert.');
 
     const mutations = buildRelationalMutations(state, this.baseline, this.versions);
-    if (mutations.length === 0) {
-      return { version: expectedVersion, updatedAt: new Date().toISOString() };
-    }
+    if (mutations.length === 0) return { version: expectedVersion, updatedAt: new Date().toISOString() };
 
     const response = await this.fetcher(`${this.config.url}/rest/v1/rpc/sync_vincere_records`, {
       method: 'POST',
@@ -245,18 +263,18 @@ export class SupabaseWorkspaceCloudRepository {
         p_mutations: mutations,
       }),
     });
-    if (!response.ok) throw new Error(await readError(response));
+    if (!response.ok) {
+      const message = await readError(response);
+      throw new Error(message.includes('revision conflict') ? `version conflict: ${message}` : message);
+    }
 
     const result = await response.json() as { revision: number; updated_at: string } | Array<{ revision: number; updated_at: string }>;
     const row = Array.isArray(result) ? result[0] : result;
     if (!row) throw new Error('Die relationale Cloud-Speicherung lieferte kein Ergebnis.');
 
     for (const mutation of mutations) {
-      if (mutation.operation === 'delete') {
-        delete this.versions[mutation.collection][mutation.id];
-      } else {
-        this.versions[mutation.collection][mutation.id] = mutation.expectedVersion + 1;
-      }
+      if (mutation.operation === 'delete') delete this.versions[mutation.collection][mutation.id];
+      else this.versions[mutation.collection][mutation.id] = mutation.expectedVersion + 1;
     }
     this.baseline = clone(state);
 
