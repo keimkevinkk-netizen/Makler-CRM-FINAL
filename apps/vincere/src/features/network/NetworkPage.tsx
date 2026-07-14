@@ -45,11 +45,9 @@ function RelationshipCard({ model, active, onSelect }: { model: NetworkRelations
   </button>;
 }
 
-function FollowUpModal({ model, onClose, onCreate }: { model: NetworkRelationshipModel; onClose: () => void; onCreate: (input: { title: string; dueAt: string; channel: 'phone' | 'email' | 'meeting' }) => void }) {
-  const tomorrow = new Date(Date.now() + 86_400_000);
-  tomorrow.setHours(10, 0, 0, 0);
+function FollowUpModal({ model, initialDueAt, onClose, onCreate }: { model: NetworkRelationshipModel; initialDueAt: string; onClose: () => void; onCreate: (input: { title: string; dueAt: string; channel: 'phone' | 'email' | 'meeting' }) => void }) {
   const [title, setTitle] = useState(`Netzwerkpflege: ${model.fullName}`);
-  const [dueAt, setDueAt] = useState(tomorrow.toISOString().slice(0, 16));
+  const [dueAt, setDueAt] = useState(initialDueAt);
   const [channel, setChannel] = useState<'phone' | 'email' | 'meeting'>('phone');
 
   return <Modal title="Netzwerk-Follow-up anlegen" onClose={onClose}>
@@ -79,7 +77,7 @@ export function NetworkPage() {
     callEvents,
     auditEvents,
   }), [store.schemaVersion, store.workspace, currentUser, contacts, followUps, properties, appointments, callEvents, auditEvents]);
-  const now = useMemo(() => new Date(), [contacts, followUps, properties, appointments, callEvents, auditEvents]);
+  const [now] = useState(() => new Date());
   const cockpit = useMemo(() => buildNetworkCockpit(source, now), [source, now]);
   const capabilities = getNetworkCapabilities(currentUser.role);
   const [selectedId, setSelectedId] = useState<string>();
@@ -87,6 +85,7 @@ export function NetworkPage() {
   const [query, setQuery] = useState('');
   const [segment, setSegment] = useState<NetworkSegment | 'all'>('all');
   const [showFollowUp, setShowFollowUp] = useState(false);
+  const [followUpDefaultAt, setFollowUpDefaultAt] = useState('');
   const [feedback, setFeedback] = useState<string>();
 
   const visible = cockpit.relationships.filter((item) => {
@@ -96,6 +95,15 @@ export function NetworkPage() {
   });
   const active = visible.find((item) => item.contact.id === selectedId) ?? visible[0];
   const focus = cockpit.focusQueue[focusIndex % Math.max(cockpit.focusQueue.length, 1)];
+
+  const openFollowUp = (contactId: string) => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(10, 0, 0, 0);
+    setSelectedId(contactId);
+    setFollowUpDefaultAt(tomorrow.toISOString().slice(0, 16));
+    setShowFollowUp(true);
+  };
 
   const nextFocus = (message: string) => {
     setFeedback(message);
@@ -131,7 +139,7 @@ export function NetworkPage() {
       {feedback && <div className="network-feedback"><CheckCircle2 size={16} /> {feedback}</div>}
       <div className="network-focus-actions">
         {capabilities.canLogCalls && <><Button onClick={() => documentCall(focus, 'conversation')}><Phone size={16} /> Gespräch geführt</Button><Button variant="secondary" onClick={() => documentCall(focus, 'no_answer')}>Nicht erreicht</Button></>}
-        {capabilities.canCreateFollowUps && <Button variant="secondary" onClick={() => { setSelectedId(focus.contact.id); setShowFollowUp(true); }}><CalendarClock size={16} /> Follow-up</Button>}
+        {capabilities.canCreateFollowUps && <Button variant="secondary" onClick={() => openFollowUp(focus.contact.id)}><CalendarClock size={16} /> Follow-up</Button>}
         <Button variant="ghost" onClick={() => nextFocus('Kontakt übersprungen.')}>Nächster Kontakt <ArrowRight size={16} /></Button>
         {!capabilities.canWrite && <span className="network-readonly">Viewer-Modus: Schreibaktionen sind ausgeblendet.</span>}
       </div>
@@ -157,7 +165,7 @@ export function NetworkPage() {
             <section><h3><CalendarClock size={17} /> Offene Follow-ups & Termine</h3>{active.openFollowUps.map((item) => <article className="network-line-item" key={item.id}><span><strong>{item.title}</strong><small>{formatDate(item.dueAt)} · {channelLabel[item.channel]}</small></span>{active.overdueFollowUps.some((overdue) => overdue.id === item.id) && <Badge tone="red">Überfällig</Badge>}</article>)}{active.upcomingAppointments.map((item) => <article className="network-line-item" key={item.id}><span><strong>{item.title}</strong><small>{formatDate(item.startsAt)} · {item.subtitle}</small></span><Badge tone="gold">Termin</Badge></article>)}{!active.openFollowUps.length && !active.upcomingAppointments.length && <EmptyState title="Keine nächste Aktion" text="Für diese Beziehung ist weder Follow-up noch Termin geplant." />}</section>
             <section><h3><History size={17} /> Beziehungshistorie</h3>{active.history.slice(0, 12).map((item) => <article className="network-history-item" key={item.id}><span className={item.positive ? 'is-positive' : 'is-neutral'} /><div><time>{formatDate(item.occurredAt)}</time><strong>{item.title}</strong><p>{item.detail}</p></div></article>)}{active.history.length === 0 && <EmptyState title="Keine Historie" text="Es wurden noch keine echten Interaktionen dokumentiert." />}</section>
           </div>
-          {capabilities.canCreateFollowUps && <Button className="network-detail-cta" onClick={() => setShowFollowUp(true)}><CalendarClock size={16} /> Pflegeaktion anlegen</Button>}
+          {capabilities.canCreateFollowUps && <Button className="network-detail-cta" onClick={() => openFollowUp(active.contact.id)}><CalendarClock size={16} /> Pflegeaktion anlegen</Button>}
         </> : <EmptyState title="Keine Beziehung ausgewählt" text="Wähle links einen Kontakt aus." />}
       </Card>
     </div>
@@ -171,7 +179,7 @@ export function NetworkPage() {
       <Card><SectionHeader title="Netzwerksegmentierung" subtitle="View-Modell auf vorhandenen Kontaktdaten" /><div className="network-segments">{cockpit.segmentation.map((item) => <div key={item.segment}><span>{item.label}</span><strong>{item.count}</strong></div>)}{cockpit.segmentation.length === 0 && <EmptyState title="Keine Segmente" text="Es sind noch keine relevanten Netzwerkbeziehungen vorhanden." />}</div></Card>
     </div>
 
-    {showFollowUp && active && <FollowUpModal model={active} onClose={() => setShowFollowUp(false)} onCreate={(input) => {
+    {showFollowUp && active && <FollowUpModal model={active} initialDueAt={followUpDefaultAt} onClose={() => setShowFollowUp(false)} onCreate={(input) => {
       if (!can(currentUser, 'followups:write')) return;
       addFollowUp({ contactId: active.contact.id, title: input.title, dueAt: input.dueAt, priority: active.contact.priority, status: 'open', channel: input.channel });
       setShowFollowUp(false);
