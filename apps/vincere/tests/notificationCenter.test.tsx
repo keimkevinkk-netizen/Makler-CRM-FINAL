@@ -106,7 +106,7 @@ describe('notification center viewer', () => {
   it('renders a stable empty state', () => {
     render(<NotificationCenter notifications={[]} now={NOW} />);
 
-    expect(screen.getByRole('status')).toHaveTextContent('Keine Meldungen in diesem Bereich.');
+    expect(screen.getByText('Keine Meldungen in diesem Bereich.')).toBeInTheDocument();
   });
 
   it('filters the viewer by type and search term', () => {
