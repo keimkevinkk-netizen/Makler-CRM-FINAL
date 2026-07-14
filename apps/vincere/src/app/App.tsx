@@ -10,6 +10,8 @@ import { ValuationsPage } from '../features/valuations/ValuationsPage';
 import { NetworkPage } from '../features/network/NetworkPage';
 import { CampaignsPage } from '../features/campaigns/CampaignsPage';
 import { KnowledgePage } from '../features/knowledge/KnowledgePage';
+import { ConflictCenterPage } from '../features/conflicts/ConflictCenterPage';
+import { TeamPage } from '../features/team/TeamPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 
 const router = createBrowserRouter([
@@ -27,6 +29,8 @@ const router = createBrowserRouter([
       { path: 'network', element: <NetworkPage /> },
       { path: 'campaigns', element: <CampaignsPage /> },
       { path: 'knowledge', element: <KnowledgePage /> },
+      { path: 'conflicts', element: <ConflictCenterPage /> },
+      { path: 'team', element: <TeamPage /> },
       { path: 'settings', element: <SettingsPage /> },
     ],
   },
