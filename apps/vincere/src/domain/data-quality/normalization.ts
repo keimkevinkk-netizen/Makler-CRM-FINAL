@@ -37,7 +37,7 @@ export function normalizePhone(value: unknown): string {
   const text = compactWhitespace(value);
   if (!text) return '';
   const hasPlus = text.trim().startsWith('+');
-  let digits = text.replace(/\D/g, '');
+  const digits = text.replace(/\D/g, '');
   if (!digits) return '';
   if (digits.startsWith('0049')) return `+49${digits.slice(4)}`;
   if (digits.startsWith('49') && (hasPlus || digits.length >= 11)) return `+49${digits.slice(2)}`;

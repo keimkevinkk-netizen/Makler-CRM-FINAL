@@ -130,7 +130,7 @@ function assessPair(left: IndexedContact, right: IndexedContact): DuplicateAsses
     factor('phone', 'Telefonnummer', 45, phoneExact, phoneExact ? 'Die normalisierten Telefonnummern stimmen exakt überein.' : 'Keine identische gültige Telefonnummer.'),
     factor('email', 'E-Mail', 45, emailExact, emailExact ? 'Die normalisierten E-Mail-Adressen stimmen exakt überein.' : 'Keine identische gültige E-Mail-Adresse.'),
     factor('name', 'Normalisierter Name', 22, nameExact, nameExact ? 'Vor- und Nachname stimmen nach Normalisierung überein.' : 'Der normalisierte Name ist nicht exakt gleich.'),
-    factor('name_variant', 'Schreibvariante', 12, nameVariant, nameVariant ? `Hohe Namensähnlichkeit von ${Math.round(similarity * 100)} %.` : 'Keine ausreichend ähnliche Schreibvariante.'),
+    factor('name_variant', 'Schreibvariante', 12, nameVariant, nameVariant ? `Hohe Namensähnlichkeit von ${Math.round(similarity * 100)} %.` : 'Keine ausreichend ähnliche Schreibvariante.'),
     factor('city', 'Ort', 8, cityExact, cityExact ? 'Der normalisierte Ort stimmt überein.' : 'Der Ort liefert keine Übereinstimmung.'),
     factor('address', 'Adresse', 14, sharedAddresses.length > 0, sharedAddresses.length > 0 ? 'Mindestens eine Eigentümeradresse ist identisch.' : 'Keine identische verknüpfte Adresse.'),
     factor('shared_property', 'Gemeinsame Immobilie', 20, sharedPropertyIds.length > 0, sharedPropertyIds.length > 0 ? 'Mindestens dieselbe Immobilien-ID ist beiden Kontakten zugeordnet.' : 'Keine gemeinsame Immobilien-ID.'),
