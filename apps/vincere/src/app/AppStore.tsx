@@ -82,16 +82,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     let active = true;
     remoteReady.current = false;
 
-    if (!auth.configured) {
-      setCloudSync({ mode: 'local', status: 'local', version: 0 });
-      return;
-    }
+    if (!auth.configured) return;
 
     const session = auth.session;
     const membership = auth.membership;
     if (!session || !membership) return;
 
-    setCloudSync({ mode: 'cloud', status: 'loading', version: cloudVersion.current });
     void cloudRepository.load(membership.workspaceId, session.accessToken)
       .then((remote) => {
         if (!active) return;
