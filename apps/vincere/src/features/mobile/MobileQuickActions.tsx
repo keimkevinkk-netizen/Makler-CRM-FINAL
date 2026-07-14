@@ -25,6 +25,7 @@ export interface MobileDraftInput {
 
 export interface MobileQuickActionsProps {
   open: boolean;
+  drafts: MobileDraftInput[];
   pendingActions: OfflineQueueItem[];
   onClose: () => void;
   onStageDraft: (draft: MobileDraftInput) => void;
@@ -39,6 +40,7 @@ function draftId() {
 
 export function MobileQuickActions({
   open,
+  drafts,
   pendingActions,
   onClose,
   onStageDraft,
@@ -108,13 +110,16 @@ export function MobileQuickActions({
               <div className="mobile-pending-list">
                 <strong>Temporäre Entwürfe</strong>
                 <p>Nur im Arbeitsspeicher dieser Sitzung. Keine automatische Cloudübertragung.</p>
-                {pendingActions.map((item) => (
-                  <article key={item.id}>
-                    <span>{item.actionType.replaceAll('_', ' ')}</span>
-                    <small>{new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(new Date(item.createdAt))}</small>
-                    <button type="button" onClick={() => onCancelDraft(item.id)} aria-label="Temporären Entwurf verwerfen"><Trash2 size={16} /></button>
-                  </article>
-                ))}
+                {pendingActions.map((item) => {
+                  const draft = drafts.find((candidate) => candidate.id === item.id);
+                  return (
+                    <article key={item.id}>
+                      <span><strong>{draft?.title ?? item.actionType.replaceAll('_', ' ')}</strong><small>{draft?.detail || 'Keine zusätzlichen Details'}</small></span>
+                      <time>{new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(new Date(item.createdAt))}</time>
+                      <button type="button" onClick={() => onCancelDraft(item.id)} aria-label="Temporären Entwurf verwerfen"><Trash2 size={16} /></button>
+                    </article>
+                  );
+                })}
               </div>
             )}
           </>
