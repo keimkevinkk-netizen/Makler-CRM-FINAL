@@ -112,18 +112,8 @@ export interface TransactionRisk {
 export interface TransactionRoomViewModel {
   id: string;
   workspaceId: string;
-  property: {
-    id: string;
-    title: string;
-    address: string;
-    city: string;
-  };
-  owner: {
-    id: string;
-    name: string;
-    email?: string;
-    phone?: string;
-  };
+  property: { id: string; title: string; address: string; city: string };
+  owner: { id: string; name: string; email?: string; phone?: string };
   phase: TransactionPhase;
   documents: DocumentRecord[];
   checklist: TransactionChecklistItem[];
@@ -133,59 +123,68 @@ export interface TransactionRoomViewModel {
   nextAction: string;
 }
 
-const CHECKLIST_TEMPLATES: Record<TransactionPhase, ReadonlyArray<Omit<TransactionChecklistItem, 'status'>>> = {
+type ChecklistTemplateItem = Omit<TransactionChecklistItem, 'status'>;
+const checklistItem = (
+  id: string,
+  phase: TransactionPhase,
+  title: string,
+  description: string,
+  requiredDocumentType?: KnownDocumentType,
+): ChecklistTemplateItem => ({ id, phase, title, description, requiredDocumentType });
+
+const CHECKLIST_TEMPLATES: Record<TransactionPhase, ReadonlyArray<ChecklistTemplateItem>> = {
   erstaufnahme: [
-    { id: 'erstaufnahme-identitaet', phase: 'erstaufnahme', title: 'Eigentümer und Vertretungsberechtigung klären', description: 'Eigentümer, Ansprechpartner und mögliche Vollmachten eindeutig erfassen.' },
-    { id: 'erstaufnahme-objektdaten', phase: 'erstaufnahme', title: 'Objektstammdaten aufnehmen', description: 'Adresse, Objektart, Nutzung, Flächen und besondere Merkmale strukturiert aufnehmen.' },
-    { id: 'erstaufnahme-grundbuch', phase: 'erstaufnahme', title: 'Grundbuchauszug anfordern', description: 'Aktuellen Grundbuchauszug beschaffen oder vorhandene Fassung prüfen.', requiredDocumentType: 'grundbuchauszug' },
-    { id: 'erstaufnahme-flurkarte', phase: 'erstaufnahme', title: 'Flurkarte prüfen', description: 'Flurstück und Grundstücksbezug nachvollziehen.', requiredDocumentType: 'flurkarte' },
-    { id: 'erstaufnahme-ziel', phase: 'erstaufnahme', title: 'Verkaufsziel und Zeitrahmen dokumentieren', description: 'Motivation, Zielbild, Zeitdruck und Entscheidungskriterien festhalten.' },
+    checklistItem('erstaufnahme-identitaet', 'erstaufnahme', 'Eigentümer und Vertretungsberechtigung klären', 'Eigentümer, Ansprechpartner und mögliche Vollmachten eindeutig erfassen.'),
+    checklistItem('erstaufnahme-objektdaten', 'erstaufnahme', 'Objektstammdaten aufnehmen', 'Adresse, Objektart, Nutzung, Flächen und besondere Merkmale strukturiert aufnehmen.'),
+    checklistItem('erstaufnahme-grundbuch', 'erstaufnahme', 'Grundbuchauszug anfordern', 'Aktuellen Grundbuchauszug beschaffen oder vorhandene Fassung prüfen.', 'grundbuchauszug'),
+    checklistItem('erstaufnahme-flurkarte', 'erstaufnahme', 'Flurkarte prüfen', 'Flurstück und Grundstücksbezug nachvollziehen.', 'flurkarte'),
+    checklistItem('erstaufnahme-ziel', 'erstaufnahme', 'Verkaufsziel und Zeitrahmen dokumentieren', 'Motivation, Zielbild, Zeitdruck und Entscheidungskriterien festhalten.'),
   ],
   bewertung: [
-    { id: 'bewertung-flaeche', phase: 'bewertung', title: 'Flächenunterlagen validieren', description: 'Grundrisse und Wohnflächenberechnung auf Plausibilität prüfen.', requiredDocumentType: 'wohnflaechenberechnung' },
-    { id: 'bewertung-grundrisse', phase: 'bewertung', title: 'Grundrisse auf Aktualität prüfen', description: 'Abweichungen zwischen Bestand und Unterlagen kennzeichnen.', requiredDocumentType: 'grundrisse' },
-    { id: 'bewertung-modernisierung', phase: 'bewertung', title: 'Modernisierungen belegen', description: 'Wertrelevante Maßnahmen mit Datum, Umfang und Nachweis erfassen.', requiredDocumentType: 'modernisierungsnachweise' },
-    { id: 'bewertung-energie', phase: 'bewertung', title: 'Energieausweis bewerten', description: 'Gültigkeit, Art und Kennwerte prüfen.', requiredDocumentType: 'energieausweis' },
-    { id: 'bewertung-datenluecken', phase: 'bewertung', title: 'Datenlücken offen ausweisen', description: 'Unsichere oder fehlende Grundlagen nicht durch Annahmen ersetzen.' },
+    checklistItem('bewertung-flaeche', 'bewertung', 'Flächenunterlagen validieren', 'Grundrisse und Wohnflächenberechnung auf Plausibilität prüfen.', 'wohnflaechenberechnung'),
+    checklistItem('bewertung-grundrisse', 'bewertung', 'Grundrisse auf Aktualität prüfen', 'Abweichungen zwischen Bestand und Unterlagen kennzeichnen.', 'grundrisse'),
+    checklistItem('bewertung-modernisierung', 'bewertung', 'Modernisierungen belegen', 'Wertrelevante Maßnahmen mit Datum, Umfang und Nachweis erfassen.', 'modernisierungsnachweise'),
+    checklistItem('bewertung-energie', 'bewertung', 'Energieausweis bewerten', 'Gültigkeit, Art und Kennwerte prüfen.', 'energieausweis'),
+    checklistItem('bewertung-datenluecken', 'bewertung', 'Datenlücken offen ausweisen', 'Unsichere oder fehlende Grundlagen nicht durch Annahmen ersetzen.'),
   ],
   maklerauftrag: [
-    { id: 'auftrag-vertragsdaten', phase: 'maklerauftrag', title: 'Maklervertrag vollständig vorbereiten', description: 'Auftraggeber, Objekt, Laufzeit, Pflichten und Vergütung prüfen.', requiredDocumentType: 'maklervertrag' },
-    { id: 'auftrag-legitimation', phase: 'maklerauftrag', title: 'Auftraggeber legitimieren', description: 'Identität und Vertretungsbefugnis nachvollziehbar dokumentieren.' },
-    { id: 'auftrag-ziele', phase: 'maklerauftrag', title: 'Preis- und Prozessziele abstimmen', description: 'Zielkorridor, Kommunikationsrhythmus und Freigaben festhalten.' },
-    { id: 'auftrag-verantwortung', phase: 'maklerauftrag', title: 'Verantwortlichkeiten zuordnen', description: 'Interne und externe Zuständigkeiten für offene Unterlagen festlegen.' },
+    checklistItem('auftrag-vertragsdaten', 'maklerauftrag', 'Maklervertrag vollständig vorbereiten', 'Auftraggeber, Objekt, Laufzeit, Pflichten und Vergütung prüfen.', 'maklervertrag'),
+    checklistItem('auftrag-legitimation', 'maklerauftrag', 'Auftraggeber legitimieren', 'Identität und Vertretungsbefugnis nachvollziehbar dokumentieren.'),
+    checklistItem('auftrag-ziele', 'maklerauftrag', 'Preis- und Prozessziele abstimmen', 'Zielkorridor, Kommunikationsrhythmus und Freigaben festhalten.'),
+    checklistItem('auftrag-verantwortung', 'maklerauftrag', 'Verantwortlichkeiten zuordnen', 'Interne und externe Zuständigkeiten für offene Unterlagen festlegen.'),
   ],
   vermarktungsstart: [
-    { id: 'vermarktung-energie', phase: 'vermarktungsstart', title: 'Energieausweis freigeben', description: 'Gültigen Energieausweis vor Veröffentlichung sicherstellen.', requiredDocumentType: 'energieausweis' },
-    { id: 'vermarktung-grundrisse', phase: 'vermarktungsstart', title: 'Grundrisse freigeben', description: 'Lesbarkeit, Aktualität und sensible Angaben prüfen.', requiredDocumentType: 'grundrisse' },
-    { id: 'vermarktung-beschreibung', phase: 'vermarktungsstart', title: 'Baubeschreibung und Ausstattung prüfen', description: 'Objektmerkmale belegbar und widerspruchsfrei aufbereiten.', requiredDocumentType: 'baubeschreibung' },
-    { id: 'vermarktung-freigabe', phase: 'vermarktungsstart', title: 'Eigentümerfreigabe dokumentieren', description: 'Exposé, Preis, Bildmaterial und Veröffentlichung freigeben lassen.' },
-    { id: 'vermarktung-datenschutz', phase: 'vermarktungsstart', title: 'Sensible Unterlagen begrenzen', description: 'Nur erforderliche Informationen für die jeweilige Zielgruppe bereitstellen.' },
+    checklistItem('vermarktung-energie', 'vermarktungsstart', 'Energieausweis freigeben', 'Gültigen Energieausweis vor Veröffentlichung sicherstellen.', 'energieausweis'),
+    checklistItem('vermarktung-grundrisse', 'vermarktungsstart', 'Grundrisse freigeben', 'Lesbarkeit, Aktualität und sensible Angaben prüfen.', 'grundrisse'),
+    checklistItem('vermarktung-beschreibung', 'vermarktungsstart', 'Baubeschreibung und Ausstattung prüfen', 'Objektmerkmale belegbar und widerspruchsfrei aufbereiten.', 'baubeschreibung'),
+    checklistItem('vermarktung-freigabe', 'vermarktungsstart', 'Eigentümerfreigabe dokumentieren', 'Exposé, Preis, Bildmaterial und Veröffentlichung freigeben lassen.'),
+    checklistItem('vermarktung-datenschutz', 'vermarktungsstart', 'Sensible Unterlagen begrenzen', 'Nur erforderliche Informationen für die jeweilige Zielgruppe bereitstellen.'),
   ],
   besichtigungsphase: [
-    { id: 'besichtigung-unterlagen', phase: 'besichtigungsphase', title: 'Besichtigungsunterlagen vorbereiten', description: 'Freigegebene Objektinformationen und Rückfragenübersicht bereitstellen.' },
-    { id: 'besichtigung-rueckmeldung', phase: 'besichtigungsphase', title: 'Rückmeldungen dokumentieren', description: 'Interesse, Einwände, offene Fragen und nächste Schritte erfassen.' },
-    { id: 'besichtigung-nachweise', phase: 'besichtigungsphase', title: 'Nachweisdokumente steuern', description: 'Nur notwendige und freigegebene Nachweise zugänglich machen.' },
-    { id: 'besichtigung-risiken', phase: 'besichtigungsphase', title: 'Widersprüche und Risiken eskalieren', description: 'Abweichungen zwischen Aussage, Unterlagen und Objekt nicht offenlassen.' },
+    checklistItem('besichtigung-unterlagen', 'besichtigungsphase', 'Besichtigungsunterlagen vorbereiten', 'Freigegebene Objektinformationen und Rückfragenübersicht bereitstellen.'),
+    checklistItem('besichtigung-rueckmeldung', 'besichtigungsphase', 'Rückmeldungen dokumentieren', 'Interesse, Einwände, offene Fragen und nächste Schritte erfassen.'),
+    checklistItem('besichtigung-nachweise', 'besichtigungsphase', 'Nachweisdokumente steuern', 'Nur notwendige und freigegebene Nachweise zugänglich machen.'),
+    checklistItem('besichtigung-risiken', 'besichtigungsphase', 'Widersprüche und Risiken eskalieren', 'Abweichungen zwischen Aussage, Unterlagen und Objekt nicht offenlassen.'),
   ],
   kaufvertragsvorbereitung: [
-    { id: 'kaufvertrag-entwurf', phase: 'kaufvertragsvorbereitung', title: 'Kaufvertragsentwurf prüfen', description: 'Parteien, Objekt, Kaufpreis und Sondervereinbarungen abstimmen.', requiredDocumentType: 'kaufvertragsentwurf' },
-    { id: 'kaufvertrag-grundbuch', phase: 'kaufvertragsvorbereitung', title: 'Grundbuchstand aktualisieren', description: 'Aktualität und relevante Belastungen vor Notarreife prüfen.', requiredDocumentType: 'grundbuchauszug' },
-    { id: 'kaufvertrag-mietvertraege', phase: 'kaufvertragsvorbereitung', title: 'Mietverhältnisse vollständig offenlegen', description: 'Bestehende Verträge und Nachträge vollständig zuordnen.', requiredDocumentType: 'mietvertraege' },
-    { id: 'kaufvertrag-fristen', phase: 'kaufvertragsvorbereitung', title: 'Fristen und Bedingungen abstimmen', description: 'Finanzierung, Räumung, Besitzübergang und Unterlagenfristen dokumentieren.' },
-    { id: 'kaufvertrag-freigabe', phase: 'kaufvertragsvorbereitung', title: 'Freigaben aller Parteien sichern', description: 'Offene Punkte vor dem Notartermin eindeutig zuordnen.' },
+    checklistItem('kaufvertrag-entwurf', 'kaufvertragsvorbereitung', 'Kaufvertragsentwurf prüfen', 'Parteien, Objekt, Kaufpreis und Sondervereinbarungen abstimmen.', 'kaufvertragsentwurf'),
+    checklistItem('kaufvertrag-grundbuch', 'kaufvertragsvorbereitung', 'Grundbuchstand aktualisieren', 'Aktualität und relevante Belastungen vor Notarreife prüfen.', 'grundbuchauszug'),
+    checklistItem('kaufvertrag-mietvertraege', 'kaufvertragsvorbereitung', 'Mietverhältnisse vollständig offenlegen', 'Bestehende Verträge und Nachträge vollständig zuordnen.', 'mietvertraege'),
+    checklistItem('kaufvertrag-fristen', 'kaufvertragsvorbereitung', 'Fristen und Bedingungen abstimmen', 'Finanzierung, Räumung, Besitzübergang und Unterlagenfristen dokumentieren.'),
+    checklistItem('kaufvertrag-freigabe', 'kaufvertragsvorbereitung', 'Freigaben aller Parteien sichern', 'Offene Punkte vor dem Notartermin eindeutig zuordnen.'),
   ],
   uebergabe: [
-    { id: 'uebergabe-protokoll', phase: 'uebergabe', title: 'Übergabeprotokoll vorbereiten', description: 'Zustand, Schlüssel, Zähler und offene Restpunkte erfassen.', requiredDocumentType: 'uebergabeprotokoll' },
-    { id: 'uebergabe-schluessel', phase: 'uebergabe', title: 'Schlüsselbestand dokumentieren', description: 'Anzahl, Art und Empfänger aller Schlüssel festhalten.' },
-    { id: 'uebergabe-zaehler', phase: 'uebergabe', title: 'Zählerstände sichern', description: 'Zählerart, Nummer, Stand, Datum und Ableseperson dokumentieren.' },
-    { id: 'uebergabe-restpunkte', phase: 'uebergabe', title: 'Restpunkte terminieren', description: 'Offene Leistungen, Verantwortliche und Fristen festhalten.' },
+    checklistItem('uebergabe-protokoll', 'uebergabe', 'Übergabeprotokoll vorbereiten', 'Zustand, Schlüssel, Zähler und offene Restpunkte erfassen.', 'uebergabeprotokoll'),
+    checklistItem('uebergabe-schluessel', 'uebergabe', 'Schlüsselbestand dokumentieren', 'Anzahl, Art und Empfänger aller Schlüssel festhalten.'),
+    checklistItem('uebergabe-zaehler', 'uebergabe', 'Zählerstände sichern', 'Zählerart, Nummer, Stand, Datum und Ableseperson dokumentieren.'),
+    checklistItem('uebergabe-restpunkte', 'uebergabe', 'Restpunkte terminieren', 'Offene Leistungen, Verantwortliche und Fristen festhalten.'),
   ],
   nachbetreuung: [
-    { id: 'nachbetreuung-restpunkte', phase: 'nachbetreuung', title: 'Restaufgaben abschließen', description: 'Alle noch offenen Transaktionsaufgaben kontrolliert schließen.' },
-    { id: 'nachbetreuung-loeschfristen', phase: 'nachbetreuung', title: 'Lösch- und Aufbewahrungsfristen prüfen', description: 'Dokumente nach Zweck, Rechtsgrundlage und Frist einordnen.' },
-    { id: 'nachbetreuung-feedback', phase: 'nachbetreuung', title: 'Feedback einholen', description: 'Erfahrung, offene Fragen und Verbesserungen dokumentieren.' },
-    { id: 'nachbetreuung-empfehlung', phase: 'nachbetreuung', title: 'Empfehlungspotenzial prüfen', description: 'Nur bei positiver Erfahrung und passendem Zeitpunkt ansprechen.' },
-    { id: 'nachbetreuung-abschluss', phase: 'nachbetreuung', title: 'Transaktionsraum abschließen', description: 'Vollständigkeit, Auditspur und verbleibende Zugriffe prüfen.' },
+    checklistItem('nachbetreuung-restpunkte', 'nachbetreuung', 'Restaufgaben abschließen', 'Alle noch offenen Transaktionsaufgaben kontrolliert schließen.'),
+    checklistItem('nachbetreuung-loeschfristen', 'nachbetreuung', 'Lösch- und Aufbewahrungsfristen prüfen', 'Dokumente nach Zweck, Rechtsgrundlage und Frist einordnen.'),
+    checklistItem('nachbetreuung-feedback', 'nachbetreuung', 'Feedback einholen', 'Erfahrung, offene Fragen und Verbesserungen dokumentieren.'),
+    checklistItem('nachbetreuung-empfehlung', 'nachbetreuung', 'Empfehlungspotenzial prüfen', 'Nur bei positiver Erfahrung und passendem Zeitpunkt ansprechen.'),
+    checklistItem('nachbetreuung-abschluss', 'nachbetreuung', 'Transaktionsraum abschließen', 'Vollständigkeit, Auditspur und verbleibende Zugriffe prüfen.'),
   ],
 };
 
@@ -194,7 +193,15 @@ const READY_STATUSES = new Set<DocumentStatus>(['vorhanden', 'geprueft']);
 const RISK_STATUSES = new Set<DocumentStatus>(['fehlt', 'veraltet', 'unvollstaendig', 'pruefung_notwendig', 'abgelehnt']);
 
 export function normalizeDocumentType(value: string): DocumentType {
-  const normalized = value.trim().toLowerCase().replace(/[ä]/g, 'ae').replace(/[ö]/g, 'oe').replace(/[ü]/g, 'ue').replace(/[ß]/g, 'ss').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[ä]/g, 'ae')
+    .replace(/[ö]/g, 'oe')
+    .replace(/[ü]/g, 'ue')
+    .replace(/[ß]/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
   return DOCUMENT_TYPE_IDS.has(normalized) ? normalized as KnownDocumentType : 'unknown';
 }
 
@@ -221,21 +228,13 @@ export function createCompleteChecklist(phase: TransactionPhase): TransactionChe
 export function calculateChecklistProgress(items: ReadonlyArray<TransactionChecklistItem>) {
   const applicable = items.filter((item) => item.status !== 'not_required');
   const completed = applicable.filter((item) => item.status === 'complete').length;
-  return {
-    completed,
-    total: applicable.length,
-    percent: applicable.length === 0 ? 100 : Math.round((completed / applicable.length) * 100),
-  };
+  return { completed, total: applicable.length, percent: applicable.length === 0 ? 100 : Math.round((completed / applicable.length) * 100) };
 }
 
 export function calculateDocumentProgress(documents: ReadonlyArray<DocumentRecord>) {
   const applicable = documents.filter((document) => document.status !== 'nicht_erforderlich');
   const ready = applicable.filter((document) => READY_STATUSES.has(document.status)).length;
-  return {
-    ready,
-    total: applicable.length,
-    percent: applicable.length === 0 ? 100 : Math.round((ready / applicable.length) * 100),
-  };
+  return { ready, total: applicable.length, percent: applicable.length === 0 ? 100 : Math.round((ready / applicable.length) * 100) };
 }
 
 export function findDuplicateDocuments(documents: ReadonlyArray<DocumentRecord>) {
@@ -251,6 +250,8 @@ export function findDuplicateDocuments(documents: ReadonlyArray<DocumentRecord>)
 export function findWrongPropertyAssignments(propertyId: string, documents: ReadonlyArray<DocumentRecord>) {
   return documents.filter((document) => document.propertyId !== propertyId);
 }
+
+const riskWeight = (severity: TransactionRisk['severity']) => ({ critical: 4, high: 3, medium: 2, low: 1 })[severity];
 
 export function deriveTransactionRisks(room: Pick<TransactionRoomViewModel, 'property' | 'documents' | 'checklist' | 'tasks'>): TransactionRisk[] {
   const risks: TransactionRisk[] = [];
@@ -268,17 +269,11 @@ export function deriveTransactionRisks(room: Pick<TransactionRoomViewModel, 'pro
   }
   for (const item of room.checklist) {
     if (item.status !== 'blocked') continue;
-    risks.push({
-      id: `checklist:${item.id}`,
-      severity: 'high',
-      title: `Checkliste blockiert: ${item.title}`,
-      reason: item.description,
-      checklistItemId: item.id,
-    });
+    risks.push({ id: `checklist:${item.id}`, severity: 'high', title: `Checkliste blockiert: ${item.title}`, reason: item.description, checklistItemId: item.id });
   }
-  const now = Date.now();
+  const currentTime = Date.now();
   for (const task of room.tasks) {
-    if (task.status === 'open' && new Date(task.dueAt).getTime() < now) {
+    if (task.status === 'open' && new Date(task.dueAt).getTime() < currentTime) {
       risks.push({
         id: `task:${task.id}`,
         severity: task.priority === 'high' ? 'critical' : 'medium',
@@ -290,12 +285,7 @@ export function deriveTransactionRisks(room: Pick<TransactionRoomViewModel, 'pro
   return risks.sort((a, b) => riskWeight(b.severity) - riskWeight(a.severity) || a.id.localeCompare(b.id));
 }
 
-function riskWeight(severity: TransactionRisk['severity']) {
-  return { critical: 4, high: 3, medium: 2, low: 1 }[severity];
-}
-
 export function buildDemoTransactionRoom(): TransactionRoomViewModel {
-  const now = new Date('2026-07-14T08:00:00.000Z');
   const documents: DocumentRecord[] = [
     { id: 'doc-1', workspaceId: 'workspace-demo', propertyId: 'property-berger', type: 'grundbuchauszug', title: 'Grundbuchauszug Berger', status: 'veraltet', version: 1, fileName: 'grundbuchauszug-demo.pdf', mimeType: 'application/pdf', sizeBytes: 420000, issuedAt: '2024-01-12', createdAt: '2026-07-10T09:00:00.000Z', updatedAt: '2026-07-10T09:00:00.000Z' },
     { id: 'doc-2', workspaceId: 'workspace-demo', propertyId: 'property-berger', type: 'flurkarte', title: 'Flurkarte', status: 'geprueft', version: 2, fileName: 'flurkarte-demo.pdf', mimeType: 'application/pdf', sizeBytes: 210000, reviewedAt: '2026-07-12T10:00:00.000Z', reviewedBy: 'Kevin Keim', createdAt: '2026-07-09T11:00:00.000Z', updatedAt: '2026-07-12T10:00:00.000Z' },
@@ -304,10 +294,10 @@ export function buildDemoTransactionRoom(): TransactionRoomViewModel {
     { id: 'doc-5', workspaceId: 'workspace-demo', propertyId: 'property-berger', type: 'wohnflaechenberechnung', title: 'Wohnflächenberechnung', status: 'unvollstaendig', version: 1, fileName: 'wohnflaeche-demo.pdf', mimeType: 'application/pdf', sizeBytes: 190000, createdAt: '2026-07-12T09:00:00.000Z', updatedAt: '2026-07-12T09:00:00.000Z' },
     { id: 'doc-6', workspaceId: 'workspace-demo', propertyId: 'property-berger', type: 'maklervertrag', title: 'Maklervertrag', status: 'geprueft', version: 1, fileName: 'maklervertrag-demo.pdf', mimeType: 'application/pdf', sizeBytes: 330000, reviewedAt: '2026-07-13T12:00:00.000Z', reviewedBy: 'Kevin Keim', createdAt: '2026-07-13T11:00:00.000Z', updatedAt: '2026-07-13T12:00:00.000Z' },
   ];
-  const checklist = TRANSACTION_PHASES.flatMap(({ id }) => createChecklist(id)).map((item) => {
-    if (item.phase === 'erstaufnahme') return { ...item, status: 'complete' as const };
-    if (item.phase === 'bewertung' && item.id === 'bewertung-energie') return { ...item, status: 'blocked' as const, responsible: 'Eigentümer', dueAt: '2026-07-15' };
-    if (item.phase === 'bewertung' && ['bewertung-grundrisse', 'bewertung-datenluecken'].includes(item.id)) return { ...item, status: 'complete' as const };
+  const checklist: TransactionChecklistItem[] = TRANSACTION_PHASES.flatMap(({ id }) => createChecklist(id)).map((item) => {
+    if (item.phase === 'erstaufnahme') return { ...item, status: 'complete' };
+    if (item.phase === 'bewertung' && item.id === 'bewertung-energie') return { ...item, status: 'blocked', responsible: 'Eigentümer', dueAt: '2026-07-15' };
+    if (item.phase === 'bewertung' && ['bewertung-grundrisse', 'bewertung-datenluecken'].includes(item.id)) return { ...item, status: 'complete' };
     return item;
   });
   return {
