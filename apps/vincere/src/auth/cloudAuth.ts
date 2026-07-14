@@ -1,5 +1,6 @@
 import type { UserRole } from '../types/domain';
 import type { SupabaseRuntimeConfig } from '../config/runtime';
+import { reportError } from '../observability/observability';
 
 export interface CloudAuthSession {
   accessToken: string;
@@ -49,14 +50,16 @@ async function readError(response: Response) {
 export class SupabaseRestAuthClient {
   constructor(
     private readonly config: SupabaseRuntimeConfig,
-    private readonly storage: Storage = localStorage,
+    private readonly storage: Storage = sessionStorage,
     private readonly fetcher: FetchLike = fetch,
   ) {}
 
   private headers(accessToken?: string) {
     return {
       apikey: this.config.publishableKey,
+      Accept: 'application/json',
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-store',
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     };
   }
@@ -82,8 +85,13 @@ export class SupabaseRestAuthClient {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify({ email: email.trim(), password }),
+      cache: 'no-store',
     });
-    if (!response.ok) throw new Error(await readError(response));
+    if (!response.ok) {
+      const message = await readError(response);
+      reportError('auth', 'auth.sign-in', new Error(message), { httpStatus: response.status });
+      throw new Error(message);
+    }
     const session = this.toSession(await response.json() as SupabaseTokenResponse);
     this.persist(session);
     return session;
@@ -95,10 +103,13 @@ export class SupabaseRestAuthClient {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify({ refresh_token: session.refreshToken }),
+      cache: 'no-store',
     });
     if (!response.ok) {
       this.persist(null);
-      throw new Error(await readError(response));
+      const message = await readError(response);
+      reportError('auth', 'auth.refresh', new Error(message), { httpStatus: response.status });
+      throw new Error(message);
     }
     const refreshed = this.toSession(await response.json() as SupabaseTokenResponse);
     this.persist(refreshed);
@@ -111,7 +122,7 @@ export class SupabaseRestAuthClient {
     if (!raw) return null;
     try {
       const session = JSON.parse(raw) as CloudAuthSession;
-      if (!session.accessToken || !session.refreshToken || !session.userId) throw new Error('invalid');
+      if (!session.accessToken || !session.refreshToken || !session.userId || !Number.isFinite(session.expiresAt)) throw new Error('invalid');
       if (session.expiresAt - Date.now() <= REFRESH_BUFFER_MS) return await this.refreshSession(session);
       return session;
     } catch {
@@ -125,7 +136,10 @@ export class SupabaseRestAuthClient {
       await this.fetcher(`${this.config.url}/auth/v1/logout`, {
         method: 'POST',
         headers: this.headers(session.accessToken),
-      }).catch(() => undefined);
+        cache: 'no-store',
+      }).catch((reason: unknown) => {
+        reportError('auth', 'auth.sign-out-network', reason);
+      });
     }
     this.persist(null);
   }
@@ -139,8 +153,13 @@ export class SupabaseRestAuthClient {
     });
     const response = await this.fetcher(`${this.config.url}/rest/v1/workspace_members?${query}`, {
       headers: this.headers(session.accessToken),
+      cache: 'no-store',
     });
-    if (!response.ok) throw new Error(await readError(response));
+    if (!response.ok) {
+      const message = await readError(response);
+      reportError('auth', 'auth.membership', new Error(message), { httpStatus: response.status });
+      throw new Error(message);
+    }
     const rows = await response.json() as MembershipRow[];
     const row = rows[0];
     if (!row) throw new Error('Für dieses Benutzerkonto wurde kein VINCERE-Workspace freigeschaltet.');
