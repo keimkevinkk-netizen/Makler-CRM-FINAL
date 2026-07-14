@@ -22,7 +22,7 @@ export const seedState: AppState = {
     id: 'user-kevin',
     workspaceId: 'workspace-vincere-kevin',
     name: 'Kevin Keim',
-    email: 'keim.kevin.kk@gmail.com',
+    email: 'kevin@example.test',
     role: 'owner',
   },
   contacts: [
@@ -74,3 +74,23 @@ export const seedState: AppState = {
   callEvents: [],
   auditEvents: [],
 };
+
+export function createEmptyState(overrides?: Partial<Pick<AppState, 'workspace' | 'currentUser'>>): AppState {
+  const workspace = overrides?.workspace ?? seedState.workspace;
+  const currentUser = {
+    ...(overrides?.currentUser ?? seedState.currentUser),
+    workspaceId: workspace.id,
+  };
+
+  return {
+    schemaVersion: seedState.schemaVersion,
+    workspace: { ...workspace },
+    currentUser: { ...currentUser },
+    contacts: [],
+    followUps: [],
+    properties: [],
+    appointments: [],
+    callEvents: [],
+    auditEvents: [],
+  };
+}
