@@ -67,10 +67,29 @@ function isConflictError(message: string) {
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
+  const storeKey = auth.configured
+    ? `${auth.session?.userId ?? 'anonymous'}:${auth.membership?.workspaceId ?? 'none'}`
+    : 'local';
+
+  useEffect(() => {
+    if (auth.configured && !auth.loading && !auth.session) resetState();
+  }, [auth.configured, auth.loading, auth.session]);
+
+  return <AppStoreSession key={storeKey}>{children}</AppStoreSession>;
+}
+
+function AppStoreSession({ children }: { children: ReactNode }) {
+  const auth = useAuth();
   const cloudRepository = useMemo(() => new SupabaseWorkspaceCloudRepository(supabaseConfig), []);
-  const [state, setState] = useState<AppState>(() => loadState());
+  const [state, setState] = useState<AppState>(() => (
+    auth.configured && runtimeConfig.dataMode === 'live' ? createEmptyState() : loadState()
+  ));
   const stateRef = useRef(state);
-  const [cloudSync, setCloudSync] = useState<CloudSyncState>({ mode: 'local', status: 'local', version: 0 });
+  const [cloudSync, setCloudSync] = useState<CloudSyncState>(() => (
+    auth.configured
+      ? { mode: 'cloud', status: auth.session && auth.membership ? 'loading' : 'local', version: 0 }
+      : { mode: 'local', status: 'local', version: 0 }
+  ));
   const [connectivityVersion, setConnectivityVersion] = useState(0);
   const cloudVersion = useRef(0);
   const remoteReady = useRef(false);
@@ -78,8 +97,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     stateRef.current = state;
-    if (!auth.configured || auth.session) saveState(state);
-  }, [auth.configured, auth.session, state]);
+    if (!auth.configured || runtimeConfig.dataMode === 'demo') saveState(state);
+  }, [auth.configured, state]);
 
   useEffect(() => {
     const online = () => {
@@ -98,18 +117,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!auth.configured || auth.loading || auth.session) return;
-    remoteReady.current = false;
-    skipNextCloudSave.current = false;
-    cloudVersion.current = 0;
-    resetState();
-    const cleared = createEmptyState();
-    stateRef.current = cleared;
-    setState(cleared);
-    setCloudSync({ mode: 'cloud', status: 'local', version: 0 });
-  }, [auth.configured, auth.loading, auth.session]);
-
-  useEffect(() => {
     let active = true;
     remoteReady.current = false;
 
@@ -120,7 +127,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     if (!session || !membership) return;
 
     const startedAt = performance.now();
-    setCloudSync({ mode: 'cloud', status: 'loading', version: cloudVersion.current });
 
     void cloudRepository.load(membership.workspaceId, session.accessToken)
       .then((remote) => {
