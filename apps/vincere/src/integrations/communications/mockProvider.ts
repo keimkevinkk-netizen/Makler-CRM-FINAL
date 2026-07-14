@@ -145,16 +145,15 @@ const waitForDelay = (delayMs: number, signal?: AbortSignal): Promise<'completed
 
   return new Promise((resolve) => {
     let settled = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
     const finish = (result: 'completed' | 'aborted') => {
       if (settled) return;
       settled = true;
-      if (timer) clearTimeout(timer);
+      clearTimeout(timer);
       signal?.removeEventListener('abort', abort);
       resolve(result);
     };
     const abort = () => finish('aborted');
-    timer = setTimeout(() => finish('completed'), delayMs);
+    const timer = setTimeout(() => finish('completed'), delayMs);
     signal?.addEventListener('abort', abort, { once: true });
   });
 };
