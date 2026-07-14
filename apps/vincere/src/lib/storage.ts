@@ -9,8 +9,10 @@ import {
 
 const isLegacyLocalDemo = runtimeConfig.environment === 'local' && runtimeConfig.dataMode === 'demo';
 const storageNamespace = `${runtimeConfig.environment}_${runtimeConfig.dataMode}`;
+const browserStorage = runtimeConfig.dataMode === 'live' ? sessionStorage : localStorage;
 
 export const appRepository = new LocalStorageWorkspaceRepository({
+  storage: browserStorage,
   storageKey: isLegacyLocalDemo ? WORKSPACE_STORAGE_KEY : `${WORKSPACE_STORAGE_KEY}_${storageNamespace}`,
   legacyStorageKey: LEGACY_STORAGE_KEY,
   fallbackState: runtimeConfig.mockDataEnabled ? seedState : createEmptyState(),
