@@ -87,7 +87,7 @@ function buildReadiness(property: Property, owner?: Contact) {
   return { readiness: clamp(score), dataGaps: gaps };
 }
 
-function nextAppointmentFor(property: Property, owner: Contact | undefined, appointments: Appointment[], now: Date) {
+function nextAppointmentFor(_property: Property, owner: Contact | undefined, appointments: Appointment[], now: Date) {
   if (!owner) return undefined;
   return appointments
     .filter((appointment) => appointment.contactId === owner.id && validTimestamp(appointment.startsAt))
