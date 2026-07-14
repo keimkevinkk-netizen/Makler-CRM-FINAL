@@ -67,12 +67,16 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const cloudRepository = useMemo(() => new SupabaseWorkspaceCloudRepository(supabaseConfig), []);
   const [state, setState] = useState<AppState>(() => loadState());
+  const stateRef = useRef(state);
   const [cloudSync, setCloudSync] = useState<CloudSyncState>({ mode: 'local', status: 'local', version: 0 });
   const cloudVersion = useRef(0);
   const remoteReady = useRef(false);
   const skipNextCloudSave = useRef(false);
 
-  useEffect(() => saveState(state), [state]);
+  useEffect(() => {
+    stateRef.current = state;
+    saveState(state);
+  }, [state]);
 
   useEffect(() => {
     let active = true;
@@ -82,26 +86,29 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       setCloudSync({ mode: 'local', status: 'local', version: 0 });
       return;
     }
-    if (!auth.session || !auth.membership) return;
+
+    const session = auth.session;
+    const membership = auth.membership;
+    if (!session || !membership) return;
 
     setCloudSync({ mode: 'cloud', status: 'loading', version: cloudVersion.current });
-    void cloudRepository.load(auth.membership.workspaceId, auth.session.accessToken)
+    void cloudRepository.load(membership.workspaceId, session.accessToken)
       .then((remote) => {
         if (!active) return;
-        if (remote && remote.state.workspace.id !== auth.membership?.workspaceId) {
+        if (remote && remote.state.workspace.id !== membership.workspaceId) {
           throw new Error('Die Cloud-Daten gehören nicht zum angemeldeten Workspace.');
         }
 
-        const source = remote?.state ?? state;
+        const source = remote?.state ?? stateRef.current;
         const securedState: AppState = {
           ...source,
-          workspace: { ...source.workspace, id: auth.membership.workspaceId },
+          workspace: { ...source.workspace, id: membership.workspaceId },
           currentUser: {
-            id: auth.session.userId,
-            workspaceId: auth.membership.workspaceId,
-            name: auth.membership.displayName,
-            email: auth.session.email,
-            role: auth.membership.role,
+            id: session.userId,
+            workspaceId: membership.workspaceId,
+            name: membership.displayName,
+            email: session.email,
+            role: membership.role,
           },
         };
 
@@ -126,7 +133,9 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   }, [auth.configured, auth.membership, auth.session, cloudRepository]);
 
   useEffect(() => {
-    if (!auth.configured || !auth.session || !auth.membership || !remoteReady.current) return;
+    const session = auth.session;
+    const membership = auth.membership;
+    if (!auth.configured || !session || !membership || !remoteReady.current) return;
     if (skipNextCloudSave.current) {
       skipNextCloudSave.current = false;
       return;
@@ -135,9 +144,9 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     const timer = window.setTimeout(() => {
       setCloudSync((current) => ({ ...current, mode: 'cloud', status: 'saving', error: undefined }));
       void cloudRepository.save(
-        auth.membership!.workspaceId,
+        membership.workspaceId,
         state,
-        auth.session!.accessToken,
+        session.accessToken,
         cloudVersion.current,
       ).then((saved) => {
         cloudVersion.current = saved.version;
