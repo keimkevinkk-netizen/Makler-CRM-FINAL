@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { ProviderExecutionContext } from '../src/integrations/communications/contracts';
 import { MockCommunicationProvider } from '../src/integrations/communications/mockProvider';
@@ -28,7 +29,10 @@ describe('provider-independent communication contracts', () => {
   });
 
   it('keeps credential material out of the browser contract', () => {
-    const source = readFileSync(new URL('../src/integrations/communications/contracts.ts', import.meta.url), 'utf8');
+    const source = readFileSync(resolve(
+      process.cwd(),
+      'src/integrations/communications/contracts.ts',
+    ), 'utf8');
 
     expect(source).toContain('serverOnly: true');
     expect(source).not.toMatch(/clientSecret|apiKey|accessToken|refreshToken|privateKey/i);
