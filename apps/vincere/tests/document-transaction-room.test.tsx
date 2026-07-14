@@ -99,8 +99,9 @@ describe('VINCERE Dokumenten- und Transaktionsraum', () => {
 
   it('liefert einen typisierten Mock-Providerfehler', async () => {
     const provider = new MockDocumentStorageProvider({ failOperations: ['readMetadata'] });
-    await expect(provider.readMetadata({ workspaceId: 'workspace-1', propertyId: 'property-1', documentId: 'document-1' }))
-      .rejects.toMatchObject<DocumentProviderError>({ code: 'mock_failure', operation: 'readMetadata', retryable: true });
+    const locator = { workspaceId: 'workspace-1', propertyId: 'property-1', documentId: 'document-1' };
+    await expect(provider.readMetadata(locator)).rejects.toBeInstanceOf(DocumentProviderError);
+    await expect(provider.readMetadata(locator)).rejects.toMatchObject({ code: 'mock_failure', operation: 'readMetadata', retryable: true });
   });
 
   it('führt im Metadata-Only Mock keine echten Datei- oder Netzwerkoperationen aus', async () => {
