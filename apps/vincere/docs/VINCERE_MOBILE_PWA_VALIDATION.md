@@ -1,10 +1,9 @@
 # VINCERE Mobile PWA – Validierungsgrenzen
 
-Die verpflichtenden Prüfungen werden auf zwei Ebenen betrachtet:
+Die verpflichtenden Prüfungen werden auf dem tatsächlichen gestapelten Draft-PR gegen `feat/vincere-communication-hub` ausgeführt. Damit werden Typecheck, ESLint, Vitest und Produktionsbuild gemeinsam mit dem aktuellen Zielbranch geprüft.
 
-1. Der Feature-Head wird unverändert gegen den stabilen technischen Vorgänger geprüft. Damit werden Typecheck, ESLint, Vitest und Produktionsbuild des Mobile-PWA-Arbeitspakets vollständig ausgeführt.
-2. Der eigentliche gestapelte Draft-PR bleibt gegen `feat/vincere-communication-hub` gerichtet. Dort können unabhängig hinzugekommene Fehler des Zielbranches die kombinierte PR-CI blockieren.
+Unabhängig hinzugekommene Fehler des Zielbranches werden nicht durch dieses Arbeitspaket verändert, ausgeblendet oder über abgeschwächte Regeln umgangen. Sobald der Zielbranch korrigiert ist, muss die reguläre Produkt-PR-CI erneut vollständig laufen.
 
-Ein Fehler in einer ausdrücklich gesperrten Datei des Zielbranches wird nicht durch dieses Arbeitspaket verändert, ausgeblendet oder über eine abgeschwächte Lint-Regel umgangen. Die Ergebnisse beider Ebenen müssen im Draft-PR transparent dokumentiert werden.
+Maßgeblich sind ausschließlich die Ergebnisse des Produkt-PRs. Temporäre technische Prüf-PRs werden geschlossen und nicht gemergt.
 
 Es erfolgen kein Merge und kein Deployment.
