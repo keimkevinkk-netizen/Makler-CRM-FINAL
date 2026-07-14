@@ -1,33 +1,41 @@
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { AppShell } from './AppShell';
-import { DashboardPage } from '../features/dashboard/DashboardPage';
-import { TodayPage } from '../features/today/TodayPage';
-import { ContactsPage } from '../features/contacts/ContactsPage';
-import { PipelinePage } from '../features/pipeline/PipelinePage';
-import { PhonePage } from '../features/phone/PhonePage';
-import { PropertiesPage } from '../features/properties/PropertiesPage';
-import { ValuationsPage } from '../features/valuations/ValuationsPage';
-import { NetworkPage } from '../features/network/NetworkPage';
-import { CampaignsPage } from '../features/campaigns/CampaignsPage';
-import { KnowledgePage } from '../features/knowledge/KnowledgePage';
-import { SettingsPage } from '../features/settings/SettingsPage';
+
+const DashboardPage = lazy(() => import('../features/dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })));
+const TodayPage = lazy(() => import('../features/today/TodayPage').then((module) => ({ default: module.TodayPage })));
+const ContactsPage = lazy(() => import('../features/contacts/ContactsPage').then((module) => ({ default: module.ContactsPage })));
+const PipelinePage = lazy(() => import('../features/pipeline/PipelinePage').then((module) => ({ default: module.PipelinePage })));
+const PhonePage = lazy(() => import('../features/phone/PhonePage').then((module) => ({ default: module.PhonePage })));
+const PropertiesPage = lazy(() => import('../features/properties/PropertiesPage').then((module) => ({ default: module.PropertiesPage })));
+const ValuationsPage = lazy(() => import('../features/valuations/ValuationsPage').then((module) => ({ default: module.ValuationsPage })));
+const NetworkPage = lazy(() => import('../features/network/NetworkPage').then((module) => ({ default: module.NetworkPage })));
+const CampaignsPage = lazy(() => import('../features/campaigns/CampaignsPage').then((module) => ({ default: module.CampaignsPage })));
+const KnowledgePage = lazy(() => import('../features/knowledge/KnowledgePage').then((module) => ({ default: module.KnowledgePage })));
+const SettingsPage = lazy(() => import('../features/settings/SettingsPage').then((module) => ({ default: module.SettingsPage })));
+
+function RouteLoader() {
+  return <div className="route-loading" role="status" aria-live="polite">Bereich wird geladen …</div>;
+}
+
+const withSuspense = (element: React.ReactNode) => <Suspense fallback={<RouteLoader />}>{element}</Suspense>;
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <AppShell />,
     children: [
-      { index: true, element: <DashboardPage /> },
-      { path: 'today', element: <TodayPage /> },
-      { path: 'contacts', element: <ContactsPage /> },
-      { path: 'pipeline', element: <PipelinePage /> },
-      { path: 'phone', element: <PhonePage /> },
-      { path: 'properties', element: <PropertiesPage /> },
-      { path: 'valuations', element: <ValuationsPage /> },
-      { path: 'network', element: <NetworkPage /> },
-      { path: 'campaigns', element: <CampaignsPage /> },
-      { path: 'knowledge', element: <KnowledgePage /> },
-      { path: 'settings', element: <SettingsPage /> },
+      { index: true, element: withSuspense(<DashboardPage />) },
+      { path: 'today', element: withSuspense(<TodayPage />) },
+      { path: 'contacts', element: withSuspense(<ContactsPage />) },
+      { path: 'pipeline', element: withSuspense(<PipelinePage />) },
+      { path: 'phone', element: withSuspense(<PhonePage />) },
+      { path: 'properties', element: withSuspense(<PropertiesPage />) },
+      { path: 'valuations', element: withSuspense(<ValuationsPage />) },
+      { path: 'network', element: withSuspense(<NetworkPage />) },
+      { path: 'campaigns', element: withSuspense(<CampaignsPage />) },
+      { path: 'knowledge', element: withSuspense(<KnowledgePage />) },
+      { path: 'settings', element: withSuspense(<SettingsPage />) },
     ],
   },
 ]);
