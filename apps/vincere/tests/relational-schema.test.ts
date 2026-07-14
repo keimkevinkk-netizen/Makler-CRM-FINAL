@@ -1,11 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-
-const migration = readFileSync(
-  resolve(process.cwd(), 'supabase/migrations/202607140002_relational_workspace_data.sql'),
-  'utf8',
-);
+import migration from '../supabase/migrations/202607140002_relational_workspace_data.sql?raw';
 
 describe('VINCERE relational Supabase migration', () => {
   it.each([
@@ -25,7 +19,7 @@ describe('VINCERE relational Supabase migration', () => {
     expect(migration).toContain("array['owner', 'admin', 'agent']::public.vincere_role[]");
     expect(migration).toContain('p_expected_revision bigint');
     expect(migration).toContain("raise exception 'workspace revision conflict'");
-    expect(migration).toContain("raise exception 'record version conflict: %.%'" );
+    expect(migration).toContain("raise exception 'record version conflict: %.%'");
   });
 
   it('keeps contact-linked records inside the same workspace', () => {
