@@ -1,7 +1,21 @@
 import type { AppState } from '../types/domain';
-import { LocalStorageWorkspaceRepository } from '../data/repository';
+import { runtimeConfig } from '../config/runtime';
+import { createEmptyState, seedState } from '../data/seed';
+import {
+  LEGACY_STORAGE_KEY,
+  LocalStorageWorkspaceRepository,
+  WORKSPACE_STORAGE_KEY,
+} from '../data/repository';
 
-export const appRepository = new LocalStorageWorkspaceRepository();
+const isLegacyLocalDemo = runtimeConfig.environment === 'local' && runtimeConfig.dataMode === 'demo';
+const storageNamespace = `${runtimeConfig.environment}_${runtimeConfig.dataMode}`;
+
+export const appRepository = new LocalStorageWorkspaceRepository({
+  storageKey: isLegacyLocalDemo ? WORKSPACE_STORAGE_KEY : `${WORKSPACE_STORAGE_KEY}_${storageNamespace}`,
+  legacyStorageKey: LEGACY_STORAGE_KEY,
+  fallbackState: runtimeConfig.mockDataEnabled ? seedState : createEmptyState(),
+  allowLegacyMigration: isLegacyLocalDemo,
+});
 
 export function loadState(): AppState {
   return appRepository.load();
