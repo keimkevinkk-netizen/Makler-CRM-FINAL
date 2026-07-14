@@ -119,7 +119,20 @@ const defaultContext: Required<CommunicationDraftContext> = {
 };
 
 const render = (value: string, context: Required<CommunicationDraftContext>) =>
-  value.replace(/{{(\w+)}}/g, (_match, key: keyof CommunicationDraftContext) => context[key] ?? `[${String(key)}]`);
+  value.replace(/{{(\w+)}}/g, (_match, key: string) => {
+    const contextKey = key as keyof CommunicationDraftContext;
+    return context[contextKey] ?? `[${key}]`;
+  });
+
+const resolveContext = (context: CommunicationDraftContext): Required<CommunicationDraftContext> => ({
+  contactName: context.contactName ?? defaultContext.contactName,
+  appointmentDate: context.appointmentDate ?? defaultContext.appointmentDate,
+  appointmentTime: context.appointmentTime ?? defaultContext.appointmentTime,
+  propertyAddress: context.propertyAddress ?? defaultContext.propertyAddress,
+  senderName: context.senderName ?? defaultContext.senderName,
+  callbackNumber: context.callbackNumber ?? defaultContext.callbackNumber,
+  reason: context.reason ?? defaultContext.reason,
+});
 
 export function createLocalCommunicationDraft(
   templateId: CommunicationDraftTemplateId,
@@ -128,7 +141,7 @@ export function createLocalCommunicationDraft(
 ): LocalCommunicationDraft {
   const template = templateById.get(templateId);
   if (!template) throw new Error(`Unbekannte Kommunikationsvorlage: ${templateId}`);
-  const resolved = { ...defaultContext, ...context };
+  const resolved = resolveContext(context);
 
   return {
     id: `local-draft-${templateId}-${now.getTime()}`,
