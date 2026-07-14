@@ -157,7 +157,9 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     const membership = auth.membership;
     if (!session || !membership) return;
 
-    setCloudSync((current) => ({ ...current, mode: 'cloud', status: 'loading', error: undefined }));
+    void Promise.resolve().then(() => {
+      if (active) setCloudSync((current) => ({ ...current, mode: 'cloud', status: 'loading', error: undefined }));
+    });
     void cloudRepository.load(membership.workspaceId, session.accessToken)
       .then((remote) => {
         if (!active) return;
