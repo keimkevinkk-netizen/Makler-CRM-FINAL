@@ -16,7 +16,7 @@ const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringif
 describe('SupabaseRestAuthClient', () => {
   beforeEach(() => localStorage.clear());
 
-  it('authenticates with password and resolves the workspace membership', async () => {
+  it('authenticates with password and resolves the active workspace membership', async () => {
     const fetcher = vi.fn()
       .mockResolvedValueOnce(jsonResponse({
         access_token: 'access-token',
@@ -28,6 +28,7 @@ describe('SupabaseRestAuthClient', () => {
         workspace_id: 'workspace-1',
         role: 'owner',
         display_name: 'Kevin Keim',
+        is_active: true,
       }]));
 
     const client = new SupabaseRestAuthClient(config, localStorage, fetcher);
@@ -48,7 +49,7 @@ describe('SupabaseRestAuthClient', () => {
     expect(localStorage.getItem('vincere_auth_session_v1')).toBeNull();
   });
 
-  it('rejects users without a workspace membership', async () => {
+  it('rejects users without an active workspace membership', async () => {
     const fetcher = vi.fn().mockResolvedValue(jsonResponse([]));
     const client = new SupabaseRestAuthClient(config, localStorage, fetcher);
 
@@ -58,6 +59,24 @@ describe('SupabaseRestAuthClient', () => {
       expiresAt: Date.now() + 60_000,
       userId: 'user-1',
       email: 'kevin@example.de',
-    })).rejects.toThrow('kein VINCERE-Workspace');
+    })).rejects.toThrow('kein aktiver VINCERE-Workspace');
+  });
+
+  it('rejects explicitly deactivated workspace memberships', async () => {
+    const fetcher = vi.fn().mockResolvedValue(jsonResponse([{
+      workspace_id: 'workspace-1',
+      role: 'agent',
+      display_name: 'Deaktivierter Nutzer',
+      is_active: false,
+    }]));
+    const client = new SupabaseRestAuthClient(config, localStorage, fetcher);
+
+    await expect(client.getMembership({
+      accessToken: 'token',
+      refreshToken: 'refresh',
+      expiresAt: Date.now() + 60_000,
+      userId: 'user-2',
+      email: 'inactive@example.de',
+    })).rejects.toThrow('kein aktiver VINCERE-Workspace');
   });
 });

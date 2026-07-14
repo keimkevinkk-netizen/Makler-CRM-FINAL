@@ -18,7 +18,7 @@ export interface WorkspaceUser {
   role: UserRole;
 }
 
-export type AuditEntity = 'workspace' | 'contact' | 'followup' | 'property' | 'call' | 'backup';
+export type AuditEntity = 'workspace' | 'contact' | 'followup' | 'property' | 'call' | 'backup' | 'team' | 'invitation';
 
 export interface AuditEvent {
   id: string;

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { Building2, Cloud, Database, Download, History, LogOut, RotateCcw, ShieldCheck, Upload, UserRound, WifiOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Building2, Cloud, Database, Download, History, LogOut, Radio, RefreshCw, RotateCcw, ShieldAlert, ShieldCheck, Upload, UserRound, UsersRound, WifiOff } from 'lucide-react';
 import { useAppStore } from '../../app/AppStore';
 import { useAuth } from '../../auth/AuthContext';
 import { Button, Card, SectionHeader } from '../../components/ui';
@@ -19,6 +20,15 @@ const syncLabels = {
   offline: 'Offline / nicht erreichbar',
   conflict: 'Versionskonflikt',
   error: 'Fehler',
+} as const;
+
+const realtimeLabels = {
+  disabled: 'Realtime deaktiviert',
+  connecting: 'Realtime verbindet',
+  connected: 'Realtime verbunden',
+  reconnecting: 'Realtime verbindet neu',
+  offline: 'Realtime offline',
+  error: 'Realtime-Fehler',
 } as const;
 
 export function SettingsPage() {
@@ -57,21 +67,28 @@ export function SettingsPage() {
         <div className="settings-list">
           <article><span><Building2 /></span><div><strong>{state.workspace.name}</strong><p>{state.workspace.region} · Workspace-ID: {state.workspace.id}</p></div><em>Aktiv</em></article>
           <article><span><UserRound /></span><div><strong>{state.currentUser.name}</strong><p>{state.currentUser.email}</p></div><em>{roleLabels[state.currentUser.role]}</em></article>
-          <article><span><ShieldCheck /></span><div><strong>Serverseitige Zugriffskontrolle</strong><p>{auth.configured ? 'Sitzung und Workspace-Mitgliedschaft werden durch Supabase Auth und PostgreSQL Row Level Security geprüft.' : 'Cloud-Zugang ist noch nicht konfiguriert. Die Anwendung läuft kontrolliert im lokalen Entwicklungsmodus.'}</p></div><em>{auth.configured ? 'Aktiv' : 'Lokalmodus'}</em></article>
-          {auth.configured && auth.session && <article><span><LogOut /></span><div><strong>Sitzung beenden</strong><p>Lokale Sitzungstokens entfernen und den geschützten Bereich verlassen.</p></div><Button variant="secondary" onClick={() => void auth.signOut()}>Abmelden</Button></article>}
+          <article><span><UsersRound /></span><div><strong>Teamverwaltung</strong><p>Mitglieder, Rollen, Deaktivierungen und zeitlich begrenzte Einladungen verwalten.</p></div><Link className="button button-secondary" to="/team">Öffnen</Link></article>
+          <article><span><ShieldCheck /></span><div><strong>Serverseitige Zugriffskontrolle</strong><p>{auth.configured ? 'Sitzung und aktive Workspace-Mitgliedschaft werden durch Supabase Auth und PostgreSQL Row Level Security geprüft.' : 'Cloud-Zugang ist noch nicht konfiguriert. Die Anwendung läuft kontrolliert im lokalen Entwicklungsmodus.'}</p></div><em>{auth.configured ? 'Aktiv' : 'Lokalmodus'}</em></article>
+          {auth.configured && auth.session && <article><span><LogOut /></span><div><strong>Sitzung beenden</strong><p>Realtime-Channels abmelden, lokale Sitzungstokens entfernen und den geschützten Bereich verlassen.</p></div><Button variant="secondary" onClick={() => void auth.signOut()}>Abmelden</Button></article>}
         </div>
       </Card>
 
       <Card>
-        <SectionHeader title="Cloud-Synchronisation" subtitle="Lokale Arbeitsfähigkeit mit mandantengeschützter Cloud-Persistenz" />
+        <SectionHeader title="Realtime & Cloud-Synchronisation" subtitle="Workspaceisolierte Zusammenarbeit mit kontrollierter Konfliktbehandlung" />
         <div className="settings-list">
+          <article>
+            <span>{state.realtimeSync.status === 'offline' || state.realtimeSync.status === 'error' ? <WifiOff /> : <Radio />}</span>
+            <div><strong>{realtimeLabels[state.realtimeSync.status]}</strong><p>{state.realtimeSync.error ?? (state.realtimeSync.lastEventAt ? `Letztes Realtime-Ereignis: ${new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(state.realtimeSync.lastEventAt))}` : 'Abonnements werden ausschließlich für den angemeldeten Workspace aufgebaut.')}</p></div>
+            <Button variant="secondary" onClick={state.reconnectRealtime} disabled={state.realtimeSync.status === 'disabled'}><RefreshCw size={15} /> Neu verbinden</Button>
+          </article>
           <article>
             <span>{state.cloudSync.status === 'offline' || state.cloudSync.status === 'conflict' ? <WifiOff /> : <Cloud />}</span>
             <div><strong>{syncLabels[state.cloudSync.status]}</strong><p>{state.cloudSync.error ?? (state.cloudSync.lastSyncedAt ? `Letzte Synchronisation: ${new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(state.cloudSync.lastSyncedAt))}` : 'Noch keine Cloud-Synchronisation durchgeführt.')}</p></div>
             <em>Revision {state.cloudSync.version}</em>
           </article>
+          <article><span><ShieldAlert /></span><div><strong>Konfliktzentrale</strong><p>{state.conflicts.length ? `${state.conflicts.length} parallele Änderung${state.conflicts.length === 1 ? '' : 'en'} benötigt eine bewusste Entscheidung.` : 'Keine ungeklärten Paralleländerungen.'}</p></div><Link className="button button-secondary" to="/conflicts">Prüfen</Link></article>
           <article><span><Database /></span><div><strong>Relationales Workspace Repository V{state.schemaVersion}</strong><p>{state.cloudSync.mode === 'cloud' ? 'Kontakte, Follow-ups, Immobilien, Termine, Telefon- und Auditereignisse werden getrennt und datensatzweise synchronisiert.' : 'Lokaler Adapter bleibt als sichere Entwicklungs- und Offline-Grundlage aktiv.'}</p></div><em>{state.cloudSync.mode === 'cloud' ? 'Cloud' : 'Lokal'}</em></article>
-          <article><span><History /></span><div><strong>Änderungsprotokoll</strong><p>{state.auditEvents.length} Audit-Ereignisse. Mutationen werden mit Nutzer, Workspace und Zeitpunkt protokolliert.</p></div><em>Max. 500</em></article>
+          <article><span><History /></span><div><strong>Änderungsprotokoll</strong><p>{state.auditEvents.length} Audit-Ereignisse. Mutationen sowie spätere Rollenänderungen werden mit Nutzer, Workspace und Zeitpunkt protokolliert.</p></div><em>Max. 500 lokal</em></article>
         </div>
       </Card>
 

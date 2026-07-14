@@ -26,6 +26,7 @@ interface MembershipRow {
   workspace_id: string;
   role: UserRole;
   display_name: string | null;
+  is_active: boolean;
 }
 
 const AUTH_STORAGE_KEY = 'vincere_auth_session_v1';
@@ -39,8 +40,8 @@ function assertConfigured(config: SupabaseRuntimeConfig): asserts config is Supa
 
 async function readError(response: Response) {
   try {
-    const data = await response.json() as { msg?: string; message?: string; error_description?: string; error?: string };
-    return data.error_description ?? data.msg ?? data.message ?? data.error ?? `HTTP ${response.status}`;
+    const data = await response.json() as { msg?: string; message?: string; error_description?: string; error?: string; details?: string };
+    return data.error_description ?? data.msg ?? data.message ?? data.details ?? data.error ?? `HTTP ${response.status}`;
   } catch {
     return `HTTP ${response.status}`;
   }
@@ -133,8 +134,9 @@ export class SupabaseRestAuthClient {
   async getMembership(session: CloudAuthSession): Promise<WorkspaceMembership> {
     assertConfigured(this.config);
     const query = new URLSearchParams({
-      select: 'workspace_id,role,display_name',
+      select: 'workspace_id,role,display_name,is_active',
       user_id: `eq.${session.userId}`,
+      is_active: 'eq.true',
       limit: '1',
     });
     const response = await this.fetcher(`${this.config.url}/rest/v1/workspace_members?${query}`, {
@@ -143,11 +145,22 @@ export class SupabaseRestAuthClient {
     if (!response.ok) throw new Error(await readError(response));
     const rows = await response.json() as MembershipRow[];
     const row = rows[0];
-    if (!row) throw new Error('Für dieses Benutzerkonto wurde kein VINCERE-Workspace freigeschaltet.');
+    if (!row?.is_active) throw new Error('Für dieses Benutzerkonto wurde kein aktiver VINCERE-Workspace freigeschaltet.');
     return {
       workspaceId: row.workspace_id,
       role: row.role,
       displayName: row.display_name?.trim() || session.email,
     };
+  }
+
+  async acceptInvitation(session: CloudAuthSession, token: string, displayName: string) {
+    assertConfigured(this.config);
+    const response = await this.fetcher(`${this.config.url}/rest/v1/rpc/accept_workspace_invitation`, {
+      method: 'POST',
+      headers: this.headers(session.accessToken),
+      body: JSON.stringify({ p_token: token.trim(), p_display_name: displayName.trim() }),
+    });
+    if (!response.ok) throw new Error(await readError(response));
+    return this.getMembership(session);
   }
 }

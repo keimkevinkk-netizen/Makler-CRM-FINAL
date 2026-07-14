@@ -10,6 +10,7 @@ interface AuthContextValue {
   membership: WorkspaceMembership | null;
   error: string;
   signIn: (email: string, password: string) => Promise<void>;
+  acceptInvitation: (token: string, displayName: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -29,10 +30,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void client.restoreSession()
       .then(async (restored) => {
         if (!active || !restored) return;
-        const resolvedMembership = await client.getMembership(restored);
-        if (!active) return;
         setSession(restored);
-        setMembership(resolvedMembership);
+        try {
+          const resolvedMembership = await client.getMembership(restored);
+          if (active) setMembership(resolvedMembership);
+        } catch (reason) {
+          if (active) setError(reason instanceof Error ? reason.message : 'Eine Workspace-Einladung wird benötigt.');
+        }
       })
       .catch((reason: unknown) => {
         if (active) setError(reason instanceof Error ? reason.message : 'Die Sitzung konnte nicht wiederhergestellt werden.');
@@ -55,12 +59,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError('');
       try {
         const authenticated = await client.signIn(email, password);
-        const resolvedMembership = await client.getMembership(authenticated);
         setSession(authenticated);
-        setMembership(resolvedMembership);
+        try {
+          const resolvedMembership = await client.getMembership(authenticated);
+          setMembership(resolvedMembership);
+        } catch (reason) {
+          setMembership(null);
+          setError(reason instanceof Error ? reason.message : 'Bitte ein gültiges Einladungstoken eingeben.');
+        }
       } catch (reason) {
         await client.signOut(null);
+        setSession(null);
+        setMembership(null);
         const message = reason instanceof Error ? reason.message : 'Die Anmeldung ist fehlgeschlagen.';
+        setError(message);
+        throw new Error(message, { cause: reason });
+      } finally {
+        setLoading(false);
+      }
+    },
+    acceptInvitation: async (token, displayName) => {
+      if (!session) throw new Error('Für die Einladung ist zuerst eine Anmeldung erforderlich.');
+      setLoading(true);
+      setError('');
+      try {
+        setMembership(await client.acceptInvitation(session, token, displayName));
+      } catch (reason) {
+        const message = reason instanceof Error ? reason.message : 'Die Einladung konnte nicht angenommen werden.';
         setError(message);
         throw new Error(message, { cause: reason });
       } finally {

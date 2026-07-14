@@ -12,15 +12,16 @@ import { parseWorkspaceSnapshot } from './repository';
 import { seedState } from './seed';
 
 type FetchLike = typeof fetch;
-type CollectionKey = 'contacts' | 'followUps' | 'properties' | 'appointments' | 'callEvents' | 'auditEvents';
-type CloudEntity = Contact | FollowUp | Property | Appointment | CallEvent | AuditEvent;
+export type CollectionKey = 'contacts' | 'followUps' | 'properties' | 'appointments' | 'callEvents' | 'auditEvents';
+export type RealtimeCollectionKey = Exclude<CollectionKey, 'auditEvents'>;
+export type CloudEntity = Contact | FollowUp | Property | Appointment | CallEvent | AuditEvent;
 
 interface CollectionDefinition {
   key: CollectionKey;
   table: string;
 }
 
-const COLLECTIONS: CollectionDefinition[] = [
+export const COLLECTIONS: readonly CollectionDefinition[] = [
   { key: 'contacts', table: 'contacts' },
   { key: 'followUps', table: 'follow_ups' },
   { key: 'properties', table: 'properties' },
@@ -31,11 +32,13 @@ const COLLECTIONS: CollectionDefinition[] = [
 
 const DELETE_ORDER = [...COLLECTIONS].reverse();
 
-interface RelationalRow {
+export interface RelationalRow {
+  workspace_id?: string;
   id: string;
-  payload: unknown;
+  payload: CloudEntity;
   version: number;
   updated_at: string;
+  updated_by?: string | null;
 }
 
 interface WorkspaceRow {
@@ -61,6 +64,17 @@ export interface RelationalMutation {
   relatedContactId?: string;
 }
 
+export interface RemoteRecordChange {
+  workspaceId: string;
+  collection: RealtimeCollectionKey;
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  id: string;
+  payload?: CloudEntity;
+  version: number;
+  updatedAt: string;
+  updatedBy?: string | null;
+}
+
 export interface CloudLoadResult {
   state: AppState;
   version: number;
@@ -70,6 +84,19 @@ export interface CloudLoadResult {
 export interface CloudSaveResult {
   version: number;
   updatedAt: string;
+  mutations: RelationalMutation[];
+}
+
+export interface ConflictCloudSnapshot {
+  revision: number;
+  record: RemoteRecordChange;
+}
+
+export class CloudConflictError extends Error {
+  constructor(message: string, readonly mutations: RelationalMutation[]) {
+    super(message);
+    this.name = 'CloudConflictError';
+  }
 }
 
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
@@ -86,7 +113,11 @@ function emptyVersions(): EntityVersionMap {
   };
 }
 
-function collectionItems(state: AppState, key: CollectionKey): CloudEntity[] {
+export function tableForCollection(collection: CollectionKey) {
+  return COLLECTIONS.find((definition) => definition.key === collection)?.table;
+}
+
+export function collectionItems(state: AppState, key: CollectionKey): CloudEntity[] {
   switch (key) {
     case 'contacts': return state.contacts;
     case 'followUps': return state.followUps;
@@ -163,6 +194,32 @@ function payloads<T extends CloudEntity>(rows: RelationalRow[]): T[] {
   return rows.map((row) => row.payload as T);
 }
 
+function upsert<T extends { id: string }>(records: T[], payload: T) {
+  const index = records.findIndex((record) => record.id === payload.id);
+  if (index < 0) return [payload, ...records];
+  return records.map((record) => record.id === payload.id ? payload : record);
+}
+
+function remove<T extends { id: string }>(records: T[], id: string) {
+  return records.filter((record) => record.id !== id);
+}
+
+function applyRecord(state: AppState, change: RemoteRecordChange): AppState {
+  const deleted = change.eventType === 'DELETE';
+  switch (change.collection) {
+    case 'contacts':
+      return { ...state, contacts: deleted ? remove(state.contacts, change.id) : upsert(state.contacts, change.payload as Contact) };
+    case 'followUps':
+      return { ...state, followUps: deleted ? remove(state.followUps, change.id) : upsert(state.followUps, change.payload as FollowUp) };
+    case 'properties':
+      return { ...state, properties: deleted ? remove(state.properties, change.id) : upsert(state.properties, change.payload as Property) };
+    case 'appointments':
+      return { ...state, appointments: deleted ? remove(state.appointments, change.id) : upsert(state.appointments, change.payload as Appointment) };
+    case 'callEvents':
+      return { ...state, callEvents: deleted ? remove(state.callEvents, change.id) : upsert(state.callEvents, change.payload as CallEvent) };
+  }
+}
+
 export class SupabaseWorkspaceCloudRepository {
   private baseline: AppState | null = null;
   private versions: EntityVersionMap = emptyVersions();
@@ -182,7 +239,7 @@ export class SupabaseWorkspaceCloudRepository {
 
   private async readRows(table: string, workspaceId: string, accessToken: string): Promise<RelationalRow[]> {
     const query = new URLSearchParams({
-      select: 'id,payload,version,updated_at',
+      select: 'workspace_id,id,payload,version,updated_at,updated_by',
       workspace_id: `eq.${workspaceId}`,
       order: 'updated_at.asc',
     });
@@ -191,6 +248,94 @@ export class SupabaseWorkspaceCloudRepository {
     });
     if (!response.ok) throw new Error(await readError(response));
     return response.json() as Promise<RelationalRow[]>;
+  }
+
+  getVersion(collection: CollectionKey, id: string) {
+    return this.versions[collection][id] ?? 0;
+  }
+
+  getPendingMutations(state: AppState) {
+    return buildRelationalMutations(state, this.baseline, this.versions);
+  }
+
+  async getRevision(workspaceId: string, accessToken: string) {
+    const query = new URLSearchParams({ select: 'revision,updated_at', workspace_id: `eq.${workspaceId}`, limit: '1' });
+    const response = await this.fetcher(`${this.config.url}/rest/v1/workspace_sync_revisions?${query}`, {
+      headers: this.headers(accessToken),
+    });
+    if (!response.ok) throw new Error(await readError(response));
+    const row = (await response.json() as RevisionRow[])[0];
+    return row ?? { revision: 0, updated_at: new Date(0).toISOString() };
+  }
+
+  async fetchRecord(
+    collection: RealtimeCollectionKey,
+    id: string,
+    workspaceId: string,
+    accessToken: string,
+  ): Promise<RemoteRecordChange> {
+    const table = tableForCollection(collection);
+    if (!table) throw new Error(`Unbekannte Sammlung: ${collection}`);
+    const query = new URLSearchParams({
+      select: 'workspace_id,id,payload,version,updated_at,updated_by',
+      workspace_id: `eq.${workspaceId}`,
+      id: `eq.${id}`,
+      limit: '1',
+    });
+    const response = await this.fetcher(`${this.config.url}/rest/v1/${table}?${query}`, {
+      headers: this.headers(accessToken),
+    });
+    if (!response.ok) throw new Error(await readError(response));
+    const row = (await response.json() as RelationalRow[])[0];
+    if (!row) {
+      return {
+        workspaceId,
+        collection,
+        eventType: 'DELETE',
+        id,
+        version: 0,
+        updatedAt: new Date().toISOString(),
+      };
+    }
+    return {
+      workspaceId,
+      collection,
+      eventType: 'UPDATE',
+      id: row.id,
+      payload: row.payload,
+      version: row.version,
+      updatedAt: row.updated_at,
+      updatedBy: row.updated_by,
+    };
+  }
+
+  async resolveConflictSnapshots(
+    workspaceId: string,
+    accessToken: string,
+    mutations: RelationalMutation[],
+  ): Promise<ConflictCloudSnapshot[]> {
+    const revision = await this.getRevision(workspaceId, accessToken);
+    const relevant = mutations.filter((mutation): mutation is RelationalMutation & { collection: RealtimeCollectionKey } => mutation.collection !== 'auditEvents');
+    const records = await Promise.all(relevant.map(async (mutation) => ({
+      revision: revision.revision,
+      record: await this.fetchRecord(mutation.collection, mutation.id, workspaceId, accessToken),
+    })));
+    return records;
+  }
+
+  applyRemoteChange(state: AppState, change: RemoteRecordChange) {
+    const next = applyRecord(state, change);
+    this.baseline = applyRecord(this.baseline ?? state, change);
+    if (change.eventType === 'DELETE') delete this.versions[change.collection][change.id];
+    else this.versions[change.collection][change.id] = change.version;
+    return next;
+  }
+
+  prepareLocalRetry(change: RemoteRecordChange) {
+    if (!this.baseline) return;
+    this.baseline = applyRecord(this.baseline, change);
+    if (change.eventType === 'DELETE') delete this.versions[change.collection][change.id];
+    else this.versions[change.collection][change.id] = change.version;
   }
 
   async load(workspaceId: string, accessToken: string): Promise<CloudLoadResult | null> {
@@ -252,7 +397,7 @@ export class SupabaseWorkspaceCloudRepository {
     if (!this.config.configured) throw new Error('Das VINCERE-Cloud-Backend ist nicht konfiguriert.');
 
     const mutations = buildRelationalMutations(state, this.baseline, this.versions);
-    if (mutations.length === 0) return { version: expectedVersion, updatedAt: new Date().toISOString() };
+    if (mutations.length === 0) return { version: expectedVersion, updatedAt: new Date().toISOString(), mutations };
 
     const response = await this.fetcher(`${this.config.url}/rest/v1/rpc/sync_vincere_records`, {
       method: 'POST',
@@ -265,7 +410,8 @@ export class SupabaseWorkspaceCloudRepository {
     });
     if (!response.ok) {
       const message = await readError(response);
-      throw new Error(message.includes('revision conflict') ? `version conflict: ${message}` : message);
+      if (message.toLowerCase().includes('conflict')) throw new CloudConflictError(`version conflict: ${message}`, mutations);
+      throw new Error(message);
     }
 
     const result = await response.json() as { revision: number; updated_at: string } | Array<{ revision: number; updated_at: string }>;
@@ -278,6 +424,6 @@ export class SupabaseWorkspaceCloudRepository {
     }
     this.baseline = clone(state);
 
-    return { version: row.revision, updatedAt: row.updated_at };
+    return { version: row.revision, updatedAt: row.updated_at, mutations };
   }
 }
