@@ -32,11 +32,15 @@ describe('VINCERE team rules', () => {
   });
 
   it('creates invitations through the workspace RPC without email delivery', async () => {
-    const fetcher = vi.fn(async (_url: string, _init?: RequestInit) => new Response(JSON.stringify([{
-      id: 'invite-1', workspace_id: 'workspace-a', email: 'agent@example.de', role: 'agent',
-      expires_at: '2026-07-21T08:00:00.000Z', created_at: '2026-07-14T08:00:00.000Z', invited_by: 'owner-a',
-      accepted_at: null, revoked_at: null, token: 'a'.repeat(64),
-    }]), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+    const fetcher = vi.fn(async (url: string, init?: RequestInit) => {
+      void url;
+      void init;
+      return new Response(JSON.stringify([{
+        id: 'invite-1', workspace_id: 'workspace-a', email: 'agent@example.de', role: 'agent',
+        expires_at: '2026-07-21T08:00:00.000Z', created_at: '2026-07-14T08:00:00.000Z', invited_by: 'owner-a',
+        accepted_at: null, revoked_at: null, token: 'a'.repeat(64),
+      }]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    });
     const repository = new SupabaseTeamRepository(
       { url: 'https://example.supabase.co', publishableKey: 'publishable-test-key', configured: true },
       fetcher as typeof fetch,
