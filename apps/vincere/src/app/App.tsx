@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { AppShell } from './AppShell';
 
@@ -18,7 +18,7 @@ function RouteLoader() {
   return <div className="route-loading" role="status" aria-live="polite">Bereich wird geladen …</div>;
 }
 
-const withSuspense = (element: React.ReactNode) => <Suspense fallback={<RouteLoader />}>{element}</Suspense>;
+const withSuspense = (element: ReactNode) => <Suspense fallback={<RouteLoader />}>{element}</Suspense>;
 
 const router = createBrowserRouter([
   {
