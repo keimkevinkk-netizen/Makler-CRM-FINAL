@@ -1,0 +1,36 @@
+name: VINCERE Source Export
+
+on:
+  push:
+    branches:
+      - feat/vincere-beta-integration
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assemble standalone repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p export/docs export/.github/workflows
+          cp -R apps/vincere/. export/
+          find docs -maxdepth 1 -type f -name 'VINCERE_*.md' -exec cp {} export/docs/ \;
+          cp .github/workflows/vincere-ci.yml export/.github/workflows/ci.yml
+          rm -f export/.github/workflows/vincere-source-export.yml
+
+      - name: Upload standalone source
+        uses: actions/upload-artifact@v4
+        with:
+          name: vincere-standalone-source
+          path: export/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
