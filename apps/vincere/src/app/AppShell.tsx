@@ -5,6 +5,7 @@ import { can } from '../auth/permissions';
 import { navigation } from './navigation';
 import { Modal } from '../components/ui';
 import { ContactForm } from '../features/contacts/ContactForm';
+import { MobileRuntime } from '../features/mobile/MobileRuntime';
 import { useAppStore } from './AppStore';
 
 const roleLabel = {
@@ -89,6 +90,7 @@ export function AppShell() {
         <div className="page-container"><Outlet /></div>
       </main>
 
+      <MobileRuntime />
       {newContactOpen && <Modal title="Neuen Kontakt erfassen" onClose={() => setNewContactOpen(false)}><ContactForm onDone={() => setNewContactOpen(false)} /></Modal>}
       {commandOpen && (
         <Modal title="Command Palette" onClose={() => setCommandOpen(false)}>
