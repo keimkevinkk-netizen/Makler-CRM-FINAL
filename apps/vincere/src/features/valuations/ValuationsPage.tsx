@@ -3,6 +3,8 @@ import { AlertTriangle, Calculator, CheckCircle2, ClipboardList, MapPinned, Targ
 import { useAppStore } from '../../app/AppStore';
 import { Badge, Card, EmptyState, SectionHeader } from '../../components/ui';
 import type { Property } from '../../types/domain';
+import { MarketCockpit } from '../market/MarketCockpit';
+import { ValuationMarketPanel } from '../market/ValuationMarketPanel';
 import { buildPropertyOpportunities, summarizePropertyPortfolio } from '../properties/propertyIntelligence';
 import '../properties/property-cockpit.css';
 
@@ -40,22 +42,24 @@ export function ValuationsPage() {
     <div className="page-stack pv-page">
       <Card className="pv-hero">
         <div>
-          <span className="eyebrow">Bewertungssteuerung</span>
+          <span className="eyebrow">Bewertungssteuerung & Marktintelligenz</span>
           <h1>Bewertungsreife vor falscher Präzision.</h1>
-          <p>VINCERE zeigt, welche Objekt- und Eigentümerinformationen vorliegen, welche Lücken bestehen und welcher nächste Schritt eine belastbare Bewertung vorbereitet.</p>
+          <p>VINCERE trennt Arbeitswerte, belegte Marktindikatoren und formelle Verkehrswerte. Jede Kennzahl zeigt Quelle, Zeitraum, Aktualität, Abdeckung und Qualitätsgrenze.</p>
         </div>
-        <div className="pv-hero-note"><Calculator size={18} /><span><strong>Keine Scheingenauigkeit</strong><small>Marktdatenanbieter folgen in einem getrennten, serverseitigen Arbeitspaket.</small></span></div>
+        <div className="pv-hero-note"><Calculator size={18} /><span><strong>Keine Scheingenauigkeit</strong><small>Ohne belastbare reale Daten wird kein scheinpräziser Marktwert erzeugt. Demoanzeigen sind sichtbar gekennzeichnet.</small></span></div>
       </Card>
 
       <div className="pv-metrics" aria-label="Bewertungskennzahlen">
         <Card><ClipboardList /><span>Offene Bewertungsfälle</span><strong>{valuationItems.length}</strong><small>{summary.active} aktive Objekte</small></Card>
-        <Card><CheckCircle2 /><span>Prüfbereit</span><strong>{readyForReview}</strong><small>Mindestens 85% Datenreife</small></Card>
+        <Card><CheckCircle2 /><span>Prüfbereit</span><strong>{readyForReview}</strong><small>Mindestens 85% Objektdatenreife</small></Card>
         <Card><AlertTriangle /><span>Ohne Arbeitswert</span><strong>{missingValues}</strong><small>Bewertungsgrundlage ergänzen</small></Card>
-        <Card><MapPinned /><span>Erfasste Orte</span><strong>{new Set(valuationItems.map((item) => item.property.city).filter(Boolean)).size}</strong><small>Keine externen Marktwerte simuliert</small></Card>
+        <Card><MapPinned /><span>Erfasste Orte</span><strong>{new Set(valuationItems.map((item) => item.property.city).filter(Boolean)).size}</strong><small>Marktquellen separat geprüft</small></Card>
       </div>
 
+      <MarketCockpit />
+
       <Card>
-        <SectionHeader title="Bewertungs-Workbench" subtitle="Fälle nach Datenlücken und vertrieblichem Handlungsbedarf bearbeiten" />
+        <SectionHeader title="Bewertungs-Workbench" subtitle="Fälle nach Datenlücken, Quellenlage und vertrieblichem Handlungsbedarf bearbeiten" />
         {valuationItems.length === 0 ? (
           <EmptyState title="Keine offenen Bewertungsfälle" text="Aktive Immobilien erscheinen hier automatisch." />
         ) : (
@@ -80,28 +84,33 @@ export function ValuationsPage() {
               <aside className="pv-valuation-detail" aria-label={`Bewertung ${selected.property.title}`}>
                 <div className="pv-valuation-title">
                   <div><Badge tone={statusTone(selected.property.status)}>{selected.property.status}</Badge><h2>{selected.property.title}</h2><p>{selected.property.address}, {selected.property.city}</p></div>
-                  <strong>{selected.readiness}%<small>Datenreife</small></strong>
+                  <strong>{selected.readiness}%<small>Objektdatenreife</small></strong>
                 </div>
 
                 <div className="pv-next-action"><Target size={19} /><div><small>Nächster Vorbereitungsschritt</small><strong>{selected.recommendedAction}</strong></div></div>
 
                 <div className="pv-valuation-values">
-                  <article><span>Hinterlegter Arbeitswert</span><strong>{selected.property.estimatedValue > 0 ? currency.format(selected.property.estimatedValue) : 'Nicht vorhanden'}</strong></article>
+                  <article><span>Hinterlegter Arbeitswert</span><strong>{selected.property.estimatedValue > 0 ? currency.format(selected.property.estimatedValue) : 'Nicht vorhanden'}</strong><small>Interne Arbeitshypothese, kein Markt- oder Verkehrswert</small></article>
                   <article><span>Interner Orientierungsrahmen</span><strong>{selected.internalRange ? `${currency.format(selected.internalRange.min)} – ${currency.format(selected.internalRange.max)}` : 'Nicht berechenbar'}</strong><small>{selected.internalRange ? `± ${Math.round(selected.internalRange.spread * 100)}% aus Datenreife` : 'Zuerst Arbeitswert erfassen'}</small></article>
                   <article><span>Eigentümerkontakt</span><strong>{selected.owner ? `${selected.owner.firstName} ${selected.owner.lastName}` : 'Nicht verknüpft'}</strong><small>{selected.owner ? `${selected.owner.city} · Potenzial ${selected.owner.potential}` : 'Vertriebliche Historie fehlt'}</small></article>
                   <article><span>Vertriebssignal</span><strong>{selected.actionScore}/100</strong><small>Regelbasierter Handlungswert, keine Abschlusswahrscheinlichkeit</small></article>
                 </div>
 
+                <ValuationMarketPanel
+                  city={selected.property.city}
+                  workingValueLabel={selected.property.estimatedValue > 0 ? currency.format(selected.property.estimatedValue) : 'Nicht vorhanden'}
+                />
+
                 <div className="pv-readiness-checklist">
                   <h3>Datenprüfung</h3>
                   {selected.dataGaps.length === 0
-                    ? <p className="is-complete"><CheckCircle2 size={15} /> Die im aktuellen Datenmodell verfügbaren Pflichtangaben sind vollständig.</p>
-                    : selected.dataGaps.map((gap) => <p key={gap}><AlertTriangle size={15} /> {gap}</p>)}
+                    ? <p className="is-complete"><CheckCircle2 size={15} /> Die im aktuellen Datenmodell verfügbaren Objektangaben sind vollständig.</p>
+                    : selected.dataGaps.map((gap: string) => <p key={gap}><AlertTriangle size={15} /> {gap}</p>)}
                 </div>
 
                 <div className="pv-method-note">
                   <h3>Methodische Grenze</h3>
-                  <p>Der Orientierungsrahmen wird ausschließlich aus dem manuell hinterlegten Arbeitswert und der Datenreife abgeleitet. Lage-, Vergleichs-, Bodenrichtwert-, Zustands- und Marktdaten sind noch nicht angebunden. Die Anzeige ist deshalb keine Verkehrswert- oder Marktwertermittlung.</p>
+                  <p>Der interne Orientierungsrahmen wird weiterhin ausschließlich aus dem manuell hinterlegten Arbeitswert und der Objektdatenreife abgeleitet. Das Markt-Cockpit stellt Quellen- und Qualitätslogik bereit, enthält aber noch keine produktiven Marktbeobachtungen. Eine Verkehrswertermittlung findet nicht statt.</p>
                 </div>
               </aside>
             )}
