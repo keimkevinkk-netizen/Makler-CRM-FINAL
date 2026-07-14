@@ -36,6 +36,16 @@ export interface CommunicationHubPageProps {
   role?: CommunicationHubRole;
 }
 
+const DEMO_DRAFT_CONTEXT = {
+  contactName: 'Synthetischer Kontakt',
+  appointmentDate: '15.07.2026',
+  appointmentTime: '11:00',
+  propertyAddress: 'Beispielstraße 1, 00000 Musterstadt',
+  senderName: 'VINCERE Demo',
+  callbackNumber: '+49 000 0000000',
+  reason: 'interne Terminüberschneidung',
+};
+
 const formatDateTime = (value: string) => new Intl.DateTimeFormat('de-DE', {
   dateStyle: 'short',
   timeStyle: 'short',
@@ -76,6 +86,14 @@ const providerTone = (provider: CommunicationProviderStatus) => {
   return 'green' as const;
 };
 
+function ChannelIcon({ channel }: { channel: CommunicationTimelineItem['channel'] }) {
+  if (channel === 'email') return <Mail size={17} />;
+  if (channel === 'message') return <MessageSquare size={17} />;
+  if (channel === 'phone') return <PhoneMissed size={17} />;
+  if (channel === 'appointment') return <CalendarDays size={17} />;
+  return <FileText size={17} />;
+}
+
 function CommunicationList({ items, emptyTitle, emptyText }: {
   items: CommunicationTimelineItem[];
   emptyTitle: string;
@@ -86,25 +104,14 @@ function CommunicationList({ items, emptyTitle, emptyText }: {
     <div className="communication-list">
       {items.map((item) => (
         <article className="communication-row" key={item.id}>
-          <div className={`communication-channel channel-${item.channel}`}>
-            {item.channel === 'email' && <Mail size={17} />}
-            {item.channel === 'message' && <MessageSquare size={17} />}
-            {item.channel === 'phone' && <PhoneMissed size={17} />}
-            {item.channel === 'appointment' && <CalendarDays size={17} />}
-            {item.channel === 'crm' && <FileText size={17} />}
-          </div>
+          <div className={`communication-channel channel-${item.channel}`}><ChannelIcon channel={item.channel} /></div>
           <div className="communication-copy">
-            <div className="communication-row-head">
-              <strong>{item.title}</strong>
-              <span>{formatDateTime(item.occurredAt)}</span>
-            </div>
+            <div className="communication-row-head"><strong>{item.title}</strong><span>{formatDateTime(item.occurredAt)}</span></div>
             <p>{item.summary}</p>
             <div className="communication-meta">
-              <span>{item.contactLabel}</span>
+              <span>{channelLabel[item.channel]} · {item.contactLabel}</span>
               <Badge tone={statusTone(item.status)}>{item.status}</Badge>
-              <Badge tone={item.contactMatchCategory === 'definite' ? 'green' : item.contactMatchCategory === 'unknown' ? 'red' : 'gold'}>
-                {matchLabel(item)}
-              </Badge>
+              <Badge tone={item.contactMatchCategory === 'definite' ? 'green' : item.contactMatchCategory === 'unknown' ? 'red' : 'gold'}>{matchLabel(item)}</Badge>
             </div>
           </div>
         </article>
@@ -118,30 +125,12 @@ export function CommunicationHubPage({ snapshot, role = 'viewer' }: Communicatio
   const [templateId, setTemplateId] = useState<CommunicationDraftTemplateId>('appointment_confirmation');
   const [draft, setDraft] = useState<LocalCommunicationDraft>(() => createLocalCommunicationDraft(
     'appointment_confirmation',
-    {
-      contactName: 'Synthetischer Kontakt',
-      appointmentDate: '15.07.2026',
-      appointmentTime: '11:00',
-      propertyAddress: 'Beispielstraße 1, 00000 Musterstadt',
-      senderName: 'VINCERE Demo',
-      callbackNumber: '+49 000 0000000',
-      reason: 'interne Terminüberschneidung',
-    },
+    DEMO_DRAFT_CONTEXT,
     new Date('2026-07-14T08:00:00.000Z'),
   ));
   const canEditDrafts = role !== 'viewer';
 
-  const previewTemplate = () => {
-    setDraft(createLocalCommunicationDraft(templateId, {
-      contactName: 'Synthetischer Kontakt',
-      appointmentDate: '15.07.2026',
-      appointmentTime: '11:00',
-      propertyAddress: 'Beispielstraße 1, 00000 Musterstadt',
-      senderName: 'VINCERE Demo',
-      callbackNumber: '+49 000 0000000',
-      reason: 'interne Terminüberschneidung',
-    }));
-  };
+  const previewTemplate = () => setDraft(createLocalCommunicationDraft(templateId, DEMO_DRAFT_CONTEXT));
 
   return (
     <div className="page-stack communication-hub-page">
@@ -159,7 +148,7 @@ export function CommunicationHubPage({ snapshot, role = 'viewer' }: Communicatio
         <div className="communication-health-score">
           <small>Verbindungen ohne Handlungsbedarf</small>
           <strong>{model.connectionSummary.connected}/{model.connectionSummary.total}</strong>
-          <span>{model.connectionSummary.attentionRequired} Mock-Zustände prüfen</span>
+          <span>{model.failedSynchronizations.length} Synchronisationszustände prüfen</span>
         </div>
       </Card>
 
@@ -173,13 +162,8 @@ export function CommunicationHubPage({ snapshot, role = 'viewer' }: Communicatio
       <div className="communication-dashboard-grid">
         <Card>
           <SectionHeader title="Offene Kommunikation" subtitle="Ungelesene Nachrichten und verpasste Anrufe" />
-          <CommunicationList
-            items={[...model.unreadMessages, ...model.missedCalls]}
-            emptyTitle="Keine offenen Eingänge"
-            emptyText="Im Mock-Datensatz liegt aktuell kein unbearbeitetes Eingangssignal vor."
-          />
+          <CommunicationList items={[...model.unreadMessages, ...model.missedCalls]} emptyTitle="Keine offenen Eingänge" emptyText="Im Mock-Datensatz liegt aktuell kein unbearbeitetes Eingangssignal vor." />
         </Card>
-
         <Card>
           <SectionHeader title="Heutige Termine" subtitle="Bestätigte und abgesagte Kalendereinträge" />
           <div className="appointment-list">
@@ -197,32 +181,21 @@ export function CommunicationHubPage({ snapshot, role = 'viewer' }: Communicatio
       <div className="communication-dashboard-grid">
         <Card>
           <SectionHeader title="Kontakte mit ausstehender Antwort" subtitle="Das letzte relevante Signal kam vom Kontakt" />
-          <CommunicationList
-            items={model.awaitingResponse}
-            emptyTitle="Keine Antwort ausstehend"
-            emptyText="Alle bekannten Konversationen enden aktuell mit einem ausgehenden Signal."
-          />
+          <CommunicationList items={model.awaitingResponse} emptyTitle="Keine Antwort ausstehend" emptyText="Alle bekannten Konversationen enden aktuell mit einem ausgehenden Signal." />
         </Card>
-
         <Card>
           <SectionHeader title="Nicht eindeutig zuordenbar" subtitle="Keine automatische Vermutung und keine Kontaktzusammenführung" />
-          <CommunicationList
-            items={model.unassignedCommunication}
-            emptyTitle="Alle Signale zugeordnet"
-            emptyText="Es gibt keine unbekannte oder widersprüchliche Kommunikation."
-          />
+          <CommunicationList items={model.unassignedCommunication} emptyTitle="Alle Signale zugeordnet" emptyText="Es gibt keine unbekannte oder widersprüchliche Kommunikation." />
         </Card>
       </div>
 
       <Card>
         <SectionHeader title="Provider- und Synchronisationsstatus" subtitle="Verbindung, Authentifizierung, Rate Limit, Cursor und letzter Sync" />
         <div className="provider-grid">
-          {model.providerStatuses.map((provider) => (
+          {model.providersByRecentSync.map((provider) => (
             <article className="provider-card" key={provider.providerKey}>
               <div className="provider-card-head">
-                <span className={`provider-icon provider-${provider.connectionState}`}>
-                  {provider.connectionState === 'offline' || provider.connectionState === 'expired' ? <Unplug size={18} /> : <RefreshCw size={18} />}
-                </span>
+                <span className={`provider-icon provider-${provider.connectionState}`}>{provider.connectionState === 'offline' || provider.connectionState === 'expired' ? <Unplug size={18} /> : <RefreshCw size={18} />}</span>
                 <div><strong>{provider.displayName}</strong><small>{provider.channelLabel}</small></div>
                 <Badge tone={providerTone(provider)}>{provider.connectionState}</Badge>
               </div>
@@ -240,11 +213,7 @@ export function CommunicationHubPage({ snapshot, role = 'viewer' }: Communicatio
 
       <div className="communication-dashboard-grid">
         <Card>
-          <SectionHeader
-            title="Lokale Entwürfe und Vorlagen"
-            subtitle="Nur Vorschau – keine Provideraktion, kein Versand"
-            action={<Badge tone={canEditDrafts ? 'blue' : 'neutral'}>{canEditDrafts ? 'Bearbeitbar' : 'Viewer: nur lesen'}</Badge>}
-          />
+          <SectionHeader title="Lokale Entwürfe und Vorlagen" subtitle="Nur Vorschau – keine Provideraktion, kein Versand" action={<Badge tone={canEditDrafts ? 'blue' : 'neutral'}>{canEditDrafts ? 'Bearbeitbar' : 'Viewer: nur lesen'}</Badge>} />
           <div className="draft-workbench">
             <label>
               Vorlage
@@ -261,7 +230,6 @@ export function CommunicationHubPage({ snapshot, role = 'viewer' }: Communicatio
             </div>
           </div>
         </Card>
-
         <Card>
           <SectionHeader title="Sicherheitsregeln" subtitle="Verbindliche Grenzen dieses Arbeitspakets" />
           <div className="security-rule-list">
@@ -274,16 +242,8 @@ export function CommunicationHubPage({ snapshot, role = 'viewer' }: Communicatio
       </div>
 
       <Card>
-        <SectionHeader
-          title="Gemeinsame Kommunikationshistorie"
-          subtitle="Ein deterministisches View-Modell für Kontaktcockpit und spätere Integrationen"
-          action={<Badge tone="neutral"><Users size={13} /> {model.timeline.length} Ereignisse</Badge>}
-        />
-        <CommunicationList
-          items={model.timeline}
-          emptyTitle="Noch keine Kommunikationshistorie"
-          emptyText="Nach einer sicheren Synchronisation werden normalisierte Ereignisse hier zusammengeführt."
-        />
+        <SectionHeader title="Gemeinsame Kommunikationshistorie" subtitle="Ein deterministisches View-Modell für Kontaktcockpit und spätere Integrationen" action={<Badge tone="neutral"><Users size={13} /> {model.timeline.length} Ereignisse</Badge>} />
+        <CommunicationList items={model.timeline} emptyTitle="Noch keine Kommunikationshistorie" emptyText="Nach einer sicheren Synchronisation werden normalisierte Ereignisse hier zusammengeführt." />
       </Card>
     </div>
   );
