@@ -1,5 +1,6 @@
 import { Badge, Card, SectionHeader } from '../../components/ui';
 import { DOCUMENT_STATUS_DEFINITIONS } from '../../domain/documents/documentModel';
+import './document-status.css';
 
 export function DocumentStatusLegend() {
   return (
