@@ -1,4 +1,4 @@
-name: VINCERE Source Export
+name: VINCERE All Branches Export
 
 on:
   pull_request:
@@ -14,24 +14,127 @@ jobs:
     if: startsWith(github.head_ref, 'feat/vincere-beta-integration') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout migration branch
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Assemble standalone repository
+      - name: Assemble every standalone VINCERE branch
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p export/docs export/.github/workflows
-          cp -R apps/vincere/. export/
-          find docs -maxdepth 1 -type f -name 'VINCERE_*.md' -exec cp {} export/docs/ \;
-          cp .github/workflows/vincere-ci.yml export/.github/workflows/ci.yml
-          rm -f export/.github/workflows/vincere-source-export.yml
 
-      - name: Upload standalone source
+          git fetch --no-tags origin '+refs/heads/feat/vincere-*:refs/remotes/origin/feat/vincere-*'
+
+          mkdir -p bundle/snapshots
+          : > bundle/branches.tsv
+
+          mapfile -t branches < <(
+            git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/feat/vincere-*' | sort
+          )
+
+          if [ "${#branches[@]}" -eq 0 ]; then
+            echo 'No feat/vincere-* branches found.' >&2
+            exit 1
+          fi
+
+          for remote_ref in "${branches[@]}"; do
+            branch="${remote_ref#origin/}"
+            key="$(printf '%s' "$branch" | sed 's#[^A-Za-z0-9._-]#_#g')"
+            snapshot="bundle/snapshots/$key"
+            worktree="$(mktemp -d)"
+
+            mkdir -p "$snapshot/docs" "$snapshot/.github/workflows"
+
+            git archive "$remote_ref" apps/vincere | tar -x -C "$worktree"
+            cp -a "$worktree/apps/vincere/." "$snapshot/"
+
+            while IFS= read -r doc; do
+              [ -n "$doc" ] || continue
+              git show "$remote_ref:$doc" > "$snapshot/docs/$(basename "$doc")"
+            done < <(
+              git ls-tree -r --name-only "$remote_ref" docs 2>/dev/null \
+                | grep -E '^docs/VINCERE_.*\.md$' \
+                || true
+            )
+
+            cat > "$snapshot/.github/workflows/ci.yml" <<'YAML'
+          name: VINCERE CI
+
+          on:
+            pull_request:
+            push:
+              branches:
+                - main
+
+          permissions:
+            contents: read
+
+          jobs:
+            quality:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v4
+                  with:
+                    show-progress: false
+                - uses: actions/setup-node@v4
+                  with:
+                    node-version: 22
+                    cache: npm
+                - name: Install dependencies
+                  run: npm install --no-audit --no-fund --silent
+                - name: Typecheck
+                  run: npm run typecheck
+                - name: Lint
+                  run: npm run lint
+                - name: Tests
+                  run: npm test
+                - name: Production build
+                  run: npm run build
+          YAML
+
+            cat > "$snapshot/.gitignore" <<'EOF'
+          node_modules/
+          dist/
+          .vite/
+          coverage/
+          *.log
+          typecheck-report.txt
+          lint-report.json
+          test-report.json
+          .env
+          .env.*
+          !.env.example
+          EOF
+
+            rm -f \
+              "$snapshot/typecheck-report.txt" \
+              "$snapshot/lint-report.json" \
+              "$snapshot/test-report.json"
+
+            sha="$(git rev-parse "$remote_ref")"
+            printf '%s\t%s\t%s\n' "$key" "$branch" "$sha" >> bundle/branches.tsv
+            rm -rf "$worktree"
+          done
+
+          cat > bundle/README.md <<'EOF'
+          # VINCERE branch migration bundle
+
+          This archive contains one standalone snapshot for every branch whose
+          name starts with `feat/vincere-` in the source repository. The legacy
+          root application and its large root `index.html` are intentionally not
+          included.
+          EOF
+
+          echo "Exported ${#branches[@]} VINCERE branches."
+          cat bundle/branches.tsv
+
+      - name: Upload complete VINCERE branch bundle
         uses: actions/upload-artifact@v4
         with:
-          name: vincere-standalone-source
-          path: export/
+          name: vincere-all-branches
+          path: bundle/
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
