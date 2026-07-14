@@ -11,8 +11,8 @@
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:security": "vitest run tests/runtime-config.test.ts tests/observability.test.ts tests/security-boundaries.test.ts",
-    "test:e2e": "vitest run tests/beta-e2e-contracts.test.ts",
+    "test:security": "vitest run tests/runtime-config.test.ts tests/feature-flags.test.ts tests/observability.test.ts tests/security-boundaries.test.ts",
+    "test:e2e": "vitest run tests/beta-e2e-contracts.test.tsx",
     "audit:beta": "npm run typecheck && npm run lint && npm test && npm run build"
   },
   "dependencies": {
@@ -31,7 +31,7 @@
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "eslint": "10.7.0",
-    "eslint-plugin-react-hooks": "6.9.1",
+    "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-refresh": "0.5.3",
     "globals": "17.7.0",
     "jsdom": "29.1.1",
