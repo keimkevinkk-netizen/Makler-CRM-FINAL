@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildRelationalMutations, SupabaseWorkspaceCloudRepository } from '../src/data/cloudRepository';
+import { buildRelationalMutations, SupabaseWorkspaceCloudRepository, type EntityVersionMap } from '../src/data/cloudRepository';
 import { seedState } from '../src/data/seed';
 import type { SupabaseRuntimeConfig } from '../src/config/runtime';
 
@@ -14,7 +14,7 @@ const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringif
   headers: { 'Content-Type': 'application/json' },
 });
 
-const emptyVersions = () => ({
+const emptyVersions = (): EntityVersionMap => ({
   contacts: {}, followUps: {}, properties: {}, appointments: {}, callEvents: {}, auditEvents: {},
 });
 
