@@ -59,7 +59,8 @@ export function TeamPage() {
   };
 
   useEffect(() => {
-    void refresh();
+    const timer = window.setTimeout(() => void refresh(), 0);
+    return () => window.clearTimeout(timer);
     // The authenticated workspace and role are the intentional refresh boundary.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.membership?.workspaceId, auth.session?.userId, manager]);
