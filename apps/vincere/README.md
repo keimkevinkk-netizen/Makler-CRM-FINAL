@@ -17,7 +17,10 @@ VINCERE ist der modulare React-Neuaufbau des bestehenden MaklerCRM. Die Anwendun
 - Workspace-, Benutzer- und Rollenverträge
 - zentrale Berechtigungsprüfungen für Mutationen
 - lokales Audit-Protokoll
-- Repository-Schnittstelle für den späteren Cloud-Adapter
+- Supabase-Auth-Integration ohne Service-Role-Key im Browser
+- PostgreSQL Row Level Security für echte Workspace-Trennung
+- optimistisch versionierte Cloud-Snapshots mit Konfliktschutz
+- lokaler Cache und Offline-Fallback
 - responsive Desktop- und Mobile-Oberfläche
 - TypeScript, ESLint, Vitest und Vite
 
@@ -27,6 +30,16 @@ VINCERE ist der modulare React-Neuaufbau des bestehenden MaklerCRM. Die Anwendun
 npm install
 npm run dev
 ```
+
+Ohne Cloud-Umgebungsvariablen startet VINCERE bewusst im lokalen Entwicklungsmodus.
+
+Für eine Cloud-Testumgebung:
+
+```bash
+cp .env.example .env.local
+```
+
+Danach ausschließlich `VITE_SUPABASE_URL` und `VITE_SUPABASE_PUBLISHABLE_KEY` setzen. Niemals einen Supabase-Service-Role-Key in einer `VITE_*`-Variable verwenden.
 
 ## Qualität
 
@@ -39,8 +52,12 @@ npm run build
 
 ## Architekturstatus
 
-Diese Version besitzt eine **versionierte lokale Daten- und Identitätsfoundation**. Die React-Oberfläche greift nicht mehr unmittelbar auf einzelne LocalStorage-Schlüssel zu, sondern arbeitet über zentrale Store-Kommandos und ein `WorkspaceRepository`.
+Die React-Oberfläche arbeitet über zentrale Store-Kommandos, ein lokales `WorkspaceRepository` und einen optionalen, authentifizierten Cloud-Adapter. Sobald die Supabase-Konfiguration vorhanden ist, schützt eine Anmeldemaske die Anwendung. Die Workspace-Zugehörigkeit wird aus `workspace_members` geladen und Datenzugriffe werden zusätzlich durch PostgreSQL Row Level Security abgesichert.
 
-Noch nicht enthalten sind eine echte Authentifizierung, serverseitige Rollenprüfung, Cloud-Datenbank, produktive KI-Inferenz, echte Marktanbieter und die kontrollierte Migration der MaklerCRM-Bestandsdaten. Diese Bereiche werden in getrennten, prüfbaren Arbeitspaketen ergänzt.
+Noch nicht enthalten sind ein produktives Supabase-Projekt, produktive Benutzerkonten, MFA/Passkeys, normalisierte Cloud-Tabellen für jedes Fachobjekt, produktive KI-Inferenz, echte Marktanbieter und die kontrollierte Migration der MaklerCRM-Bestandsdaten.
 
-Die Details stehen in `docs/VINCERE_DATA_ARCHITECTURE.md`.
+Weitere Dokumentation:
+
+- `docs/VINCERE_DATA_ARCHITECTURE.md`
+- `docs/VINCERE_CLOUD_AUTH_ARCHITECTURE.md`
+- `supabase/migrations/202607140001_vincere_core.sql`

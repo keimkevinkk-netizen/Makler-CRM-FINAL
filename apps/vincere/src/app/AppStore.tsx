@@ -1,10 +1,22 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { assertPermission } from '../auth/permissions';
+import { useAuth } from '../auth/AuthContext';
+import { supabaseConfig } from '../config/runtime';
+import { SupabaseWorkspaceCloudRepository } from '../data/cloudRepository';
 import { exportState, importState, loadState, resetState, saveState } from '../lib/storage';
 import type { AppState, AuditEntity, AuditEvent, CallEvent, Contact, FollowUp, Property } from '../types/domain';
 
+export interface CloudSyncState {
+  mode: 'local' | 'cloud';
+  status: 'local' | 'loading' | 'saving' | 'synced' | 'offline' | 'conflict' | 'error';
+  version: number;
+  lastSyncedAt?: string;
+  error?: string;
+}
+
 interface AppStoreValue extends AppState {
+  cloudSync: CloudSyncState;
   addContact: (contact: Omit<Contact, 'id' | 'createdAt'>) => Contact;
   updateContact: (id: string, patch: Partial<Contact>) => void;
   addFollowUp: (followUp: Omit<FollowUp, 'id'>) => void;
@@ -47,13 +59,116 @@ function requireContact(state: AppState, contactId: string) {
   }
 }
 
-export function AppStoreProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AppState>(() => loadState());
+function isConflictError(message: string) {
+  return message.toLowerCase().includes('version conflict') || message.toLowerCase().includes('versionskonflikt');
+}
 
-  useEffect(() => saveState(state), [state]);
+export function AppStoreProvider({ children }: { children: ReactNode }) {
+  const auth = useAuth();
+  const cloudRepository = useMemo(() => new SupabaseWorkspaceCloudRepository(supabaseConfig), []);
+  const [state, setState] = useState<AppState>(() => loadState());
+  const stateRef = useRef(state);
+  const [cloudSync, setCloudSync] = useState<CloudSyncState>({ mode: 'local', status: 'local', version: 0 });
+  const cloudVersion = useRef(0);
+  const remoteReady = useRef(false);
+  const skipNextCloudSave = useRef(false);
+
+  useEffect(() => {
+    stateRef.current = state;
+    saveState(state);
+  }, [state]);
+
+  useEffect(() => {
+    let active = true;
+    remoteReady.current = false;
+
+    if (!auth.configured) return;
+
+    const session = auth.session;
+    const membership = auth.membership;
+    if (!session || !membership) return;
+
+    void cloudRepository.load(membership.workspaceId, session.accessToken)
+      .then((remote) => {
+        if (!active) return;
+        if (remote && remote.state.workspace.id !== membership.workspaceId) {
+          throw new Error('Die Cloud-Daten gehören nicht zum angemeldeten Workspace.');
+        }
+
+        const source = remote?.state ?? stateRef.current;
+        const securedState: AppState = {
+          ...source,
+          workspace: { ...source.workspace, id: membership.workspaceId },
+          currentUser: {
+            id: session.userId,
+            workspaceId: membership.workspaceId,
+            name: membership.displayName,
+            email: session.email,
+            role: membership.role,
+          },
+        };
+
+        cloudVersion.current = remote?.version ?? 0;
+        skipNextCloudSave.current = Boolean(remote);
+        remoteReady.current = true;
+        setState(securedState);
+        setCloudSync({
+          mode: 'cloud',
+          status: 'synced',
+          version: cloudVersion.current,
+          lastSyncedAt: remote?.updatedAt,
+        });
+      })
+      .catch((reason: unknown) => {
+        if (!active) return;
+        const message = reason instanceof Error ? reason.message : 'Cloud-Daten konnten nicht geladen werden.';
+        setCloudSync({ mode: 'cloud', status: 'offline', version: cloudVersion.current, error: message });
+      });
+
+    return () => { active = false; };
+  }, [auth.configured, auth.membership, auth.session, cloudRepository]);
+
+  useEffect(() => {
+    const session = auth.session;
+    const membership = auth.membership;
+    if (!auth.configured || !session || !membership || !remoteReady.current) return;
+    if (skipNextCloudSave.current) {
+      skipNextCloudSave.current = false;
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setCloudSync((current) => ({ ...current, mode: 'cloud', status: 'saving', error: undefined }));
+      void cloudRepository.save(
+        membership.workspaceId,
+        state,
+        session.accessToken,
+        cloudVersion.current,
+      ).then((saved) => {
+        cloudVersion.current = saved.version;
+        setCloudSync({
+          mode: 'cloud',
+          status: 'synced',
+          version: saved.version,
+          lastSyncedAt: saved.updatedAt,
+        });
+      }).catch((reason: unknown) => {
+        const message = reason instanceof Error ? reason.message : 'Cloud-Daten konnten nicht gespeichert werden.';
+        setCloudSync({
+          mode: 'cloud',
+          status: isConflictError(message) ? 'conflict' : 'offline',
+          version: cloudVersion.current,
+          error: message,
+        });
+      });
+    }, 700);
+
+    return () => window.clearTimeout(timer);
+  }, [auth.configured, auth.membership, auth.session, cloudRepository, state]);
 
   const value = useMemo<AppStoreValue>(() => ({
     ...state,
+    cloudSync,
     addContact: (input) => {
       assertPermission(state.currentUser, 'contacts:write');
       const contact: Contact = { ...input, id: createId(), createdAt: new Date().toISOString() };
@@ -176,7 +291,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       const reset = { ...loadState(), workspace: state.workspace, currentUser: state.currentUser };
       setState(withAudit(reset, 'workspace', 'demo_reset', 'Die lokalen VINCERE-Demodaten wurden zurückgesetzt.'));
     },
-  }), [state]);
+  }), [cloudSync, state]);
 
   return <AppStoreContext.Provider value={value}>{children}</AppStoreContext.Provider>;
 }
