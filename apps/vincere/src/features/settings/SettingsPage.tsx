@@ -68,9 +68,9 @@ export function SettingsPage() {
           <article>
             <span>{state.cloudSync.status === 'offline' || state.cloudSync.status === 'conflict' ? <WifiOff /> : <Cloud />}</span>
             <div><strong>{syncLabels[state.cloudSync.status]}</strong><p>{state.cloudSync.error ?? (state.cloudSync.lastSyncedAt ? `Letzte Synchronisation: ${new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(state.cloudSync.lastSyncedAt))}` : 'Noch keine Cloud-Synchronisation durchgeführt.')}</p></div>
-            <em>Version {state.cloudSync.version}</em>
+            <em>Revision {state.cloudSync.version}</em>
           </article>
-          <article><span><Database /></span><div><strong>Workspace Repository V{state.schemaVersion}</strong><p>{state.cloudSync.mode === 'cloud' ? 'Lokaler Cache und Cloud-Snapshot sind über eine austauschbare Repository-Schicht verbunden.' : 'Lokaler Adapter bleibt als sichere Entwicklungs- und Offline-Grundlage aktiv.'}</p></div><em>{state.cloudSync.mode === 'cloud' ? 'Cloud' : 'Lokal'}</em></article>
+          <article><span><Database /></span><div><strong>Relationales Workspace Repository V{state.schemaVersion}</strong><p>{state.cloudSync.mode === 'cloud' ? 'Kontakte, Follow-ups, Immobilien, Termine, Telefon- und Auditereignisse werden getrennt und datensatzweise synchronisiert.' : 'Lokaler Adapter bleibt als sichere Entwicklungs- und Offline-Grundlage aktiv.'}</p></div><em>{state.cloudSync.mode === 'cloud' ? 'Cloud' : 'Lokal'}</em></article>
           <article><span><History /></span><div><strong>Änderungsprotokoll</strong><p>{state.auditEvents.length} Audit-Ereignisse. Mutationen werden mit Nutzer, Workspace und Zeitpunkt protokolliert.</p></div><em>Max. 500</em></article>
         </div>
       </Card>
