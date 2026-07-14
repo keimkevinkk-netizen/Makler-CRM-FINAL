@@ -1,10 +1,13 @@
 import type {
   CalendarEntry,
   CommunicationProviderBundle,
+  CreateAppointmentRequest,
+  CreateAppointmentResponse,
   EmailMessage,
   MessagingEvent,
   PhoneEvent,
   ProcessWebhookRequest,
+  ProcessWebhookResponse,
   ProviderAuthenticationStatus,
   ProviderErrorCode,
   ProviderExecutionContext,
@@ -24,9 +27,6 @@ import type {
   SendEmailResponse,
   SendMessageRequest,
   SendMessageResponse,
-  CreateAppointmentRequest,
-  CreateAppointmentResponse,
-  ProcessWebhookResponse,
   WebhookEnvelope,
 } from './contracts';
 
@@ -185,7 +185,7 @@ export class MockCommunicationProvider implements CommunicationProviderBundle {
     const matching = MOCK_EMAIL_MESSAGES
       .filter((message) => !request.unreadOnly || message.unread)
       .filter((message) => new Date(message.occurredAt).getTime() >= sinceMs);
-    const pageSize = Math.max(1, request.pageSize ?? matching.length || 1);
+    const pageSize = Math.max(1, request.pageSize ?? (matching.length || 1));
     return this.execute(context, matching.length > pageSize, () => ({ messages: matching.slice(0, pageSize) }));
   }
 
@@ -219,7 +219,7 @@ export class MockCommunicationProvider implements CommunicationProviderBundle {
   async receivePhoneEvents(request: ReceivePhoneEventsRequest, context: ProviderExecutionContext): Promise<ProviderResult<ReceivePhoneEventsResponse>> {
     const sinceMs = request.since ? new Date(request.since).getTime() : Number.NEGATIVE_INFINITY;
     const matching = MOCK_PHONE_EVENTS.filter((event) => new Date(event.occurredAt).getTime() >= sinceMs);
-    const pageSize = Math.max(1, request.pageSize ?? matching.length || 1);
+    const pageSize = Math.max(1, request.pageSize ?? (matching.length || 1));
     return this.execute(context, matching.length > pageSize, () => ({ events: matching.slice(0, pageSize) }));
   }
 
