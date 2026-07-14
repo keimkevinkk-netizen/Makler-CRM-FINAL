@@ -132,7 +132,7 @@ describe('VINCERE data quality center', () => {
     const result = analyseDataQuality(input({
       contacts: [
         contact('primary', { firstName: 'Anna', lastName: 'Muster', phone: '+49 170 1234567', email: 'same@example.test', city: 'Hanau', notes: 'Hauptkontakt' }),
-        contact('duplicate', { firstName: 'Anna', lastName: 'Muster', phone: '01701234567', email: 'SAME@example.test', city: 'Bruchköbel', notes: 'Zusatzinformation' }),
+        contact('duplicate', { firstName: 'Anna', lastName: 'Muster', phone: '01701234567', email: 'SAME@example.test', city: 'Bruchköbel', notes: 'Zusatzinformation', nextActionAt: undefined }),
       ],
       followUps: [{ id: 'fu', contactId: 'duplicate', title: 'Rückruf', dueAt: '2026-07-16T09:00:00.000Z', priority: 'high', status: 'open', channel: 'phone' }],
       properties: [{ id: 'property', title: 'Objekt', address: 'Musterweg 1', city: 'Hanau', type: 'Haus', status: 'Akquise', estimatedValue: 400000, ownerContactId: 'duplicate' }],
