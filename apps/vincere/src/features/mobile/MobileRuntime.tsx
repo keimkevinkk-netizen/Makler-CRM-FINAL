@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAppStore } from '../../app/AppStore';
 import { usePwaRuntime } from '../../pwa/pwaRuntime';
+import { createMobileIdentityKey, shouldPurgeTemporaryState } from '../../pwa/temporaryState';
 import {
   cancelOfflineAction,
   enqueueOfflineAction,
@@ -49,8 +50,8 @@ export function MobileRuntime() {
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
   const [queue, setQueue] = useState<OfflineQueueItem[]>([]);
   const [drafts, setDrafts] = useState<MobileDraftInput[]>([]);
-  const identityRef = useRef(`${workspace.id}:${currentUser.id}`);
-  const identityKey = `${workspace.id}:${currentUser.id}`;
+  const identityKey = createMobileIdentityKey({ workspaceId: workspace.id, actorId: currentUser.id });
+  const identityRef = useRef<string | undefined>(identityKey);
 
   const clearTemporaryState = useCallback(() => {
     setQueue([]);
@@ -60,7 +61,7 @@ export function MobileRuntime() {
   }, []);
 
   useEffect(() => {
-    if (identityRef.current !== identityKey) {
+    if (shouldPurgeTemporaryState(identityRef.current, identityKey)) {
       identityRef.current = identityKey;
       clearTemporaryState();
     }
