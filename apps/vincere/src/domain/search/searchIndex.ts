@@ -383,8 +383,8 @@ function matchEntry(entry: SearchIndexEntry, rawQuery: string, now: Date): Searc
   const queryPhone = normalizePhone(rawQuery);
   const queryEmail = normalizeEmail(rawQuery);
   const reasons: string[] = [];
-  let score = 0;
-  let directMatch: SearchResult['directMatch'] | null = null;
+  let score: number;
+  let directMatch: SearchResult['directMatch'];
 
   const phoneMatch = queryPhone.length >= 5 && entry.phones.some((phone) => phone === queryPhone || phone.endsWith(queryPhone) || queryPhone.endsWith(phone));
   const emailMatch = queryEmail.includes('@') && entry.emails.includes(queryEmail);
