@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await client.signOut(null);
         const message = reason instanceof Error ? reason.message : 'Die Anmeldung ist fehlgeschlagen.';
         setError(message);
-        throw new Error(message);
+        throw new Error(message, { cause: reason });
       } finally {
         setLoading(false);
       }
