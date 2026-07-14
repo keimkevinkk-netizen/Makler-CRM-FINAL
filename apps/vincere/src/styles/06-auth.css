@@ -1,0 +1,40 @@
+.auth-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(124, 23, 48, .18), transparent 34%),
+    linear-gradient(180deg, #080a0d, #040507);
+}
+
+.auth-card {
+  width: min(100%, 430px);
+  padding: 34px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(145deg, rgba(17, 20, 25, .98), rgba(8, 10, 13, .99));
+  box-shadow: var(--shadow);
+}
+
+.auth-brand { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 28px; }
+.auth-brand strong { display: block; font-family: 'Cormorant Garamond', serif; letter-spacing: .16em; font-size: 25px; color: #e1c27d; line-height: 1; }
+.auth-brand small { display: block; color: #a69b82; letter-spacing: .12em; font-size: 8px; margin-top: 7px; }
+.auth-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 12px; color: var(--gold-light); background: rgba(181, 138, 66, .09); border: 1px solid rgba(181, 138, 66, .18); }
+.auth-card h1 { margin: 20px 0 8px; font-size: 25px; letter-spacing: -.03em; }
+.auth-card > p { margin: 0 0 24px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.auth-card form { display: grid; gap: 15px; }
+.auth-card label { display: grid; gap: 7px; color: #c7c9cd; font-size: 11px; font-weight: 600; }
+.auth-card input { width: 100%; height: 44px; border-radius: 8px; border: 1px solid var(--line-strong); background: rgba(255,255,255,.025); color: var(--text); padding: 0 12px; outline: none; }
+.auth-card input:focus { border-color: rgba(182,43,77,.62); box-shadow: 0 0 0 3px rgba(182,43,77,.10); }
+.auth-card .button { width: 100%; min-height: 44px; margin-top: 4px; }
+.auth-card .button:disabled { opacity: .58; cursor: wait; transform: none; }
+.auth-error { padding: 10px 12px; border: 1px solid rgba(212,68,93,.30); border-radius: 8px; background: rgba(212,68,93,.09); color: #f3a4b2; font-size: 11px; line-height: 1.45; }
+.auth-security-note { display: block; color: var(--muted-2); font-size: 10px; line-height: 1.5; margin-top: 20px; }
+.auth-loading { display: flex; align-items: center; gap: 16px; color: var(--muted); }
+.auth-loading strong { font-size: 13px; font-weight: 500; }
+
+@media (max-width: 560px) {
+  .auth-screen { padding: 16px; }
+  .auth-card { padding: 26px 22px; }
+}
