@@ -9,7 +9,7 @@ import type {
   Property,
 } from '../types/domain';
 import { parseWorkspaceSnapshot } from './repository';
-import { seedState } from './seed';
+import { createEmptyState, seedState } from './seed';
 
 type FetchLike = typeof fetch;
 type CollectionKey = 'contacts' | 'followUps' | 'properties' | 'appointments' | 'callEvents' | 'auditEvents';
@@ -30,6 +30,8 @@ const COLLECTIONS: CollectionDefinition[] = [
 ];
 
 const DELETE_ORDER = [...COLLECTIONS].reverse();
+const READ_PAGE_SIZE = 500;
+const MAX_READ_PAGES = 100;
 
 interface RelationalRow {
   id: string;
@@ -166,6 +168,7 @@ function payloads<T extends CloudEntity>(rows: RelationalRow[]): T[] {
 export class SupabaseWorkspaceCloudRepository {
   private baseline: AppState | null = null;
   private versions: EntityVersionMap = emptyVersions();
+  private activeWorkspaceId: string | null = null;
 
   constructor(
     private readonly config: SupabaseRuntimeConfig,
@@ -176,32 +179,58 @@ export class SupabaseWorkspaceCloudRepository {
     return {
       apikey: this.config.publishableKey,
       Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/json',
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-store',
     };
   }
 
+  private resetWorkspace(workspaceId: string) {
+    this.activeWorkspaceId = workspaceId;
+    this.versions = emptyVersions();
+    this.baseline = createEmptyState({
+      workspace: { ...seedState.workspace, id: workspaceId },
+      currentUser: { ...seedState.currentUser, workspaceId },
+    });
+  }
+
   private async readRows(table: string, workspaceId: string, accessToken: string): Promise<RelationalRow[]> {
+    const rows: RelationalRow[] = [];
     const query = new URLSearchParams({
       select: 'id,payload,version,updated_at',
       workspace_id: `eq.${workspaceId}`,
       order: 'updated_at.asc',
     });
-    const response = await this.fetcher(`${this.config.url}/rest/v1/${table}?${query}`, {
-      headers: this.headers(accessToken),
-    });
-    if (!response.ok) throw new Error(await readError(response));
-    return response.json() as Promise<RelationalRow[]>;
+
+    for (let page = 0; page < MAX_READ_PAGES; page += 1) {
+      const from = page * READ_PAGE_SIZE;
+      const response = await this.fetcher(`${this.config.url}/rest/v1/${table}?${query}`, {
+        headers: {
+          ...this.headers(accessToken),
+          Range: `${from}-${from + READ_PAGE_SIZE - 1}`,
+          'Range-Unit': 'items',
+        },
+        cache: 'no-store',
+      });
+      if (!response.ok) throw new Error(await readError(response));
+      const pageRows = await response.json() as RelationalRow[];
+      rows.push(...pageRows);
+      if (pageRows.length < READ_PAGE_SIZE) return rows;
+    }
+
+    throw new Error(`Die Tabelle ${table} überschreitet das sichere Ladelimit. Eine serverseitige Filter- oder Archivierungsstrategie ist erforderlich.`);
   }
 
   async load(workspaceId: string, accessToken: string): Promise<CloudLoadResult | null> {
     if (!this.config.configured) return null;
+    if (this.activeWorkspaceId !== workspaceId) this.resetWorkspace(workspaceId);
 
     const workspaceQuery = new URLSearchParams({ select: 'id,name,region,created_at', id: `eq.${workspaceId}`, limit: '1' });
     const revisionQuery = new URLSearchParams({ select: 'revision,updated_at', workspace_id: `eq.${workspaceId}`, limit: '1' });
 
     const [workspaceResponse, revisionResponse, ...rows] = await Promise.all([
-      this.fetcher(`${this.config.url}/rest/v1/workspaces?${workspaceQuery}`, { headers: this.headers(accessToken) }),
-      this.fetcher(`${this.config.url}/rest/v1/workspace_sync_revisions?${revisionQuery}`, { headers: this.headers(accessToken) }),
+      this.fetcher(`${this.config.url}/rest/v1/workspaces?${workspaceQuery}`, { headers: this.headers(accessToken), cache: 'no-store' }),
+      this.fetcher(`${this.config.url}/rest/v1/workspace_sync_revisions?${revisionQuery}`, { headers: this.headers(accessToken), cache: 'no-store' }),
       ...COLLECTIONS.map((definition) => this.readRows(definition.table, workspaceId, accessToken)),
     ]);
 
@@ -210,7 +239,10 @@ export class SupabaseWorkspaceCloudRepository {
 
     const workspace = (await workspaceResponse.json() as WorkspaceRow[])[0];
     const revision = (await revisionResponse.json() as RevisionRow[])[0];
-    if (!revision && !rows.some((collection) => collection.length > 0)) return null;
+    if (!revision && !rows.some((collection) => collection.length > 0)) {
+      this.resetWorkspace(workspaceId);
+      return null;
+    }
 
     const state = parseWorkspaceSnapshot({
       ...seedState,
@@ -250,6 +282,12 @@ export class SupabaseWorkspaceCloudRepository {
     expectedVersion: number,
   ): Promise<CloudSaveResult> {
     if (!this.config.configured) throw new Error('Das VINCERE-Cloud-Backend ist nicht konfiguriert.');
+    if (this.activeWorkspaceId !== workspaceId) {
+      throw new Error('Workspace-Wechsel erkannt. Vor dem Speichern müssen die Daten des neuen Workspaces geladen werden.');
+    }
+    if (state.workspace.id !== workspaceId || state.currentUser.workspaceId !== workspaceId) {
+      throw new Error('Workspace-Isolation verletzt: Zustand und aktive Mitgliedschaft stimmen nicht überein.');
+    }
 
     const mutations = buildRelationalMutations(state, this.baseline, this.versions);
     if (mutations.length === 0) return { version: expectedVersion, updatedAt: new Date().toISOString() };
@@ -262,6 +300,7 @@ export class SupabaseWorkspaceCloudRepository {
         p_expected_revision: expectedVersion,
         p_mutations: mutations,
       }),
+      cache: 'no-store',
     });
     if (!response.ok) {
       const message = await readError(response);
