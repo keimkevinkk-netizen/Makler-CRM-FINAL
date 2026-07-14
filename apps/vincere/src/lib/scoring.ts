@@ -1,42 +1,41 @@
+import {
+  prioritizeActions,
+  type PrioritizedAction,
+} from '../domain/next-best-action/engine';
 import type { AppState, Contact, FollowUp } from '../types/domain';
 
-export interface NextBestAction {
-  id: string;
-  contactId: string;
-  title: string;
-  reason: string;
-  score: number;
-  urgency: 'critical' | 'high' | 'normal';
-  dueAt?: string;
+export type NextBestAction = PrioritizedAction;
+
+function scoringState(followUp: FollowUp, contact?: Contact): AppState {
+  const normalizedContact = contact ? { ...contact, id: followUp.contactId } : undefined;
+  return {
+    schemaVersion: 1,
+    workspace: {
+      id: 'scoring-workspace',
+      name: 'Scoring',
+      region: '',
+      createdAt: '1970-01-01T00:00:00.000Z',
+    },
+    currentUser: {
+      id: 'scoring-user',
+      workspaceId: 'scoring-workspace',
+      name: 'Scoring',
+      email: '',
+      role: 'viewer',
+    },
+    contacts: normalizedContact ? [normalizedContact] : [],
+    followUps: [followUp],
+    properties: [],
+    appointments: [],
+    callEvents: [],
+    auditEvents: [],
+  };
 }
 
-const priorityWeight = { high: 30, medium: 16, low: 8 } as const;
-
-export function scoreFollowUp(followUp: FollowUp, contact?: Contact): number {
-  const overdueHours = Math.max(0, (Date.now() - new Date(followUp.dueAt).getTime()) / 3_600_000);
-  const overdueScore = Math.min(35, overdueHours * 1.5);
-  const potentialScore = contact ? contact.potential * 0.35 : 0;
-  return Math.round(priorityWeight[followUp.priority] + overdueScore + potentialScore);
+export function scoreFollowUp(followUp: FollowUp, contact?: Contact, now = Date.now()): number {
+  return prioritizeActions(scoringState(followUp, contact), now)[0]?.score ?? 0;
 }
 
-export function getNextBestActions(state: AppState): NextBestAction[] {
-  return state.followUps
-    .filter((item) => item.status === 'open')
-    .map((followUp) => {
-      const contact = state.contacts.find((item) => item.id === followUp.contactId);
-      const score = scoreFollowUp(followUp, contact);
-      const overdue = new Date(followUp.dueAt).getTime() < Date.now();
-      return {
-        id: followUp.id,
-        contactId: followUp.contactId,
-        title: contact ? `${contact.firstName} ${contact.lastName} anrufen` : followUp.title,
-        reason: overdue
-          ? `${followUp.title} ist überfällig und besitzt hohe Abschlussrelevanz.`
-          : `${followUp.title} ist die nächste geplante Vertriebsaktion.`,
-        score,
-        urgency: overdue && followUp.priority === 'high' ? 'critical' : score >= 65 ? 'high' : 'normal',
-        dueAt: followUp.dueAt,
-      } satisfies NextBestAction;
-    })
-    .sort((a, b) => b.score - a.score);
+export function getNextBestActions(state: AppState, now = Date.now()): NextBestAction[] {
+  return prioritizeActions(state, now);
 }
