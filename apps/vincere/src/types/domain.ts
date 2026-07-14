@@ -3,6 +3,11 @@ export type Priority = 'high' | 'medium' | 'low';
 export type FollowUpStatus = 'open' | 'done';
 export type UserRole = 'owner' | 'admin' | 'agent' | 'viewer';
 
+export interface DomainRecord {
+  id: string;
+  [key: string]: unknown;
+}
+
 export interface Workspace {
   id: string;
   name: string;
@@ -20,7 +25,7 @@ export interface WorkspaceUser {
 
 export type AuditEntity = 'workspace' | 'contact' | 'followup' | 'property' | 'call' | 'backup';
 
-export interface AuditEvent {
+export interface AuditEvent extends DomainRecord {
   id: string;
   actorId: string;
   workspaceId: string;
@@ -31,7 +36,7 @@ export interface AuditEvent {
   createdAt: string;
 }
 
-export interface Contact {
+export interface Contact extends DomainRecord {
   id: string;
   firstName: string;
   lastName: string;
@@ -49,7 +54,7 @@ export interface Contact {
   createdAt: string;
 }
 
-export interface FollowUp {
+export interface FollowUp extends DomainRecord {
   id: string;
   contactId: string;
   title: string;
@@ -59,7 +64,7 @@ export interface FollowUp {
   channel: 'phone' | 'email' | 'meeting';
 }
 
-export interface Property {
+export interface Property extends DomainRecord {
   id: string;
   title: string;
   address: string;
@@ -70,7 +75,7 @@ export interface Property {
   ownerContactId?: string;
 }
 
-export interface Appointment {
+export interface Appointment extends DomainRecord {
   id: string;
   contactId?: string;
   title: string;
@@ -79,7 +84,7 @@ export interface Appointment {
   status: 'now' | 'today' | 'tomorrow';
 }
 
-export interface CallEvent {
+export interface CallEvent extends DomainRecord {
   id: string;
   contactId: string;
   outcome: 'no_answer' | 'conversation' | 'appointment' | 'not_interested';
