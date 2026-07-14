@@ -3,6 +3,7 @@ import { Building2, Cloud, Database, Download, History, LogOut, RotateCcw, Shiel
 import { useAppStore } from '../../app/AppStore';
 import { useAuth } from '../../auth/AuthContext';
 import { Button, Card, SectionHeader } from '../../components/ui';
+import { DataQualityCenter } from '../data-quality/DataQualityCenter';
 import { LegacyMigrationAssistant } from '../migration/LegacyMigrationAssistant';
 
 const roleLabels = {
@@ -86,6 +87,7 @@ export function SettingsPage() {
         {message && <div className="empty-state" role="status">{message}</div>}
       </Card>
 
+      <DataQualityCenter />
       <LegacyMigrationAssistant />
     </div>
   );
