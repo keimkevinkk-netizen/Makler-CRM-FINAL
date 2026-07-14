@@ -2,9 +2,11 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { assertPermission } from '../auth/permissions';
 import { useAuth } from '../auth/AuthContext';
-import { supabaseConfig } from '../config/runtime';
+import { runtimeConfig, supabaseConfig } from '../config/runtime';
 import { SupabaseWorkspaceCloudRepository } from '../data/cloudRepository';
+import { createEmptyState } from '../data/seed';
 import { exportState, importState, loadState, resetState, saveState } from '../lib/storage';
+import { observability, reportError, reportMetric } from '../observability/observability';
 import type { AppState, AuditEntity, AuditEvent, CallEvent, Contact, FollowUp, Property } from '../types/domain';
 
 export interface CloudSyncState {
@@ -69,14 +71,43 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => loadState());
   const stateRef = useRef(state);
   const [cloudSync, setCloudSync] = useState<CloudSyncState>({ mode: 'local', status: 'local', version: 0 });
+  const [connectivityVersion, setConnectivityVersion] = useState(0);
   const cloudVersion = useRef(0);
   const remoteReady = useRef(false);
   const skipNextCloudSave = useRef(false);
 
   useEffect(() => {
     stateRef.current = state;
-    saveState(state);
-  }, [state]);
+    if (!auth.configured || auth.session) saveState(state);
+  }, [auth.configured, auth.session, state]);
+
+  useEffect(() => {
+    const online = () => {
+      setConnectivityVersion((current) => current + 1);
+      observability.capture({ category: 'network', level: 'info', name: 'sync.reconnect-requested' });
+    };
+    const offline = () => {
+      setCloudSync((current) => ({ ...current, status: 'offline', error: 'Keine Netzwerkverbindung.' }));
+    };
+    window.addEventListener('online', online);
+    window.addEventListener('offline', offline);
+    return () => {
+      window.removeEventListener('online', online);
+      window.removeEventListener('offline', offline);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!auth.configured || auth.loading || auth.session) return;
+    remoteReady.current = false;
+    skipNextCloudSave.current = false;
+    cloudVersion.current = 0;
+    resetState();
+    const cleared = createEmptyState();
+    stateRef.current = cleared;
+    setState(cleared);
+    setCloudSync({ mode: 'cloud', status: 'local', version: 0 });
+  }, [auth.configured, auth.loading, auth.session]);
 
   useEffect(() => {
     let active = true;
@@ -88,6 +119,9 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     const membership = auth.membership;
     if (!session || !membership) return;
 
+    const startedAt = performance.now();
+    setCloudSync({ mode: 'cloud', status: 'loading', version: cloudVersion.current });
+
     void cloudRepository.load(membership.workspaceId, session.accessToken)
       .then((remote) => {
         if (!active) return;
@@ -95,7 +129,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           throw new Error('Die Cloud-Daten gehören nicht zum angemeldeten Workspace.');
         }
 
-        const source = remote?.state ?? stateRef.current;
+        const source = remote?.state
+          ?? (runtimeConfig.dataMode === 'demo' ? stateRef.current : createEmptyState());
         const securedState: AppState = {
           ...source,
           workspace: { ...source.workspace, id: membership.workspaceId },
@@ -111,6 +146,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         cloudVersion.current = remote?.version ?? 0;
         skipNextCloudSave.current = Boolean(remote);
         remoteReady.current = true;
+        stateRef.current = securedState;
         setState(securedState);
         setCloudSync({
           mode: 'cloud',
@@ -118,15 +154,17 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           version: cloudVersion.current,
           lastSyncedAt: remote?.updatedAt,
         });
+        reportMetric('sync.initial-load', performance.now() - startedAt, { source: remote ? 'cloud' : 'empty-workspace' });
       })
       .catch((reason: unknown) => {
         if (!active) return;
         const message = reason instanceof Error ? reason.message : 'Cloud-Daten konnten nicht geladen werden.';
+        reportError('sync', 'sync.initial-load', reason);
         setCloudSync({ mode: 'cloud', status: 'offline', version: cloudVersion.current, error: message });
       });
 
     return () => { active = false; };
-  }, [auth.configured, auth.membership, auth.session, cloudRepository]);
+  }, [auth.configured, auth.membership, auth.session, cloudRepository, connectivityVersion]);
 
   useEffect(() => {
     const session = auth.session;
@@ -138,6 +176,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     }
 
     const timer = window.setTimeout(() => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setCloudSync((current) => ({ ...current, mode: 'cloud', status: 'offline', error: 'Keine Netzwerkverbindung.' }));
+        return;
+      }
+
+      const startedAt = performance.now();
       setCloudSync((current) => ({ ...current, mode: 'cloud', status: 'saving', error: undefined }));
       void cloudRepository.save(
         membership.workspaceId,
@@ -152,11 +196,14 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           version: saved.version,
           lastSyncedAt: saved.updatedAt,
         });
+        reportMetric('sync.save', performance.now() - startedAt);
       }).catch((reason: unknown) => {
         const message = reason instanceof Error ? reason.message : 'Cloud-Daten konnten nicht gespeichert werden.';
+        const conflict = isConflictError(message);
+        reportError(conflict ? 'conflict' : 'sync', conflict ? 'sync.version-conflict' : 'sync.save', reason);
         setCloudSync({
           mode: 'cloud',
-          status: isConflictError(message) ? 'conflict' : 'offline',
+          status: conflict ? 'conflict' : 'offline',
           version: cloudVersion.current,
           error: message,
         });
@@ -164,7 +211,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     }, 700);
 
     return () => window.clearTimeout(timer);
-  }, [auth.configured, auth.membership, auth.session, cloudRepository, state]);
+  }, [auth.configured, auth.membership, auth.session, cloudRepository, connectivityVersion, state]);
 
   const value = useMemo<AppStoreValue>(() => ({
     ...state,
@@ -289,7 +336,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       assertPermission(state.currentUser, 'backup:manage');
       resetState();
       const reset = { ...loadState(), workspace: state.workspace, currentUser: state.currentUser };
-      setState(withAudit(reset, 'workspace', 'demo_reset', 'Die lokalen VINCERE-Demodaten wurden zurückgesetzt.'));
+      setState(withAudit(reset, 'workspace', 'demo_reset', runtimeConfig.mockDataEnabled ? 'Die lokalen VINCERE-Demodaten wurden zurückgesetzt.' : 'Die lokalen VINCERE-Daten wurden zurückgesetzt.'));
     },
   }), [cloudSync, state]);
 
