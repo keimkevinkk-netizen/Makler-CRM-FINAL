@@ -1,6 +1,6 @@
 import {
   BarChart3, BookOpen, Building2, CalendarCheck2, ContactRound, House, LayoutDashboard,
-  Megaphone, Network, PhoneCall, Settings, Sparkles, Target,
+  Megaphone, Network, PhoneCall, Settings, ShieldAlert, Sparkles, Target, UsersRound,
 } from 'lucide-react';
 
 export const navigation = [
@@ -14,6 +14,8 @@ export const navigation = [
   { path: '/network', label: 'Netzwerk', icon: Network },
   { path: '/campaigns', label: 'Kampagnen', icon: Megaphone },
   { path: '/knowledge', label: 'Wissen', icon: BookOpen },
+  { path: '/conflicts', label: 'Konfliktzentrale', icon: ShieldAlert },
+  { path: '/team', label: 'Teamverwaltung', icon: UsersRound },
   { path: '/settings', label: 'Einstellungen', icon: Settings },
 ] as const;
 
