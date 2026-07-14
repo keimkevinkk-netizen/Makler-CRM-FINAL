@@ -125,7 +125,7 @@ export function cancelOfflineAction(
     : item);
 }
 
-export function removeCompletedIdentityQueue(
+export function retainOfflineQueueForIdentity(
   queue: OfflineQueueItem[],
   workspaceId: string,
   actorId: string,
