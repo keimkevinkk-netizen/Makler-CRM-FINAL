@@ -161,6 +161,12 @@ function parseTime(value: string | undefined, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function requiredTime(value: string, label: string): number {
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) throw new Error(`${label} muss ein gültiger ISO-Zeitpunkt sein.`);
+  return parsed;
+}
+
 function wholeDaysBetween(later: number, earlier: number): number {
   return Math.max(0, Math.floor((later - earlier) / DAY_MS));
 }
@@ -237,7 +243,7 @@ function assessContact(
   asOf: string,
   config: PrivacyRuleConfig,
 ): ContactPrivacyAssessment {
-  const asOfMs = parseTime(asOf, Date.now());
+  const asOfMs = requiredTime(asOf, 'Bewertungszeitpunkt');
   const lastActivityAt = latestRelevantActivityAt(state, contact);
   const inactiveDays = wholeDaysBetween(asOfMs, parseTime(lastActivityAt, asOfMs));
   const consents = consentChannels.map((channel) => normalizeConsent(channel, metadata?.consents?.[channel]));
@@ -288,6 +294,7 @@ function assessContact(
         code: 'consent_unknown',
         severity: 'medium',
         contactId: contact.id,
+        relatedRecordId: consent.channel,
         category: consent.channel === 'email' ? 'email_addresses' : 'phone_numbers',
         title: `${consent.channel}: Einwilligungsstatus unbekannt`,
         explanation: 'Unbekannt bedeutet nicht erlaubt oder verboten. Vor einer einwilligungsabhängigen Nutzung ist eine fachliche Prüfung erforderlich.',
@@ -299,6 +306,7 @@ function assessContact(
         code: 'consent_withdrawn',
         severity: 'high',
         contactId: contact.id,
+        relatedRecordId: consent.channel,
         category: consent.channel === 'email' ? 'email_addresses' : 'phone_numbers',
         title: `${consent.channel}: Einwilligung widerrufen`,
         explanation: 'Der dokumentierte Widerruf muss in nachgelagerten Kommunikations- und Marketingprozessen berücksichtigt werden.',
@@ -310,6 +318,7 @@ function assessContact(
         code: 'consent_evidence_missing',
         severity: 'high',
         contactId: contact.id,
+        relatedRecordId: consent.channel,
         category: consent.channel === 'email' ? 'email_addresses' : 'phone_numbers',
         title: `${consent.channel}: Nachweis unvollständig`,
         explanation: 'Eine Entscheidung ist eingetragen, aber Datum oder Quelle fehlen. Die technische Anzeige darf deshalb keinen belastbaren Nachweis behaupten.',
@@ -441,6 +450,7 @@ export function buildPrivacyComplianceReport(
   roleDirectory: Readonly<Record<string, UserRole>> = {},
 ): PrivacyComplianceReport {
   assertWorkspaceScope(state, workspaceId);
+  requiredTime(asOf, 'Bewertungszeitpunkt');
   const metadataByContact = new Map<string, ContactPrivacyMetadata>();
   for (const item of metadata) {
     if (item.workspaceId !== workspaceId) {
@@ -512,7 +522,7 @@ function requestBlockers(
   asOf: string,
 ): string[] {
   if (requestType !== 'erasure' && requestType !== 'restriction') return [];
-  const asOfMs = parseTime(asOf, Date.now());
+  const asOfMs = requiredTime(asOf, 'Vorschauzeitpunkt');
   const blockers: string[] = [];
   if (state.followUps.some((item) => item.contactId === contactId && item.status === 'open')) {
     blockers.push('Offene Follow-ups müssen fachlich bewertet werden.');
@@ -536,8 +546,12 @@ export function prepareSubjectRequestPreview(
   asOf: string,
 ): SubjectRequestPreview {
   assertWorkspaceScope(state, input.workspaceId);
+  requiredTime(asOf, 'Vorschauzeitpunkt');
   const contact = state.contacts.find((item) => item.id === input.contactId);
   if (!contact) throw new Error('Kontakt für Betroffenenanfrage nicht gefunden.');
+  if (input.actorId !== state.currentUser.id || input.actorRole !== state.currentUser.role) {
+    throw new Error('Rollenprüfung fehlgeschlagen: Anfragender Benutzer stimmt nicht mit der aktiven Workspace-Identität überein.');
+  }
   const matchingMetadata = metadata.find((item) => item.contactId === input.contactId);
   if (matchingMetadata && matchingMetadata.workspaceId !== input.workspaceId) {
     throw new Error('Workspace-Isolation verletzt: Kontaktmetadaten gehören zu einem anderen Workspace.');
