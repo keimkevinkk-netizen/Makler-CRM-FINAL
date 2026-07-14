@@ -3,6 +3,7 @@ import { Building2, Cloud, Database, Download, History, LogOut, RotateCcw, Shiel
 import { useAppStore } from '../../app/AppStore';
 import { useAuth } from '../../auth/AuthContext';
 import { Button, Card, SectionHeader } from '../../components/ui';
+import { LegacyMigrationAssistant } from '../migration/LegacyMigrationAssistant';
 
 const roleLabels = {
   owner: 'Owner',
@@ -84,6 +85,8 @@ export function SettingsPage() {
         </div>
         {message && <div className="empty-state" role="status">{message}</div>}
       </Card>
+
+      <LegacyMigrationAssistant />
     </div>
   );
 }
