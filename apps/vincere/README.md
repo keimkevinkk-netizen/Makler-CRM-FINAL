@@ -21,6 +21,12 @@ VINCERE ist der modulare React-Neuaufbau des bestehenden MaklerCRM. Die Anwendun
 - PostgreSQL Row Level Security für echte Workspace-Trennung
 - eigene relationale Tabellen für Kontakte, Follow-ups, Immobilien, Termine, Telefon- und Auditereignisse
 - Datensatz- und Workspace-Versionierung gegen stilles Überschreiben
+- workspaceisolierte Realtime-Abonnements mit Channel-Cleanup und kontrolliertem Reconnect
+- sichtbare Offline-, Reconnect- und Fehlerzustände
+- Konfliktzentrale mit lokalem/Cloud-Vergleich und bewussten Lösungsaktionen
+- Teamverwaltung für Owner, Administrator, Makler und Lesezugriff
+- zeitlich begrenzte, gehashte und workspacegebundene Einladungstokens
+- serverseitiger Schutz des letzten aktiven Owners
 - lokaler Cache und Offline-Fallback
 - responsive Desktop- und Mobile-Oberfläche
 - TypeScript, ESLint, Vitest und Vite
@@ -53,16 +59,18 @@ npm run build
 
 ## Architekturstatus
 
-Die React-Oberfläche arbeitet über zentrale Store-Kommandos, ein lokales `WorkspaceRepository` und einen optionalen, authentifizierten Cloud-Adapter. Sobald die Supabase-Konfiguration vorhanden ist, schützt eine Anmeldemaske die Anwendung. Die Workspace-Zugehörigkeit wird aus `workspace_members` geladen und Datenzugriffe werden zusätzlich durch PostgreSQL Row Level Security abgesichert.
+Die React-Oberfläche arbeitet über zentrale Store-Kommandos, ein lokales `WorkspaceRepository` und einen optionalen, authentifizierten Cloud-Adapter. Sobald die Supabase-Konfiguration vorhanden ist, schützt eine Anmeldemaske die Anwendung. Die aktive Workspace-Zugehörigkeit wird aus `workspace_members` geladen und Datenzugriffe werden zusätzlich durch PostgreSQL Row Level Security abgesichert.
 
-Operative Cloud-Daten werden nach der zweiten Migration nicht mehr als ein großer Workspace-Snapshot gespeichert. Der relationale Adapter synchronisiert nur neue, geänderte oder gelöschte Fachdatensätze und prüft dabei sowohl die Workspace-Revision als auch die jeweilige Datensatzversion.
+Operative Cloud-Daten werden relational synchronisiert. Der Adapter schreibt nur neue, geänderte oder gelöschte Fachdatensätze und prüft dabei sowohl die Workspace-Revision als auch die jeweilige Datensatzversion. Realtime-Ereignisse werden ausschließlich für den aktuellen Workspace abonniert. Überschneidet sich ein fremdes Ereignis mit einer unbestätigten lokalen Änderung, blockiert VINCERE die automatische Übernahme und öffnet einen detaillierten Konfliktfall.
 
-Noch nicht enthalten sind ein produktives Supabase-Projekt, produktive Benutzerkonten, MFA/Passkeys, Realtime-Abonnements, eine visuelle Konfliktzusammenführung, produktive KI-Inferenz, echte Marktanbieter und die kontrollierte Migration der MaklerCRM-Bestandsdaten.
+Noch nicht enthalten sind ein produktives Supabase-Projekt, produktive Benutzerkonten, MFA/Passkeys, ein produktiver Einladungs-E-Mail-Dienst, produktive KI-Inferenz, echte Marktanbieter und die kontrollierte Migration der MaklerCRM-Bestandsdaten.
 
 Weitere Dokumentation:
 
 - `docs/VINCERE_DATA_ARCHITECTURE.md`
 - `docs/VINCERE_CLOUD_AUTH_ARCHITECTURE.md`
 - `docs/VINCERE_RELATIONAL_DATA_ARCHITECTURE.md`
+- `docs/VINCERE_REALTIME_TEAM_COLLABORATION.md`
 - `supabase/migrations/202607140001_vincere_core.sql`
 - `supabase/migrations/202607140002_relational_workspace_data.sql`
+- `supabase/migrations/202607140003_realtime_team_collaboration.sql`
