@@ -18,6 +18,20 @@ const emptyVersions = (): EntityVersionMap => ({
   contacts: {}, followUps: {}, properties: {}, appointments: {}, callEvents: {}, auditEvents: {},
 });
 
+function cloudReadResponse(input: string, revision = 7) {
+  if (input.includes('/workspaces?')) return jsonResponse([{
+    id: seedState.workspace.id,
+    name: seedState.workspace.name,
+    region: seedState.workspace.region,
+    created_at: seedState.workspace.createdAt,
+  }]);
+  if (input.includes('/workspace_sync_revisions?')) return jsonResponse([{
+    revision,
+    updated_at: '2026-07-14T08:00:00.000Z',
+  }]);
+  return jsonResponse([]);
+}
+
 describe('SupabaseWorkspaceCloudRepository', () => {
   it('loads relational records only from the requested workspace', async () => {
     const fetcher = vi.fn().mockImplementation((input: string) => {
@@ -52,14 +66,20 @@ describe('SupabaseWorkspaceCloudRepository', () => {
   });
 
   it('saves individual record mutations through the workspace revision RPC', async () => {
-    const fetcher = vi.fn().mockResolvedValue(jsonResponse({
-      revision: 8,
-      updated_at: '2026-07-14T08:05:00.000Z',
-    }));
+    const fetcher = vi.fn().mockImplementation((input: string) => {
+      if (input.includes('/rpc/sync_vincere_records')) return Promise.resolve(jsonResponse({
+        revision: 8,
+        updated_at: '2026-07-14T08:05:00.000Z',
+      }));
+      return Promise.resolve(cloudReadResponse(input));
+    });
     const repository = new SupabaseWorkspaceCloudRepository(config, fetcher);
+    const loaded = await repository.load(seedState.workspace.id, 'access-token');
+    expect(loaded?.version).toBe(7);
 
     const result = await repository.save(seedState.workspace.id, seedState, 'access-token', 7);
-    const request = fetcher.mock.calls[0][1] as RequestInit;
+    const rpcCall = fetcher.mock.calls.find(([url]) => String(url).includes('/rpc/sync_vincere_records'));
+    const request = rpcCall?.[1] as RequestInit;
     const body = JSON.parse(String(request.body)) as {
       p_expected_revision: number;
       p_workspace_id: string;
@@ -67,7 +87,6 @@ describe('SupabaseWorkspaceCloudRepository', () => {
     };
 
     expect(result.version).toBe(8);
-    expect(fetcher.mock.calls[0][0]).toContain('/rest/v1/rpc/sync_vincere_records');
     expect(body.p_expected_revision).toBe(7);
     expect(body.p_workspace_id).toBe(seedState.workspace.id);
     expect(body.p_mutations.some((mutation) => mutation.collection === 'contacts' && mutation.operation === 'upsert')).toBe(true);
@@ -97,10 +116,27 @@ describe('SupabaseWorkspaceCloudRepository', () => {
   });
 
   it('surfaces record or workspace conflicts instead of silently overwriting data', async () => {
-    const fetcher = vi.fn().mockResolvedValue(jsonResponse({ message: 'record version conflict: contacts.c-1' }, 409));
+    const fetcher = vi.fn().mockImplementation((input: string) => {
+      if (input.includes('/rpc/sync_vincere_records')) return Promise.resolve(jsonResponse({ message: 'record version conflict: contacts.c-1' }, 409));
+      return Promise.resolve(cloudReadResponse(input, 2));
+    });
     const repository = new SupabaseWorkspaceCloudRepository(config, fetcher);
+    await repository.load(seedState.workspace.id, 'access-token');
 
     await expect(repository.save(seedState.workspace.id, seedState, 'access-token', 2))
       .rejects.toThrow('record version conflict');
+  });
+
+  it('refuses writes after a workspace switch until the new workspace is loaded', async () => {
+    const fetcher = vi.fn().mockImplementation((input: string) => Promise.resolve(cloudReadResponse(input)));
+    const repository = new SupabaseWorkspaceCloudRepository(config, fetcher);
+    await repository.load(seedState.workspace.id, 'access-token');
+
+    const foreign = structuredClone(seedState);
+    foreign.workspace.id = 'workspace-foreign';
+    foreign.currentUser.workspaceId = 'workspace-foreign';
+
+    await expect(repository.save('workspace-foreign', foreign, 'access-token', 0))
+      .rejects.toThrow(/Workspace-Wechsel/);
   });
 });
