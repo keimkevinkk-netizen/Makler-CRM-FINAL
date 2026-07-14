@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { assertPermission } from '../auth/permissions';
 import { useAuth } from '../auth/AuthContext';
 import {
@@ -119,16 +119,20 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const skipNextCloudSave = useRef(false);
   const localChanges = useRef(new Map<string, string>());
 
-  const markLocalChange = (collection: RealtimeCollectionKey, id: string, changedAt = new Date().toISOString()) => {
+  const markLocalChange = useCallback((collection: RealtimeCollectionKey, id: string, changedAt = new Date().toISOString()) => {
     localChanges.current.set(dirtyKey(collection, id), changedAt);
-  };
+  }, []);
 
-  const markAllLocal = (next: AppState) => {
+  const markAllLocal = useCallback((previous: AppState, next: AppState) => {
     const changedAt = new Date().toISOString();
     (['contacts', 'followUps', 'properties', 'appointments', 'callEvents'] as const).forEach((collection) => {
-      collectionItems(next, collection).forEach((record) => markLocalChange(collection, record.id, changedAt));
+      const ids = new Set([
+        ...collectionItems(previous, collection).map((record) => record.id),
+        ...collectionItems(next, collection).map((record) => record.id),
+      ]);
+      ids.forEach((id) => markLocalChange(collection, id, changedAt));
     });
-  };
+  }, [markLocalChange]);
 
   const clearSavedMutations = (mutations: RelationalMutation[]) => {
     for (const mutation of mutations) {
@@ -145,7 +149,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     let active = true;
     remoteReady.current = false;
     localChanges.current.clear();
-    setConflicts([]);
+    void Promise.resolve().then(() => { if (active) setConflicts([]); });
 
     if (!auth.configured) return;
 
@@ -176,6 +180,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
         cloudVersion.current = remote?.version ?? 0;
         skipNextCloudSave.current = Boolean(remote);
+        if (!remote) markAllLocal(stateRef.current, securedState);
         remoteReady.current = true;
         setRemoteGeneration((current) => current + 1);
         setState(securedState);
@@ -193,7 +198,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       });
 
     return () => { active = false; };
-  }, [auth.configured, auth.membership, auth.session, cloudRepository]);
+  }, [auth.configured, auth.membership, auth.session, cloudRepository, markAllLocal]);
 
   useEffect(() => {
     const session = auth.session;
@@ -481,17 +486,17 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     importSnapshot: (payload) => {
       assertPermission(state.currentUser, 'backup:manage');
       const imported = importState(payload, state.workspace.id);
-      markAllLocal(imported);
+      markAllLocal(stateRef.current, imported);
       setState(withAudit(imported, 'backup', 'imported', 'Eine geprüfte Workspace-Sicherung wurde importiert.'));
     },
     resetDemo: () => {
       assertPermission(state.currentUser, 'backup:manage');
       resetState();
       const reset = { ...loadState(), workspace: state.workspace, currentUser: state.currentUser };
-      markAllLocal(reset);
+      markAllLocal(stateRef.current, reset);
       setState(withAudit(reset, 'workspace', 'demo_reset', 'Die lokalen VINCERE-Demodaten wurden zurückgesetzt.'));
     },
-  }), [cloudRepository, cloudSync, conflicts, realtimeManager, realtimeSync, state]);
+  }), [cloudRepository, cloudSync, conflicts, markAllLocal, markLocalChange, realtimeManager, realtimeSync, state]);
 
   return <AppStoreContext.Provider value={value}>{children}</AppStoreContext.Provider>;
 }
