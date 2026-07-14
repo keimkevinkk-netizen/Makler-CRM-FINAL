@@ -189,6 +189,7 @@ export function evaluateTrainingResponse({ scenario, responses }: EvaluationInpu
   if (unlawfulPromise) totalScore -= 20;
   if (manipulative) totalScore -= 20;
   if (legallyProblematic) totalScore -= 25;
+  if (cleanedResponses.length === 0) totalScore = 0;
   totalScore = Math.max(0, Math.min(100, totalScore));
 
   const strengths = dimensions
