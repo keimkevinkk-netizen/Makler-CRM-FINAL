@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Building2, Check, ClipboardCheck, MapPin, Save, UserRound } from 'lucide-react';
 import { Badge, Button, Card, EmptyState } from '../../components/ui';
 import type { AppointmentBriefing } from '../../domain/appointments/appointmentOperations';
@@ -9,6 +9,10 @@ interface FieldOpsInspectionModeProps {
   onCreateFollowUp: (title: string, dueAt: string) => void;
 }
 
+interface FieldOpsDraftProps extends Omit<FieldOpsInspectionModeProps, 'briefing'> {
+  briefing: AppointmentBriefing;
+}
+
 function defaultFollowUpDate(briefing: AppointmentBriefing): string {
   const base = briefing.startsAt ? new Date(briefing.startsAt) : new Date();
   base.setDate(base.getDate() + 1);
@@ -16,31 +20,18 @@ function defaultFollowUpDate(briefing: AppointmentBriefing): string {
   return new Date(base.getTime() - offset).toISOString().slice(0, 16);
 }
 
-export function FieldOpsInspectionMode({ briefing, canWrite, onCreateFollowUp }: FieldOpsInspectionModeProps) {
+function FieldOpsDraft({ briefing, canWrite, onCreateFollowUp }: FieldOpsDraftProps) {
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
   const [notes, setNotes] = useState('');
   const [result, setResult] = useState('');
   const [nextAction, setNextAction] = useState('');
-  const [dueAt, setDueAt] = useState('');
+  const [dueAt, setDueAt] = useState(() => defaultFollowUpDate(briefing));
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    setCheckedItems({});
-    setNotes('');
-    setResult('');
-    setNextAction('');
-    setMessage('');
-    setDueAt(briefing ? defaultFollowUpDate(briefing) : '');
-  }, [briefing]);
-
   const completed = useMemo(
-    () => briefing?.checklist.filter((_, index) => checkedItems[index]).length ?? 0,
-    [briefing, checkedItems],
+    () => briefing.checklist.filter((_, index) => checkedItems[index]).length,
+    [briefing.checklist, checkedItems],
   );
-
-  if (!briefing) {
-    return <EmptyState title="Kein Termin ausgewählt" text="Wähle einen Termin aus, um den mobilen Außendienstmodus zu öffnen." />;
-  }
 
   const createFollowUp = () => {
     if (!canWrite) {
@@ -125,5 +116,19 @@ export function FieldOpsInspectionMode({ briefing, canWrite, onCreateFollowUp }:
         </Card>
       </div>
     </div>
+  );
+}
+
+export function FieldOpsInspectionMode({ briefing, canWrite, onCreateFollowUp }: FieldOpsInspectionModeProps) {
+  if (!briefing) {
+    return <EmptyState title="Kein Termin ausgewählt" text="Wähle einen Termin aus, um den mobilen Außendienstmodus zu öffnen." />;
+  }
+  return (
+    <FieldOpsDraft
+      key={briefing.appointment.id}
+      briefing={briefing}
+      canWrite={canWrite}
+      onCreateFollowUp={onCreateFollowUp}
+    />
   );
 }
